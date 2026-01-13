@@ -171,12 +171,12 @@
                         <!-- Image Upload Section -->
                         <div>
                             <label class="text-sm font-medium text-slate-700 mb-2 block">รูปภาพประกอบ (ถ้ามี)</label>
-                            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
-                                <div class="flex flex-col items-center justify-center pt-5 pb-6 text-slate-500" id="upload-placeholder">
+                            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors relative overflow-hidden">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6 text-slate-500 transition-opacity duration-300" id="upload-placeholder">
                                     <i class="ph-bold ph-camera text-2xl mb-2"></i>
                                     <p class="text-xs">คลิกเพื่อถ่ายรูป หรือ เลือกรูปภาพ</p>
                                 </div>
-                                <img id="preview-image" class="h-full object-contain hidden p-2">
+                                <img id="preview-image" class="absolute inset-0 w-full h-full object-contain hidden bg-slate-100 p-2">
                                 <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)" />
                             </label>
                         </div>
@@ -277,7 +277,7 @@
     <script>
         // ================= CONFIGURATION =================
         // ใส่ URL ที่ได้จาก Google Apps Script Deploy ตรงนี้
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-ddAdJ6OxJoHgoowyS9Rm0gAVjg6HEXicu8Yj8ddiWKE16azzs9LFf9NaH-mPFNMD/exec'; 
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylc6SXGrQUUuGpFG1NS9kfe8MAuGD2eQIGzciWnpgQz_nghkViitp3oj5eXPLfN8MW/exec'; 
         // =================================================
 
         let allRepairs = [];
@@ -397,20 +397,58 @@
             }
         }
 
-        // --- IMAGE HANDLING ---
+        // --- IMAGE HANDLING (UPDATED: Auto Resize & Compress) ---
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (file) {
-                // Preview
+                // แสดงสถานะว่ากำลังประมวลผลรูป (Optional UI improvement)
+                document.getElementById('upload-placeholder').innerHTML = `<i class="ph ph-spinner animate-spin text-2xl mb-2"></i><p class="text-xs">กำลังย่อรูป...</p>`;
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('preview-image').src = e.target.result;
-                    document.getElementById('preview-image').classList.remove('hidden');
-                    document.getElementById('upload-placeholder').classList.add('hidden');
-                    
-                    // Store Base64 for upload
-                    imageBase64 = e.target.result; 
-                    imageMimeType = file.type;
+                    const img = new Image();
+                    img.onload = function() {
+                        // 1. Create Canvas for resizing
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // 2. Calculate new size (Max 800px)
+                        const MAX_WIDTH = 800;
+                        const MAX_HEIGHT = 800;
+                        
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        // 3. Draw image to canvas
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // 4. Export as compressed JPEG (Quality 0.7)
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        
+                        // 5. Update UI
+                        document.getElementById('preview-image').src = dataUrl;
+                        document.getElementById('preview-image').classList.remove('hidden');
+                        document.getElementById('upload-placeholder').classList.add('hidden');
+                        
+                        // 6. Save data for upload
+                        imageBase64 = dataUrl;
+                        imageMimeType = 'image/jpeg'; // Always send as JPEG
+                    };
+                    img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
             }
@@ -543,6 +581,8 @@
             document.getElementById('createForm').reset();
             document.getElementById('preview-image').classList.add('hidden');
             document.getElementById('upload-placeholder').classList.remove('hidden');
+            // Restore placeholder text
+            document.getElementById('upload-placeholder').innerHTML = `<i class="ph-bold ph-camera text-2xl mb-2"></i><p class="text-xs">คลิกเพื่อถ่ายรูป หรือ เลือกรูปภาพ</p>`;
             imageBase64 = null;
         }
         function closeUpdateModal() { document.getElementById('updateModal').classList.add('hidden'); }
