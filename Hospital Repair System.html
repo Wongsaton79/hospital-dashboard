@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repair IT - ระบบแจ้งซ่อมโรงพยาบาล</title>
+    
+    <!-- Google Fonts: Prompt for Modern Thai Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons (High Quality Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- SweetAlert2 for beautiful alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#0f172a', // Deep Navy
+                        secondary: '#334155', // Slate
+                        accent: '#d97706', // Premium Gold
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        bgLight: '#f8fafc',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #f1f5f9; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-700 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-primary text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center text-white shadow-md">
+                        <i class="ph-fill ph-wrench text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight">Repair IT</h1>
+                        <p class="text-xs text-slate-300 font-light">ระบบแจ้งซ่อมออนไลน์</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="hidden md:block text-right">
+                        <p class="text-sm font-medium">เจ้าหน้าที่พยาบาล</p>
+                        <p class="text-xs text-slate-400">แผนกฉุกเฉิน</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-slate-600 border-2 border-slate-500 overflow-hidden">
+                        <img src="https://ui-avatars.com/api/?name=Nurse+User&background=random" alt="User" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <!-- Card 1 -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-slate-400 text-xs uppercase tracking-wider font-semibold">งานทั้งหมด</p>
+                        <h3 class="text-2xl font-bold text-primary mt-1" id="stat-total">0</h3>
+                    </div>
+                    <div class="p-2 bg-slate-100 rounded-lg text-slate-500">
+                        <i class="ph ph-clipboard-text text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 2 -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-slate-400 text-xs uppercase tracking-wider font-semibold">รอดำเนินการ</p>
+                        <h3 class="text-2xl font-bold text-warning mt-1" id="stat-pending">0</h3>
+                    </div>
+                    <div class="p-2 bg-orange-50 rounded-lg text-warning">
+                        <i class="ph ph-clock text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 3 -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-slate-400 text-xs uppercase tracking-wider font-semibold">กำลังซ่อม</p>
+                        <h3 class="text-2xl font-bold text-blue-500 mt-1" id="stat-progress">0</h3>
+                    </div>
+                    <div class="p-2 bg-blue-50 rounded-lg text-blue-500">
+                        <i class="ph ph-gear-six text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 4 -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-slate-400 text-xs uppercase tracking-wider font-semibold">เสร็จสิ้น</p>
+                        <h3 class="text-2xl font-bold text-success mt-1" id="stat-completed">0</h3>
+                    </div>
+                    <div class="p-2 bg-green-50 rounded-lg text-success">
+                        <i class="ph ph-check-circle text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters & Actions -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <div class="flex gap-2 bg-white p-1 rounded-xl shadow-sm border border-slate-200 w-full md:w-auto">
+                <button onclick="filterStatus('all')" class="filter-btn active flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-primary text-white shadow">ทั้งหมด</button>
+                <button onclick="filterStatus('pending')" class="filter-btn flex-1 px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-50 transition-all">รอซ่อม</button>
+                <button onclick="filterStatus('completed')" class="filter-btn flex-1 px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-50 transition-all">เสร็จสิ้น</button>
+            </div>
+            
+            <button onclick="openModal()" class="w-full md:w-auto bg-accent hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 font-medium transition-all transform hover:-translate-y-0.5">
+                <i class="ph-bold ph-plus"></i> แจ้งซ่อมใหม่
+            </button>
+        </div>
+
+        <!-- Ticket Grid -->
+        <div id="ticket-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Loading State -->
+            <div class="col-span-full text-center py-20 text-slate-400">
+                <i class="ph ph-spinner animate-spin text-4xl mb-2"></i>
+                <p>กำลังโหลดข้อมูล...</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Form -->
+    <div id="repairModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                    
+                    <!-- Header -->
+                    <div class="bg-primary px-4 py-4 sm:px-6 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold leading-6 text-white flex items-center gap-2">
+                            <i class="ph-bold ph-wrench"></i> ฟอร์มแจ้งซ่อม
+                        </h3>
+                        <button onclick="closeModal()" class="text-slate-300 hover:text-white transition-colors">
+                            <i class="ph-bold ph-x text-xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Form Content -->
+                    <div class="px-4 py-6 sm:p-6 bg-slate-50">
+                        <form id="repairForm" onsubmit="submitRepair(event)">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อผู้แจ้ง</label>
+                                    <input type="text" name="requester" required class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-accent focus:ring-accent py-2.5 px-3 border" placeholder="ระบุชื่อ-นามสกุล">
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">อาคาร/ตึก</label>
+                                        <select name="building" class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-accent focus:ring-accent py-2.5 px-3 border">
+                                            <option>ตึกผู้ป่วยนอก (OPD)</option>
+                                            <option>ตึกผู้ป่วยใน (IPD)</option>
+                                            <option>อาคารอำนวยการ</option>
+                                            <option>ห้องฉุกเฉิน (ER)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">ประเภทงาน</label>
+                                        <select name="category" class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-accent focus:ring-accent py-2.5 px-3 border">
+                                            <option>ไฟฟ้า/แสงสว่าง</option>
+                                            <option>ประปา/ห้องน้ำ</option>
+                                            <option>เครื่องปรับอากาศ</option>
+                                            <option>อุปกรณ์การแพทย์</option>
+                                            <option>คอมพิวเตอร์/IT</option>
+                                            <option>อาคารสถานที่</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">สถานที่/ห้อง</label>
+                                    <input type="text" name="location" required class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-accent focus:ring-accent py-2.5 px-3 border" placeholder="เช่น ห้องตรวจ 5, ห้องน้ำชั้น 2">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">รายละเอียดปัญหา</label>
+                                    <textarea name="description" rows="3" required class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-accent focus:ring-accent py-2.5 px-3 border" placeholder="ระบุรายละเอียดอาการเสีย..."></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">เบอร์ติดต่อกลับ</label>
+                                    <input type="tel" name="contact" class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-accent focus:ring-accent py-2.5 px-3 border" placeholder="เช่น 08x-xxx-xxxx หรือ เบอร์ภายใน">
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 flex gap-3">
+                                <button type="button" onclick="closeModal()" class="flex-1 bg-white text-slate-700 font-medium py-2.5 px-4 rounded-xl border border-slate-300 hover:bg-slate-50 transition-all">ยกเลิก</button>
+                                <button type="submit" id="submitBtn" class="flex-1 bg-primary text-white font-medium py-2.5 px-4 rounded-xl shadow-lg hover:bg-slate-800 transition-all flex justify-center items-center gap-2">
+                                    <span>ยืนยันการแจ้ง</span>
+                                    <i class="ph-bold ph-paper-plane-right"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        // ตรงนี้คือ URL ที่คุณจะได้จากการ Deploy Google Apps Script (ในขั้นตอนถัดไป)
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeTdTzsScozOnsllwHicgDE7pEFK2uuSJ9vYn6W-kEr58ZZ90LcskEXIJ2s30q9C2I9w/exec'; 
+
+        // --- MOCK DATA (สำหรับแสดงผลตอนยังไม่ต่อ Database) ---
+        let repairs = [
+            { id: 'RP-001', date: '2023-10-25 09:00', requester: 'สมศรี พยาบาล', building: 'OPD', category: 'เครื่องปรับอากาศ', location: 'ห้องตรวจ 3', description: 'แอร์ไม่เย็น มีน้ำหยด', status: 'pending', technician: '-' },
+            { id: 'RP-002', date: '2023-10-24 14:30', requester: 'นพ. สมชาย', building: 'ER', category: 'ไฟฟ้า/แสงสว่าง', location: 'ห้องผ่าตัดเล็ก', description: 'ไฟกระพริบ', status: 'in-progress', technician: 'ช่างหนึ่ง' },
+            { id: 'RP-003', date: '2023-10-23 10:15', requester: 'คุณวิภา', building: 'อาคารอำนวยการ', category: 'ประปา/ห้องน้ำ', location: 'ห้องน้ำหญิง ชั้น 1', description: 'ก๊อกน้ำรั่ว', status: 'completed', technician: 'ช่างสอง' },
+            { id: 'RP-004', date: '2023-10-23 08:00', requester: 'แผนก IT', building: 'IPD', category: 'คอมพิวเตอร์/IT', location: 'เคาน์เตอร์พยาบาล', description: 'Printer ปริ้นไม่ออก', status: 'completed', technician: 'Admin' },
+        ];
+
+        // --- CORE FUNCTIONS ---
+
+        function init() {
+            // ในการใช้งานจริง ให้เรียก fetchData() แทนการใช้ mock data
+            // fetchData(); 
+            renderStats();
+            renderTickets(repairs);
+        }
+
+        // Render Cards
+        function renderTickets(data) {
+            const grid = document.getElementById('ticket-grid');
+            grid.innerHTML = '';
+
+            if(data.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">ไม่พบข้อมูล</div>`;
+                return;
+            }
+
+            data.forEach(item => {
+                const statusConfig = getStatusConfig(item.status);
+                
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow duration-300';
+                card.innerHTML = `
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded uppercase tracking-wide">${item.id}</span>
+                            <span class="${statusConfig.class} status-badge flex items-center gap-1">
+                                <i class="${statusConfig.icon}"></i> ${statusConfig.text}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-1">
+                             <span class="text-xs font-semibold text-accent uppercase tracking-wide">${item.category}</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-lg mb-1">${item.location}</h4>
+                        <p class="text-slate-500 text-sm mb-4 line-clamp-2">${item.description}</p>
+                        
+                        <div class="border-t border-slate-100 pt-3 mt-2 flex justify-between items-center text-xs text-slate-400">
+                            <div class="flex items-center gap-1">
+                                <i class="ph-fill ph-user"></i> ${item.requester}
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <i class="ph-fill ph-calendar"></i> ${item.date.split(' ')[0]}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-5 py-2 border-t border-slate-100 text-xs flex justify-between items-center">
+                        <span class="text-slate-500">ผู้รับผิดชอบ: <span class="font-medium text-slate-700">${item.technician || '-'}</span></span>
+                        <button class="text-accent font-medium hover:underline">ดูรายละเอียด</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Render Stats
+        function renderStats() {
+            document.getElementById('stat-total').innerText = repairs.length;
+            document.getElementById('stat-pending').innerText = repairs.filter(r => r.status === 'pending').length;
+            document.getElementById('stat-progress').innerText = repairs.filter(r => r.status === 'in-progress').length;
+            document.getElementById('stat-completed').innerText = repairs.filter(r => r.status === 'completed').length;
+        }
+
+        // Helper for Status UI
+        function getStatusConfig(status) {
+            switch(status) {
+                case 'pending': return { class: 'bg-orange-100 text-orange-700', text: 'รอรับเรื่อง', icon: 'ph-fill ph-clock' };
+                case 'in-progress': return { class: 'bg-blue-100 text-blue-700', text: 'กำลังซ่อม', icon: 'ph-fill ph-gear-six' };
+                case 'completed': return { class: 'bg-green-100 text-green-700', text: 'เสร็จสิ้น', icon: 'ph-fill ph-check-circle' };
+                default: return { class: 'bg-slate-100 text-slate-700', text: status, icon: 'ph-fill ph-question' };
+            }
+        }
+
+        // Filter Function
+        function filterStatus(status) {
+            // Update Buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-primary', 'text-white', 'shadow');
+                btn.classList.add('text-slate-500');
+            });
+            event.target.classList.remove('text-slate-500');
+            event.target.classList.add('bg-primary', 'text-white', 'shadow');
+
+            // Filter Data
+            if (status === 'all') {
+                renderTickets(repairs);
+            } else {
+                const filtered = repairs.filter(item => item.status === status || (status === 'pending' && item.status === 'pending')); // Adjust logic as needed
+                renderTickets(filtered);
+            }
+        }
+
+        // --- MODAL & FORM ---
+
+        function openModal() {
+            document.getElementById('repairModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('repairModal').classList.add('hidden');
+            document.getElementById('repairForm').reset();
+        }
+
+        // Submit Logic (Simulated for Frontend)
+        function submitRepair(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            const originalBtnText = btn.innerHTML;
+            btn.innerHTML = `<i class="ph ph-spinner animate-spin"></i> กำลังบันทึก...`;
+            btn.disabled = true;
+
+            // Collect Data
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            // Add generated fields
+            const newRepair = {
+                id: `RP-${String(repairs.length + 1).padStart(3, '0')}`,
+                date: new Date().toLocaleString('th-TH'),
+                status: 'pending',
+                technician: '-',
+                ...data
+            };
+
+            // Simulate API Call delay
+            setTimeout(() => {
+                // 1. Add to local array (Mock)
+                repairs.unshift(newRepair);
+                
+                // 2. Update UI
+                renderStats();
+                renderTickets(repairs);
+                closeModal();
+                
+                // 3. Reset Button
+                btn.innerHTML = originalBtnText;
+                btn.disabled = false;
+
+                // 4. Success Alert
+                Swal.fire({
+                    icon: 'success',
+                    title: 'แจ้งซ่อมสำเร็จ!',
+                    text: 'เจ้าหน้าที่ได้รับข้อมูลเรียบร้อยแล้ว',
+                    confirmButtonColor: '#0f172a',
+                    confirmButtonText: 'ตกลง'
+                });
+
+                // --- REAL INTEGRATION NOTE ---
+                // เมื่อคุณมี URL จาก Google Script ให้ใช้โค้ดนี้แทน setTimeout:
+                /*
+                fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // สำคัญสำหรับ Google Script
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newRepair)
+                }).then(() => { ... success logic ... });
+                */
+
+            }, 1000);
+        }
+
+        // Start App
+        init();
+
+    </script>
+</body>
+</html>
