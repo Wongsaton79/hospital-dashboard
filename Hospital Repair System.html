@@ -3,19 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repair IT - ระบบแจ้งซ่อมโรงพยาบาล</title>
+    <title>Repair IT - Hospital Dashboard</title>
     
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Phosphor Icons -->
+    <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -31,92 +26,198 @@
                         success: '#10b981',
                         warning: '#f59e0b',
                         danger: '#ef4444',
-                        info: '#3b82f6'
+                        info: '#3b82f6',
+                        bgLight: '#f1f5f9'
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #f8fafc; }
-        .status-badge { @apply px-2 py-1 rounded text-xs font-bold uppercase tracking-wide; }
-        .loading-overlay {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(4px);
-        }
-        /* Hide file input */
-        input[type="file"]::file-selector-button {
-            display: none;
-        }
+        body { background-color: #f1f5f9; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .filter-btn.active { @apply bg-primary text-white shadow-lg ring-2 ring-primary ring-offset-2; }
+        /* Style สำหรับ Card ที่ถูกเลือก */
+        .stat-card.active-card { @apply ring-4 ring-offset-2 transform scale-105; }
+        .stat-card.active-card#card-all { @apply ring-slate-400; }
+        .stat-card.active-card#card-pending { @apply ring-warning; }
+        .stat-card.active-card#card-progress { @apply ring-info; }
+        .stat-card.active-card#card-completed { @apply ring-success; }
     </style>
 </head>
 <body class="text-slate-700 min-h-screen flex flex-col">
 
     <!-- Navbar -->
     <nav class="bg-primary text-white shadow-lg sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center text-white shadow-md">
-                        <i class="ph-fill ph-wrench text-2xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-lg leading-tight">Repair IT</h1>
-                        <p class="text-xs text-slate-300 font-light">ระบบแจ้งซ่อมออนไลน์</p>
-                    </div>
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center text-white shadow-md">
+                    <i class="ph-fill ph-first-aid text-2xl"></i>
                 </div>
-                <button onclick="fetchData()" class="p-2 bg-slate-700 rounded-full hover:bg-slate-600 transition-colors" title="รีเฟรชข้อมูล">
-                    <i class="ph-bold ph-arrows-clockwise text-white"></i>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Repair IT</h1>
+                    <p class="text-xs text-slate-300 font-light opacity-80">ระบบบริหารงานซ่อมบำรุง</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="fetchData()" class="p-2 hover:bg-slate-700 rounded-full transition-colors" title="รีเฟรช">
+                    <i class="ph-bold ph-arrows-clockwise text-xl"></i>
                 </button>
             </div>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full relative">
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-6 w-full space-y-6">
+
+        <!-- Date Filter Bar -->
+        <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-2 justify-center md:justify-start">
+            <button onclick="setDateFilter('thisMonth')" id="btn-thisMonth" class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-100">เดือนนี้</button>
+            <button onclick="setDateFilter('lastMonth')" id="btn-lastMonth" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-100">เดือนที่แล้ว</button>
+            <button onclick="setDateFilter('thisYear')" id="btn-thisYear" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-100">ปีนี้</button>
+            <button onclick="setDateFilter('all')" id="btn-all" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-100">ทั้งหมด</button>
+        </div>
         
-        <!-- Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div onclick="filterStatus('all')" class="cursor-pointer bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
-                <p class="text-slate-400 text-xs font-semibold uppercase">งานทั้งหมด</p>
-                <h3 class="text-2xl font-bold text-primary mt-1" id="stat-total">-</h3>
+        <!-- Key Metrics (Cards) - Clickable -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Card Total -->
+            <div id="card-all" onclick="setStatusFilter('all')" class="stat-card active-card bg-white p-5 rounded-2xl shadow-sm border-l-4 border-primary flex justify-between items-center cursor-pointer transition-all hover:shadow-md">
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">งานทั้งหมด</p>
+                    <h3 class="text-3xl font-bold text-primary mt-1" id="stat-total">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-primary">
+                    <i class="ph-fill ph-clipboard-text text-xl"></i>
+                </div>
             </div>
-            <div onclick="filterStatus('pending')" class="cursor-pointer bg-white p-5 rounded-2xl shadow-sm border-b-4 border-warning hover:shadow-md transition-all">
-                <p class="text-slate-400 text-xs font-semibold uppercase">รอรับเรื่อง</p>
-                <h3 class="text-2xl font-bold text-warning mt-1" id="stat-pending">-</h3>
+            <!-- Card Pending -->
+            <div id="card-pending" onclick="setStatusFilter('pending')" class="stat-card bg-white p-5 rounded-2xl shadow-sm border-l-4 border-warning flex justify-between items-center cursor-pointer transition-all hover:shadow-md">
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">รอรับเรื่อง</p>
+                    <h3 class="text-3xl font-bold text-warning mt-1" id="stat-pending">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-warning">
+                    <i class="ph-fill ph-clock text-xl"></i>
+                </div>
             </div>
-            <div onclick="filterStatus('in-progress')" class="cursor-pointer bg-white p-5 rounded-2xl shadow-sm border-b-4 border-info hover:shadow-md transition-all">
-                <p class="text-slate-400 text-xs font-semibold uppercase">กำลังซ่อม</p>
-                <h3 class="text-2xl font-bold text-info mt-1" id="stat-progress">-</h3>
+            <!-- Card In Progress -->
+            <div id="card-progress" onclick="setStatusFilter('in-progress')" class="stat-card bg-white p-5 rounded-2xl shadow-sm border-l-4 border-info flex justify-between items-center cursor-pointer transition-all hover:shadow-md">
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">กำลังซ่อม</p>
+                    <h3 class="text-3xl font-bold text-info mt-1" id="stat-progress">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-info">
+                    <i class="ph-fill ph-gear-six text-xl"></i>
+                </div>
             </div>
-            <div onclick="filterStatus('completed')" class="cursor-pointer bg-white p-5 rounded-2xl shadow-sm border-b-4 border-success hover:shadow-md transition-all">
-                <p class="text-slate-400 text-xs font-semibold uppercase">เสร็จสิ้น</p>
-                <h3 class="text-2xl font-bold text-success mt-1" id="stat-completed">-</h3>
+            <!-- Card Completed -->
+            <div id="card-completed" onclick="setStatusFilter('completed')" class="stat-card bg-white p-5 rounded-2xl shadow-sm border-l-4 border-success flex justify-between items-center cursor-pointer transition-all hover:shadow-md">
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">สำเร็จ</p>
+                    <h3 class="text-3xl font-bold text-success mt-1" id="stat-completed">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-success">
+                    <i class="ph-fill ph-check-circle text-xl"></i>
+                </div>
             </div>
         </div>
 
-        <!-- Action Bar -->
-        <div class="flex justify-between items-center mb-6">
+        <!-- Analytics Dashboard Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- 1. Top Problems (Category) -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="ph-fill ph-chart-bar text-accent"></i> ปัญหาที่พบบ่อย
+                </h3>
+                <div id="category-stats" class="space-y-4">
+                    <!-- Dynamic Content -->
+                    <div class="animate-pulse flex space-x-4">
+                        <div class="flex-1 space-y-4 py-1">
+                            <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+                            <div class="h-4 bg-slate-200 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Technician Performance -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="ph-fill ph-users-three text-blue-500"></i> ผลงานทีมช่าง
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-slate-400 uppercase bg-slate-50">
+                            <tr>
+                                <th class="px-3 py-2 rounded-l-lg">ชื่อช่าง</th>
+                                <th class="px-3 py-2 text-center">งาน</th>
+                                <th class="px-3 py-2 rounded-r-lg text-center">เสร็จสิ้น</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tech-stats">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. Time Analysis & Success Rate -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="ph-fill ph-timer text-green-500"></i> ประสิทธิภาพ
+                </h3>
+                
+                <div class="space-y-6">
+                    <!-- Success Rate Circle -->
+                    <div class="flex items-center justify-center">
+                        <div class="text-center">
+                            <h4 class="text-4xl font-bold text-primary" id="success-rate">0%</h4>
+                            <p class="text-xs text-slate-400 mt-1">อัตราความสำเร็จ (งานเสร็จ/ทั้งหมด)</p>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-4 space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">เร็วที่สุด (ชม.)</span>
+                            <span class="font-bold text-success" id="time-min">-</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">เฉลี่ย (ชม.)</span>
+                            <span class="font-bold text-primary text-lg" id="time-avg">-</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">ช้าที่สุด (ชม.)</span>
+                            <span class="font-bold text-danger" id="time-max">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ticket List Header -->
+        <div class="flex justify-between items-center pt-4">
             <h2 class="text-xl font-bold text-primary flex items-center gap-2">
-                <i class="ph-fill ph-list-dashes"></i> รายการแจ้งซ่อม
+                <i class="ph-fill ph-list-dashes"></i> รายการแจ้งซ่อม <span id="list-filter-label" class="text-sm font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded ml-2">ทั้งหมด</span>
             </h2>
-            <button onclick="openCreateModal()" class="bg-accent hover:bg-amber-700 text-white px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 font-medium transition-transform transform hover:scale-105 active:scale-95">
-                <i class="ph-bold ph-plus"></i> แจ้งซ่อมใหม่
+            <button onclick="openCreateModal()" class="bg-accent hover:bg-amber-700 text-white px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 font-medium transition-all transform hover:scale-105 active:scale-95">
+                <i class="ph-bold ph-plus"></i> แจ้งซ่อม
             </button>
         </div>
 
-        <!-- Content Grid -->
+        <!-- Ticket Grid -->
         <div id="ticket-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
-            <!-- Loading Skeleton -->
+            <!-- Loading -->
             <div class="col-span-full text-center py-20">
                 <i class="ph ph-spinner animate-spin text-4xl text-accent mb-4"></i>
-                <p class="text-slate-500">กำลังเชื่อมต่อฐานข้อมูล Google Sheets...</p>
+                <p class="text-slate-500">กำลังเชื่อมต่อฐานข้อมูล...</p>
             </div>
         </div>
 
     </main>
 
-    <!-- 1. CREATE MODAL (ฟอร์มแจ้งซ่อม) -->
+    <!-- Modals (Create & Update) -->
+    <!-- Create Modal -->
     <div id="createModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeCreateModal()"></div>
         <div class="fixed inset-0 z-10 overflow-y-auto">
@@ -127,146 +228,82 @@
                         <button onclick="closeCreateModal()" class="hover:text-accent"><i class="ph-bold ph-x text-xl"></i></button>
                     </div>
                     <form id="createForm" onsubmit="submitRepair(event)" class="p-6 space-y-4">
+                        <!-- Input Fields -->
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-sm font-medium text-slate-700">ชื่อผู้แจ้ง</label>
-                                <input type="text" name="requester" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent">
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-slate-700">เบอร์ติดต่อ</label>
-                                <input type="text" name="contact" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent">
-                            </div>
+                            <div><label class="text-sm font-medium text-slate-700">ชื่อผู้แจ้ง</label><input type="text" name="requester" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-accent"></div>
+                            <div><label class="text-sm font-medium text-slate-700">เบอร์ติดต่อ</label><input type="text" name="contact" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-accent"></div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-sm font-medium text-slate-700">อาคาร/ตึก</label>
-                                <select name="building" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent">
-                                    <option>ตึกผู้ป่วยนอก (OPD)</option>
-                                    <option>ตึกผู้ป่วยใน (IPD)</option>
-                                    <option>อาคารอำนวยการ</option>
-                                    <option>ห้องฉุกเฉิน (ER)</option>
+                                <select name="building" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-accent">
+                                    <option>ตึกผู้ป่วยนอก (OPD)</option><option>ตึกผู้ป่วยใน (IPD)</option><option>อาคารอำนวยการ</option><option>ห้องฉุกเฉิน (ER)</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="text-sm font-medium text-slate-700">ประเภท</label>
-                                <select name="category" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent">
-                                    <option>ไฟฟ้า/แสงสว่าง</option>
-                                    <option>ประปา/ห้องน้ำ</option>
-                                    <option>เครื่องปรับอากาศ</option>
-                                    <option>อุปกรณ์การแพทย์</option>
-                                    <option>คอมพิวเตอร์/IT</option>
-                                    <option>อาคารสถานที่</option>
+                                <select name="category" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-accent">
+                                    <option>ไฟฟ้า/แสงสว่าง</option><option>ประปา/ห้องน้ำ</option><option>เครื่องปรับอากาศ</option><option>อุปกรณ์การแพทย์</option><option>คอมพิวเตอร์/IT</option><option>อาคารสถานที่</option>
                                 </select>
                             </div>
                         </div>
+                        <div><label class="text-sm font-medium text-slate-700">สถานที่</label><input type="text" name="location" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-accent"></div>
+                        <div><label class="text-sm font-medium text-slate-700">รายละเอียด</label><textarea name="description" rows="3" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-accent"></textarea></div>
                         <div>
-                            <label class="text-sm font-medium text-slate-700">สถานที่ระบุชัดเจน</label>
-                            <input type="text" name="location" required placeholder="เช่น ห้อง 101, หน้าลิฟต์ชั้น 2" class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent">
-                        </div>
-                        <div>
-                            <label class="text-sm font-medium text-slate-700">รายละเอียดปัญหา</label>
-                            <textarea name="description" rows="3" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"></textarea>
-                        </div>
-                        
-                        <!-- Image Upload Section -->
-                        <div>
-                            <label class="text-sm font-medium text-slate-700 mb-2 block">รูปภาพประกอบ (ถ้ามี)</label>
-                            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors relative overflow-hidden">
-                                <div class="flex flex-col items-center justify-center pt-5 pb-6 text-slate-500 transition-opacity duration-300" id="upload-placeholder">
-                                    <i class="ph-bold ph-camera text-2xl mb-2"></i>
-                                    <p class="text-xs">คลิกเพื่อถ่ายรูป หรือ เลือกรูปภาพ</p>
-                                </div>
+                            <label class="text-sm font-medium text-slate-700 mb-2 block">รูปภาพ</label>
+                            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 relative overflow-hidden">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6 text-slate-500" id="upload-placeholder"><i class="ph-bold ph-camera text-2xl"></i><p class="text-xs">เลือกรูปภาพ</p></div>
                                 <img id="preview-image" class="absolute inset-0 w-full h-full object-contain hidden bg-slate-100 p-2">
                                 <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)" />
                             </label>
                         </div>
-
-                        <div class="pt-2">
-                            <button type="submit" id="submitBtn" class="w-full bg-accent text-white font-bold py-3 rounded-xl shadow-lg hover:bg-amber-700 transition-all flex justify-center gap-2">
-                                <span>ยืนยันการแจ้งซ่อม</span> <i class="ph-bold ph-paper-plane-right"></i>
-                            </button>
-                        </div>
+                        <button type="submit" id="submitBtn" class="w-full bg-accent text-white font-bold py-3 rounded-xl shadow-lg hover:bg-amber-700 transition-all flex justify-center gap-2"><span>ยืนยัน</span> <i class="ph-bold ph-paper-plane-right"></i></button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 2. UPDATE MODAL (อัปเดตงานซ่อม) -->
+    <!-- Update Modal -->
     <div id="updateModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeUpdateModal()"></div>
         <div class="fixed inset-0 z-10 overflow-y-auto">
             <div class="flex min-h-full items-center justify-center p-4">
                 <div class="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border-t-8 border-primary">
                     <div class="px-6 py-4 border-b flex justify-between items-start">
-                        <div>
-                            <span id="update-id" class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded">RP-XXX</span>
-                            <h3 class="text-xl font-bold text-slate-800 mt-1">อัปเดตงานซ่อม</h3>
-                        </div>
-                        <button onclick="closeUpdateModal()" class="text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x text-xl"></i></button>
+                        <div><span id="update-id" class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded">RP-XXX</span><h3 class="text-xl font-bold text-slate-800 mt-1">อัปเดตงานซ่อม</h3></div>
+                        <button onclick="closeUpdateModal()" class="text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
                     </div>
-
                     <div class="p-6 space-y-4">
-                        <!-- รายละเอียดเดิม -->
                         <div class="bg-slate-50 p-4 rounded-lg text-sm border border-slate-100">
                             <p class="font-semibold text-primary mb-1" id="update-location">สถานที่...</p>
                             <p class="text-slate-600 mb-2" id="update-desc">อาการ...</p>
-                            
-                            <!-- พื้นที่แสดงรูป (ถ้ามี) -->
+                            <!-- Image Link Container -->
                             <div id="update-image-container" class="mt-2 hidden">
-                                <a id="update-image-link" href="#" target="_blank" class="text-accent hover:underline flex items-center gap-1">
+                                <button type="button" id="update-image-btn" class="text-accent hover:underline flex items-center gap-1">
                                     <i class="ph-bold ph-image"></i> ดูรูปภาพที่แนบมา
-                                </a>
+                                </button>
                             </div>
                         </div>
-
                         <form id="updateForm" onsubmit="submitUpdate(event)" class="space-y-4">
                             <input type="hidden" name="id" id="input-update-id">
-                            
                             <div>
-                                <label class="text-sm font-medium text-slate-700 block mb-1">สถานะการดำเนินการ</label>
+                                <label class="text-sm font-medium text-slate-700 block mb-1">สถานะ</label>
                                 <div class="grid grid-cols-3 gap-2">
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="status" value="pending" class="peer sr-only">
-                                        <div class="text-center py-2 rounded-lg border border-slate-200 peer-checked:bg-warning peer-checked:text-white peer-checked:border-warning transition-all text-sm font-medium text-slate-500 hover:bg-slate-50">
-                                            รอรับเรื่อง
-                                        </div>
-                                    </label>
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="status" value="in-progress" class="peer sr-only">
-                                        <div class="text-center py-2 rounded-lg border border-slate-200 peer-checked:bg-info peer-checked:text-white peer-checked:border-info transition-all text-sm font-medium text-slate-500 hover:bg-slate-50">
-                                            กำลังซ่อม
-                                        </div>
-                                    </label>
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="status" value="completed" class="peer sr-only">
-                                        <div class="text-center py-2 rounded-lg border border-slate-200 peer-checked:bg-success peer-checked:text-white peer-checked:border-success transition-all text-sm font-medium text-slate-500 hover:bg-slate-50">
-                                            เสร็จสิ้น
-                                        </div>
-                                    </label>
+                                    <label class="cursor-pointer"><input type="radio" name="status" value="pending" class="peer sr-only"><div class="text-center py-2 rounded-lg border peer-checked:bg-warning peer-checked:text-white border-slate-200 text-sm">รอรับเรื่อง</div></label>
+                                    <label class="cursor-pointer"><input type="radio" name="status" value="in-progress" class="peer sr-only"><div class="text-center py-2 rounded-lg border peer-checked:bg-info peer-checked:text-white border-slate-200 text-sm">กำลังซ่อม</div></label>
+                                    <label class="cursor-pointer"><input type="radio" name="status" value="completed" class="peer sr-only"><div class="text-center py-2 rounded-lg border peer-checked:bg-success peer-checked:text-white border-slate-200 text-sm">เสร็จสิ้น</div></label>
                                 </div>
                             </div>
-
                             <div>
-                                <label class="text-sm font-medium text-slate-700 block mb-1">ผู้รับผิดชอบ (ช่าง)</label>
-                                <select name="technician" id="input-technician" class="w-full px-3 py-2 border rounded-lg bg-white">
-                                    <option value="-">-- เลือกผู้รับผิดชอบ --</option>
-                                    <option value="ช่างสมชาย (ไฟฟ้า)">ช่างสมชาย (ไฟฟ้า)</option>
-                                    <option value="ช่างวิชัย (ประปา)">ช่างวิชัย (ประปา)</option>
-                                    <option value="ช่างเอก (ทั่วไป)">ช่างเอก (ทั่วไป)</option>
-                                    <option value="Admin IT">Admin IT</option>
-                                    <option value="บริษัทภายนอก">บริษัทภายนอก</option>
+                                <label class="text-sm font-medium text-slate-700 block mb-1">ผู้รับผิดชอบ</label>
+                                <select name="technician" id="input-technician" class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="-">- เลือก -</option>
+                                    <option value="ช่างสมชาย (ไฟฟ้า)">ช่างสมชาย (ไฟฟ้า)</option><option value="ช่างวิชัย (ประปา)">ช่างวิชัย (ประปา)</option><option value="ช่างเอก (ทั่วไป)">ช่างเอก (ทั่วไป)</option><option value="Admin IT">Admin IT</option><option value="บริษัทภายนอก">บริษัทภายนอก</option>
                                 </select>
                             </div>
-
-                            <div>
-                                <label class="text-sm font-medium text-slate-700 block mb-1">วิธีการซ่อม / หมายเหตุ</label>
-                                <textarea name="resolution" id="input-resolution" rows="3" placeholder="ระบุสิ่งที่ทำไป หรือ อะไหล่ที่เปลี่ยน..." class="w-full px-3 py-2 border rounded-lg"></textarea>
-                            </div>
-
-                            <button type="submit" id="updateBtn" class="w-full bg-primary text-white font-bold py-3 rounded-xl shadow-lg hover:bg-slate-800 transition-all">
-                                บันทึกการเปลี่ยนแปลง
-                            </button>
+                            <div><label class="text-sm font-medium text-slate-700 block mb-1">วิธีซ่อม</label><textarea name="resolution" id="input-resolution" rows="3" class="w-full px-3 py-2 border rounded-lg"></textarea></div>
+                            <button type="submit" id="updateBtn" class="w-full bg-primary text-white font-bold py-3 rounded-xl shadow-lg hover:bg-slate-800 transition-all">บันทึก</button>
                         </form>
                     </div>
                 </div>
@@ -274,322 +311,440 @@
         </div>
     </div>
 
-    <script>
-        // ================= CONFIGURATION =================
-        // ใส่ URL ที่ได้จาก Google Apps Script Deploy ตรงนี้
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylc6SXGrQUUuGpFG1NS9kfe8MAuGD2eQIGzciWnpgQz_nghkViitp3oj5eXPLfN8MW/exec'; 
-        // =================================================
+    <!-- Image Preview Modal (Updated) -->
+    <div id="imageModal" class="fixed inset-0 z-[60] hidden" onclick="closeImagePreview()">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity"></div>
+        
+        <!-- Content -->
+        <div class="relative z-10 w-full h-full flex flex-col items-center justify-center p-4">
+            <div class="relative max-w-4xl max-h-full flex flex-col items-center justify-center">
+                <!-- Image with Error Handler -->
+                <img id="image-preview-full" src="" 
+                     class="max-w-full max-h-[80vh] rounded-lg shadow-2xl object-contain border border-slate-700/50" 
+                     onclick="event.stopPropagation()"
+                     onerror="this.src='https://placehold.co/600x400/334155/FFF?text=Image+Load+Error';">
+                
+                <!-- Fallback Button -->
+                <a id="image-open-new-tab" href="#" target="_blank" class="mt-4 px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-sm transition-all text-sm font-medium flex items-center gap-2 border border-white/20">
+                    <i class="ph-bold ph-arrow-square-out text-lg"></i> เปิดรูปต้นฉบับ (กรณีรูปไม่ขึ้น)
+                </a>
 
-        let allRepairs = [];
+                <!-- Close Button -->
+                <button onclick="closeImagePreview()" class="absolute -top-12 right-0 md:-right-12 text-white/80 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10">
+                    <i class="ph-bold ph-x text-3xl"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG
+        // **************************************************************************
+        // IMPORTANT: อย่าลืมเปลี่ยน URL ตรงนี้เป็น URL ใหม่ที่คุณได้จากการ Deploy ล่าสุด!
+        // **************************************************************************
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLKpDQO59cyRRkFkFqH6TQXxN5X5DkirEsBaq2RogMOUyQ15pf4un2ef8JN8OSLK9w/exec'; 
+
+        // STATE
+        let rawData = [];
+        let filteredData = []; // Data after Date Filter
+        let currentFilter = 'thisMonth';
+        let currentStatusFilter = 'all'; // New: Status Filter
         let imageBase64 = null;
         let imageMimeType = null;
 
-        // --- FETCH DATA ---
+        // --- INIT ---
+        window.onload = fetchData;
+
+        // --- DATA HANDLING ---
         async function fetchData() {
-            const grid = document.getElementById('ticket-grid');
-            grid.innerHTML = `
-                <div class="col-span-full text-center py-20">
-                    <i class="ph ph-spinner animate-spin text-4xl text-accent mb-4"></i>
-                    <p class="text-slate-500">กำลังโหลดข้อมูลล่าสุด...</p>
-                </div>`;
-
             try {
-                const response = await fetch(APPS_SCRIPT_URL);
-                const data = await response.json();
-                
-                allRepairs = data;
-                renderStats();
-                renderTickets(allRepairs);
-
+                const res = await fetch(APPS_SCRIPT_URL);
+                rawData = await res.json();
+                applyFilters(); // Apply both Date and Status
             } catch (error) {
-                console.error('Error:', error);
-                grid.innerHTML = `
-                    <div class="col-span-full text-center py-10 text-red-500">
-                        <i class="ph-bold ph-warning-circle text-3xl mb-2"></i>
-                        <p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
-                        <p class="text-xs text-slate-400 mt-2">${error.message}</p>
-                        <button onclick="fetchData()" class="mt-4 text-accent underline">ลองใหม่</button>
-                    </div>`;
+                console.error(error);
             }
         }
 
-        // --- RENDER FUNCTIONS ---
+        // Helper: Create Thai Date String (BE)
+        function getThaiDate() {
+            const now = new Date();
+            const d = now.getDate().toString().padStart(2, '0');
+            const m = (now.getMonth() + 1).toString().padStart(2, '0');
+            const y = (now.getFullYear() + 543).toString(); // Convert AD to BE
+            const h = now.getHours().toString().padStart(2, '0');
+            const min = now.getMinutes().toString().padStart(2, '0');
+            return `${d}/${m}/${y} ${h}:${min}`;
+        }
+
+        // Helper: Parse Thai Date String back to Date Object for Calculation
+        function parseThaiDate(dateStr) {
+            if (!dateStr) return null;
+            if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+                const parts = dateStr.split(' ');
+                if (parts.length < 2) return null;
+                const dParts = parts[0].split('/');
+                const tParts = parts[1].split(':');
+                
+                const day = parseInt(dParts[0]);
+                const month = parseInt(dParts[1]) - 1;
+                const yearBE = parseInt(dParts[2]);
+                const yearAD = yearBE - 543; // Convert back to AD for calculation
+                
+                const hour = parseInt(tParts[0]);
+                const min = parseInt(tParts[1]);
+                
+                return new Date(yearAD, month, day, hour, min);
+            } else {
+                const d = new Date(dateStr);
+                return isNaN(d) ? null : d;
+            }
+        }
+
+        // Core Filter Logic: Date -> Dashboard Stats -> Status -> List
+        function applyFilters() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            // 1. Filter by Date First
+            const dateFilteredData = rawData.filter(item => {
+                const itemDate = parseThaiDate(item.date);
+                if (!itemDate || isNaN(itemDate)) return false;
+
+                if (currentFilter === 'all') return true;
+                if (currentFilter === 'thisYear') return itemDate.getFullYear() === currentYear;
+                if (currentFilter === 'thisMonth') return itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear;
+                if (currentFilter === 'lastMonth') {
+                    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                    const yearOfLastMonth = currentMonth === 0 ? currentYear - 1 : currentYear;
+                    return itemDate.getMonth() === lastMonth && itemDate.getFullYear() === yearOfLastMonth;
+                }
+                return true;
+            });
+
+            // 2. Update Dashboard Stats based on Date Filtered Data (So numbers don't vanish)
+            updateDashboard(dateFilteredData);
+
+            // 3. Filter by Status for the List
+            let finalList = dateFilteredData;
+            if (currentStatusFilter !== 'all') {
+                finalList = dateFilteredData.filter(item => item.status === currentStatusFilter);
+            }
+
+            // 4. Render List
+            renderTickets(finalList);
+            updateFilterLabel(currentStatusFilter);
+            
+            // UI Updates
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + currentFilter).classList.add('active');
+
+            // Card Highlight
+            document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-card'));
+            let cardId = 'card-all';
+            if(currentStatusFilter === 'pending') cardId = 'card-pending';
+            else if(currentStatusFilter === 'in-progress') cardId = 'card-progress';
+            else if(currentStatusFilter === 'completed') cardId = 'card-completed';
+            document.getElementById(cardId).classList.add('active-card');
+        }
+
+        function setDateFilter(filterType) {
+            currentFilter = filterType;
+            applyFilters();
+        }
+
+        function setStatusFilter(status) {
+            currentStatusFilter = status;
+            applyFilters();
+        }
+        
+        function updateFilterLabel(status) {
+            const labels = { 'all': 'ทั้งหมด', 'pending': 'รอรับเรื่อง', 'in-progress': 'กำลังซ่อม', 'completed': 'เสร็จสิ้น' };
+            document.getElementById('list-filter-label').innerText = labels[status] || status;
+        }
+
+        // --- DASHBOARD LOGIC ---
+        function updateDashboard(data) {
+            // Stats based on Date Filter
+            document.getElementById('stat-total').innerText = data.length;
+            document.getElementById('stat-pending').innerText = data.filter(d => d.status === 'pending').length;
+            document.getElementById('stat-progress').innerText = data.filter(d => d.status === 'in-progress').length;
+            const completedItems = data.filter(d => d.status === 'completed');
+            document.getElementById('stat-completed').innerText = completedItems.length;
+
+            // Top Problems
+            const catCounts = {};
+            data.forEach(d => { catCounts[d.category] = (catCounts[d.category] || 0) + 1; });
+            const sortedCats = Object.entries(catCounts).sort((a,b) => b[1] - a[1]);
+            
+            const catContainer = document.getElementById('category-stats');
+            catContainer.innerHTML = '';
+            sortedCats.forEach(([cat, count]) => {
+                const percent = (count / data.length) * 100;
+                catContainer.innerHTML += `
+                    <div class="mb-2">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="font-medium">${cat}</span>
+                            <span class="text-slate-500">${count} เคส</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2">
+                            <div class="bg-accent h-2 rounded-full" style="width: ${percent}%"></div>
+                        </div>
+                    </div>`;
+            });
+
+            // Technician Performance
+            const techStats = {};
+            data.forEach(d => {
+                const tech = d.technician && d.technician !== '-' ? d.technician : 'ไม่ระบุ';
+                if (!techStats[tech]) techStats[tech] = { total: 0, completed: 0 };
+                techStats[tech].total++;
+                if (d.status === 'completed') techStats[tech].completed++;
+            });
+            const techContainer = document.getElementById('tech-stats');
+            techContainer.innerHTML = '';
+            Object.entries(techStats).forEach(([name, stat]) => {
+                if(name === 'ไม่ระบุ') return;
+                techContainer.innerHTML += `
+                    <tr class="bg-white border-b hover:bg-slate-50">
+                        <td class="px-3 py-2 font-medium text-slate-700">${name}</td>
+                        <td class="px-3 py-2 text-center text-slate-500">${stat.total}</td>
+                        <td class="px-3 py-2 text-center text-success font-bold">${stat.completed}</td>
+                    </tr>`;
+            });
+
+            // Time Analysis
+            let totalHours = 0;
+            let countTime = 0;
+            let minHours = Infinity;
+            let maxHours = -Infinity;
+
+            completedItems.forEach(item => {
+                if (item.completeddate && item.date) {
+                    const start = parseThaiDate(item.date); // Use new parser
+                    const end = new Date(item.completeddate);
+                    if (start && !isNaN(start) && !isNaN(end)) {
+                        const diffMs = end - start;
+                        const diffHrs = diffMs / (1000 * 60 * 60);
+                        if (diffHrs >= 0) { 
+                            totalHours += diffHrs;
+                            countTime++;
+                            if (diffHrs < minHours) minHours = diffHrs;
+                            if (diffHrs > maxHours) maxHours = diffHrs;
+                        }
+                    }
+                }
+            });
+
+            const successRate = data.length > 0 ? Math.round((completedItems.length / data.length) * 100) : 0;
+            document.getElementById('success-rate').innerText = `${successRate}%`;
+
+            if (countTime > 0) {
+                document.getElementById('time-avg').innerText = (totalHours / countTime).toFixed(1);
+                document.getElementById('time-min').innerText = minHours.toFixed(1);
+                document.getElementById('time-max').innerText = maxHours.toFixed(1);
+            } else {
+                document.getElementById('time-avg').innerText = '-';
+                document.getElementById('time-min').innerText = '-';
+                document.getElementById('time-max').innerText = '-';
+            }
+        }
+
+        // --- TICKET RENDERING ---
         function renderTickets(data) {
             const grid = document.getElementById('ticket-grid');
             grid.innerHTML = '';
-
-            if (data.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">ยังไม่มีรายการแจ้งซ่อม</div>`;
+            if(data.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">ไม่พบข้อมูลในช่วงเวลานี้</div>`;
                 return;
             }
-
             data.forEach(item => {
-                const statusConfig = getStatusConfig(item.status);
-                // เช็คว่ามีรูปหรือไม่ (column imageurl ใน sheet)
-                const hasImage = item.imageurl && item.imageurl.startsWith('http');
+                const statusInfo = getStatusInfo(item.status);
+                const hasImage = item.imageurl && item.imageurl.includes('http');
                 
-                const card = document.createElement('div');
-                card.className = 'bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-lg transition-all cursor-pointer group';
-                card.onclick = (e) => {
-                    // ป้องกันการคลิกถ้ากดปุ่มลิงก์รูป
-                    if(!e.target.closest('a')) openUpdateModal(item);
-                };
+                let dateDisplay = item.date;
+                if(!item.date.match(/^\d{2}\/\d{2}\/\d{4}/) && !isNaN(new Date(item.date))) {
+                     dateDisplay = new Date(item.date).toLocaleString('th-TH');
+                }
                 
-                card.innerHTML = `
-                    <div class="p-5 relative">
-                        <!-- Status Indicator Stripe -->
-                        <div class="absolute left-0 top-0 bottom-0 w-1 ${statusConfig.borderClass}"></div>
-                        
-                        <div class="flex justify-between items-start mb-3 pl-2">
-                            <span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">${item.id}</span>
-                            <span class="${statusConfig.bgClass} ${statusConfig.textClass} px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
-                                <i class="${statusConfig.icon}"></i> ${statusConfig.label}
-                            </span>
-                        </div>
-                        
-                        <div class="pl-2">
-                            <h4 class="font-bold text-slate-800 text-lg mb-1 line-clamp-1">${item.location}</h4>
-                            <p class="text-xs font-semibold text-accent mb-2">${item.category}</p>
-                            <p class="text-slate-500 text-sm mb-4 line-clamp-2 min-h-[2.5em]">${item.description}</p>
-                            
-                            <div class="flex items-center gap-2 text-xs text-slate-400 border-t pt-3">
-                                <div class="flex items-center gap-1">
-                                    <i class="ph-bold ph-user"></i> ${item.requester}
-                                </div>
-                                <div class="ml-auto flex items-center gap-2">
-                                    ${hasImage ? `<span class="text-accent" title="มีรูปภาพ"><i class="ph-bold ph-image"></i></span>` : ''}
-                                    <span>${item.date.split(' ')[0]}</span>
+                grid.innerHTML += `
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-lg transition-all cursor-pointer group relative" onclick="openUpdateModalItem('${item.id}')">
+                        <div class="absolute left-0 top-0 bottom-0 w-1 ${statusInfo.border}"></div>
+                        <div class="p-5 pl-7">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded">${item.id}</span>
+                                <span class="${statusInfo.bg} ${statusInfo.text} px-2 py-1 rounded text-xs font-bold flex gap-1 items-center"><i class="${statusInfo.icon}"></i> ${statusInfo.label}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-800 line-clamp-1">${item.location}</h4>
+                            <p class="text-xs text-accent font-semibold mb-2">${item.category}</p>
+                            <p class="text-sm text-slate-500 line-clamp-2 min-h-[2.5em] mb-3">${item.description}</p>
+                            <div class="flex justify-between items-center text-xs text-slate-400 border-t pt-3">
+                                <div class="flex items-center gap-1"><i class="ph-bold ph-user"></i> ${item.requester}</div>
+                                <div class="flex items-center gap-2">
+                                    ${hasImage ? '<i class="ph-bold ph-image text-accent"></i>' : ''}
+                                    <span>${dateDisplay}</span>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Hover Action Hint -->
-                        <div class="absolute inset-0 bg-slate-900/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span class="bg-white shadow px-3 py-1 rounded-full text-xs font-bold text-primary">คลิกเพื่ออัปเดต</span>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
+                    </div>`;
             });
         }
 
-        function renderStats() {
-            document.getElementById('stat-total').innerText = allRepairs.length;
-            document.getElementById('stat-pending').innerText = allRepairs.filter(r => r.status === 'pending').length;
-            document.getElementById('stat-progress').innerText = allRepairs.filter(r => r.status === 'in-progress').length;
-            document.getElementById('stat-completed').innerText = allRepairs.filter(r => r.status === 'completed').length;
-        }
-
-        function getStatusConfig(status) {
-            status = status ? status.toLowerCase() : 'pending';
+        function getStatusInfo(status) {
             switch(status) {
-                case 'in-progress': return { bgClass: 'bg-blue-100', textClass: 'text-blue-700', borderClass: 'bg-blue-500', label: 'กำลังซ่อม', icon: 'ph-fill ph-gear-six' };
-                case 'completed': return { bgClass: 'bg-green-100', textClass: 'text-green-700', borderClass: 'bg-green-500', label: 'เสร็จสิ้น', icon: 'ph-fill ph-check-circle' };
-                default: return { bgClass: 'bg-orange-100', textClass: 'text-orange-700', borderClass: 'bg-orange-500', label: 'รอรับเรื่อง', icon: 'ph-fill ph-clock' };
+                case 'in-progress': return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'bg-blue-500', label: 'กำลังซ่อม', icon: 'ph-fill ph-gear-six' };
+                case 'completed': return { bg: 'bg-green-100', text: 'text-green-700', border: 'bg-green-500', label: 'เสร็จสิ้น', icon: 'ph-fill ph-check-circle' };
+                default: return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'bg-orange-500', label: 'รอรับเรื่อง', icon: 'ph-fill ph-clock' };
             }
         }
 
-        function filterStatus(status) {
-            if(status === 'all') {
-                renderTickets(allRepairs);
-            } else {
-                renderTickets(allRepairs.filter(r => r.status === status));
-            }
-        }
-
-        // --- IMAGE HANDLING (UPDATED: Auto Resize & Compress) ---
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (file) {
-                // แสดงสถานะว่ากำลังประมวลผลรูป (Optional UI improvement)
-                document.getElementById('upload-placeholder').innerHTML = `<i class="ph ph-spinner animate-spin text-2xl mb-2"></i><p class="text-xs">กำลังย่อรูป...</p>`;
-
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        // 1. Create Canvas for resizing
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        
-                        // 2. Calculate new size (Max 800px)
-                        const MAX_WIDTH = 800;
-                        const MAX_HEIGHT = 800;
-                        
-                        if (width > height) {
-                            if (width > MAX_WIDTH) {
-                                height *= MAX_WIDTH / width;
-                                width = MAX_WIDTH;
-                            }
-                        } else {
-                            if (height > MAX_HEIGHT) {
-                                width *= MAX_HEIGHT / height;
-                                height = MAX_HEIGHT;
-                            }
-                        }
-                        
-                        canvas.width = width;
-                        canvas.height = height;
-                        
-                        // 3. Draw image to canvas
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // 4. Export as compressed JPEG (Quality 0.7)
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                        
-                        // 5. Update UI
-                        document.getElementById('preview-image').src = dataUrl;
-                        document.getElementById('preview-image').classList.remove('hidden');
-                        document.getElementById('upload-placeholder').classList.add('hidden');
-                        
-                        // 6. Save data for upload
-                        imageBase64 = dataUrl;
-                        imageMimeType = 'image/jpeg'; // Always send as JPEG
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // --- SUBMIT NEW REPAIR ---
-        function submitRepair(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> กำลังบันทึก...';
-            btn.disabled = true;
-
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData);
-            
-            // Payload
-            const payload = {
-                action: 'create',
-                id: 'RP-' + Math.floor(Math.random() * 100000).toString().padStart(5, '0'), // Generate Simple ID
-                date: new Date().toLocaleString('th-TH'),
-                ...data,
-                imageBase64: imageBase64,
-                imageMimeType: imageMimeType
-            };
-
-            // Send to Google Script
-            fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Important for Google Script
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(() => {
-                // Since mode is no-cors, we can't read response JSON directly, assume success if no network error
-                Swal.fire({
-                    icon: 'success',
-                    title: 'บันทึกสำเร็จ',
-                    text: 'ข้อมูลการแจ้งซ่อมถูกส่งเข้าระบบแล้ว',
-                    confirmButtonColor: '#0f172a'
-                }).then(() => {
-                    closeCreateModal();
-                    fetchData(); // Refresh Data
-                });
-            })
-            .catch(err => {
-                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
-            })
-            .finally(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            });
-        }
-
-        // --- UPDATE LOGIC ---
-        function openUpdateModal(item) {
-            document.getElementById('updateModal').classList.remove('hidden');
-            
-            // Fill Data
-            document.getElementById('input-update-id').value = item.id;
-            document.getElementById('update-id').innerText = item.id;
-            document.getElementById('update-location').innerText = item.location + ' (' + item.category + ')';
-            document.getElementById('update-desc').innerText = item.description;
-
-            // Image Link
-            const imgContainer = document.getElementById('update-image-container');
-            if(item.imageurl && item.imageurl.startsWith('http')) {
-                imgContainer.classList.remove('hidden');
-                document.getElementById('update-image-link').href = item.imageurl;
-            } else {
-                imgContainer.classList.add('hidden');
-            }
-
-            // Set Status Radio
-            const radios = document.getElementsByName('status');
-            radios.forEach(r => {
-                r.checked = (r.value === item.status);
-            });
-
-            // Set Technician & Resolution
-            document.getElementById('input-technician').value = item.technician || '-';
-            document.getElementById('input-resolution').value = item.resolution || '';
-        }
-
-        function submitUpdate(e) {
-            e.preventDefault();
-            const btn = document.getElementById('updateBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> กำลังอัปเดต...';
-            btn.disabled = true;
-
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData);
-            
-            const payload = {
-                action: 'update',
-                ...data
-            };
-
-            fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(() => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'อัปเดตสำเร็จ',
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => {
-                    closeUpdateModal();
-                    fetchData();
-                });
-            })
-            .catch(err => {
-                Swal.fire({ icon: 'error', title: 'Error', text: err.message });
-            })
-            .finally(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            });
-        }
-
-        // --- UTILS ---
+        // --- MODAL & FORM ---
         function openCreateModal() { document.getElementById('createModal').classList.remove('hidden'); }
         function closeCreateModal() { 
             document.getElementById('createModal').classList.add('hidden'); 
             document.getElementById('createForm').reset();
             document.getElementById('preview-image').classList.add('hidden');
             document.getElementById('upload-placeholder').classList.remove('hidden');
-            // Restore placeholder text
-            document.getElementById('upload-placeholder').innerHTML = `<i class="ph-bold ph-camera text-2xl mb-2"></i><p class="text-xs">คลิกเพื่อถ่ายรูป หรือ เลือกรูปภาพ</p>`;
             imageBase64 = null;
         }
+
+        function openUpdateModalItem(id) {
+            const item = rawData.find(d => d.id === id);
+            if(!item) return;
+            
+            document.getElementById('updateModal').classList.remove('hidden');
+            document.getElementById('input-update-id').value = item.id;
+            document.getElementById('update-id').innerText = item.id;
+            document.getElementById('update-location').innerText = item.location + ' (' + item.category + ')';
+            document.getElementById('update-desc').innerText = item.description;
+            
+            // Image Preview Button Logic
+            if(item.imageurl && item.imageurl.includes('http')) {
+                document.getElementById('update-image-container').classList.remove('hidden');
+                // Change onclick to open image modal
+                document.getElementById('update-image-btn').onclick = function() { openImagePreview(item.imageurl); };
+            } else {
+                document.getElementById('update-image-container').classList.add('hidden');
+            }
+            
+            // Set values
+            const radios = document.getElementsByName('status');
+            radios.forEach(r => r.checked = (r.value === item.status));
+            document.getElementById('input-technician').value = item.technician || '-';
+            document.getElementById('input-resolution').value = item.resolution || '';
+        }
+
         function closeUpdateModal() { document.getElementById('updateModal').classList.add('hidden'); }
 
-        // Start
-        window.onload = fetchData;
+        // --- NEW IMAGE PREVIEW FUNCTIONS ---
+        function openImagePreview(url) {
+            // 1. Set Original Link for fallback button
+            document.getElementById('image-open-new-tab').href = url;
 
+            // 2. Transform URL for better embedding
+            let displayUrl = url;
+            // Check if it's a standard Drive export URL
+            if (url.includes('drive.google.com') && url.includes('id=')) {
+                const idMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
+                if (idMatch && idMatch[1]) {
+                    // Convert to direct embed format (lh3)
+                    displayUrl = 'https://lh3.googleusercontent.com/d/' + idMatch[1];
+                }
+            }
+
+            document.getElementById('image-preview-full').src = displayUrl;
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+
+        function closeImagePreview() {
+            document.getElementById('imageModal').classList.add('hidden');
+            // Optional: Clear src to stop loading if it's a large image, but keeping it might be smoother if re-opened
+            setTimeout(() => { document.getElementById('image-preview-full').src = ''; }, 300); 
+        }
+
+        // --- SUBMIT LOGIC ---
+        function submitRepair(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> กำลังส่ง...';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            const thaiDate = "'" + getThaiDate(); 
+
+            const payload = {
+                action: 'create',
+                id: 'RP-' + Math.floor(Math.random() * 100000).toString().padStart(5, '0'),
+                ...data,
+                date: thaiDate, 
+                imageBase64: imageBase64,
+                imageMimeType: imageMimeType
+            };
+            sendData(payload, () => { closeCreateModal(); });
+        }
+
+        function submitUpdate(e) {
+            e.preventDefault();
+            const btn = document.getElementById('updateBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> กำลังบันทึก...';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const payload = { action: 'update', ...Object.fromEntries(formData) };
+            sendData(payload, () => { closeUpdateModal(); });
+        }
+
+        function sendData(payload, callback) {
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                Swal.fire({ icon: 'success', title: 'สำเร็จ', timer: 1500, showConfirmButton: false });
+                callback();
+                setTimeout(fetchData, 1000); // Reload
+            }).catch(err => {
+                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+            }).finally(() => {
+                const btn = document.getElementById(payload.action === 'create' ? 'submitBtn' : 'updateBtn');
+                if(btn) { btn.innerHTML = btn.id === 'submitBtn' ? 'ยืนยัน' : 'บันทึก'; btn.disabled = false; }
+            });
+        }
+
+        // --- IMAGE RESIZE ---
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width, height = img.height;
+                        const MAX_SIZE = 800;
+                        if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+                        else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        document.getElementById('preview-image').src = dataUrl;
+                        document.getElementById('preview-image').classList.remove('hidden');
+                        document.getElementById('upload-placeholder').classList.add('hidden');
+                        imageBase64 = dataUrl; imageMimeType = 'image/jpeg';
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
     </script>
 </body>
 </html>
