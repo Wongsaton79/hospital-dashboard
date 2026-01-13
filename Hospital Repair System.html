@@ -634,6 +634,35 @@
             radios.forEach(r => r.checked = (r.value === item.status));
             document.getElementById('input-technician').value = item.technician || '-';
             document.getElementById('input-resolution').value = item.resolution || '';
+
+            // --- NEW LOGIC: Lock if Completed ---
+            const isCompleted = item.status === 'completed';
+            const updateBtn = document.getElementById('updateBtn');
+            const form = document.getElementById('updateForm');
+
+            // Disable/Enable inputs
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(el => {
+                if (el.type !== 'hidden') el.disabled = isCompleted;
+            });
+
+            // Toggle Button and Message
+            let msg = document.getElementById('completed-message');
+            if (isCompleted) {
+                updateBtn.classList.add('hidden');
+                
+                if (!msg) {
+                    msg = document.createElement('div');
+                    msg.id = 'completed-message';
+                    msg.className = 'text-center text-success font-bold py-3 bg-green-50 rounded-xl border border-green-200 mt-4';
+                    msg.innerHTML = '<i class="ph-bold ph-lock-key"></i> งานนี้ปิดงานแล้ว ไม่สามารถแก้ไขได้';
+                    form.appendChild(msg);
+                }
+                msg.classList.remove('hidden');
+            } else {
+                updateBtn.classList.remove('hidden');
+                if (msg) msg.classList.add('hidden');
+            }
         }
 
         function closeUpdateModal() { document.getElementById('updateModal').classList.add('hidden'); }
