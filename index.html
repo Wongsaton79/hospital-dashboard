@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard ผู้บริหาร (Fix Modals)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style> 
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
+        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .active-tab { border-bottom: 3px solid #f59e0b; color: #d97706; background-color: #fffbeb; }
+        .inactive-tab { color: #64748b; hover:bg-gray-50; }
+        .page-loader { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #f59e0b; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .modal { transition: opacity 0.2s ease-in-out; }
+        .modal-active { overflow: hidden; }
+        .clickable-row { cursor: pointer; transition: background 0.1s; }
+        .clickable-row:hover { background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="p-4 md:p-6 text-slate-800">
+
+    <div id="pageLoader" class="page-loader">
+        <div class="spinner mb-4"></div>
+        <h2 class="text-xl font-bold text-gray-700">กำลังดึงข้อมูลจาก Cloud...</h2>
+        <p class="text-sm text-gray-500">Connected to Google Firebase</p>
+    </div>
+
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-indigo-900">🏥 Hospital Dashboard</h1>
+            <p class="text-sm text-gray-500">ระบบติดตามการเข้างานและลางาน (Online Real-time)</p>
+        </div>
+        <div class="bg-white p-1 rounded-lg border shadow-sm flex overflow-x-auto">
+            <button onclick="setView('1D')" id="btn1D" class="px-4 py-2 text-sm font-bold rounded hover:bg-gray-100 transition whitespace-nowrap">วันนี้</button>
+            <button onclick="setView('Yesterday')" id="btnYesterday" class="px-4 py-2 text-sm font-bold rounded hover:bg-gray-100 transition whitespace-nowrap">เมื่อวาน</button>
+            <button onclick="setView('7D')" id="btn7D" class="px-4 py-2 text-sm font-bold rounded hover:bg-gray-100 transition whitespace-nowrap">7 วัน</button>
+            <button onclick="setView('1M')" id="btn1M" class="px-4 py-2 text-sm font-bold rounded hover:bg-gray-100 transition whitespace-nowrap">1 เดือน</button>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto mb-6 bg-white border-l-4 border-indigo-500 px-6 py-4 rounded-r-lg shadow-sm flex items-center justify-between">
+        <div class="flex flex-col md:flex-row md:items-center">
+            <span id="badgeMode" class="bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded md:mr-3 w-fit mb-2 md:mb-0">TODAY</span>
+            <div>
+                <span class="font-bold text-gray-500 text-xs uppercase block">ข้อมูลประจำวันที่</span>
+                <span id="txtDate" class="text-indigo-900 font-bold text-lg">-</span>
+            </div>
+        </div>
+        <div id="badgeWeekend" class="hidden bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">วันหยุดเสาร์-อาทิตย์</div>
+    </div>
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="card border-l-4 border-gray-400">
+            <p class="text-xs font-bold text-gray-400 uppercase">บุคลากรทั้งหมด</p>
+            <h2 class="text-4xl font-bold text-gray-800 mt-1" id="kpiTotal">0</h2>
+        </div>
+        <div class="card border-l-4 border-green-500">
+            <p class="text-xs font-bold text-green-600 uppercase">สแกนหน้าเข้างาน (Scan)</p>
+            <h2 class="text-4xl font-bold text-green-600 mt-1" id="kpiScan">0</h2>
+            <p class="text-xs text-green-600 mt-1 font-bold" id="pctScan">0%</p>
+        </div>
+        <div class="card border-l-4 border-blue-500 cursor-pointer hover:bg-blue-50 transition" onclick="openModal()">
+            <div class="flex justify-between">
+                <div>
+                    <p class="text-xs font-bold text-blue-600 uppercase">ลางาน(ไปราชการ) (Leave)</p>
+                    <h2 class="text-4xl font-bold text-blue-600 mt-1" id="kpiLeave">0</h2>
+                </div>
+                <span class="text-xl">🔍</span>
+            </div>
+            <p class="text-xs text-blue-600 mt-1 font-bold" id="pctLeave">0%</p>
+        </div>
+        <div class="card border-l-4 border-red-500">
+            <p class="text-xs font-bold text-red-600 uppercase">No Scan (Missing)</p>
+            <h2 class="text-4xl font-bold text-red-600 mt-1" id="kpiMissing">0</h2>
+            <p class="text-xs text-red-600 mt-1 font-bold" id="pctMissing">0%</p>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="card lg:col-span-2 h-96">
+            <h3 class="font-bold text-gray-700 mb-4" id="titleLine">📈 ข้อมูลการเข้างาน</h3>
+            <div class="h-80 w-full"><canvas id="lineChart"></canvas></div>
+        </div>
+        <div class="card h-96 flex flex-col items-center justify-center relative">
+            <h3 class="font-bold text-gray-700 mb-2 w-full text-left absolute top-4 left-5">📊 สัดส่วนสถานะ</h3>
+            <div class="h-64 w-64 relative mt-6">
+                <canvas id="pieChart"></canvas>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span class="text-gray-400 text-xs">Total</span>
+                    <span class="text-3xl font-bold text-gray-700" id="centerPieTotal">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow border overflow-hidden">
+        <div class="flex border-b overflow-x-auto bg-gray-50">
+            <button onclick="tab('missing')" id="tab-missing" class="flex-1 py-4 px-4 text-sm font-bold active-tab whitespace-nowrap">1. ยังไม่ได้สแกนหน้าเข้างาน</button>
+            <button onclick="tab('dept')" id="tab-dept" class="flex-1 py-4 px-4 text-sm font-bold inactive-tab whitespace-nowrap">2. รายชื่อไม่ได้สแกนหน้าแยกแผนก</button>
+            <button onclick="tab('late')" id="tab-late" class="flex-1 py-4 px-4 text-sm font-bold inactive-tab whitespace-nowrap">3. เข้างานสาย (>08:30)</button>
+            <button onclick="tab('arriveEarly')" id="tab-arriveEarly" class="flex-1 py-4 px-4 text-sm font-bold inactive-tab whitespace-nowrap text-green-700">4. มาเข้างานก่อน (<08:00)</button>
+            <button onclick="tab('earlyLeave')" id="tab-earlyLeave" class="flex-1 py-4 px-4 text-sm font-bold inactive-tab whitespace-nowrap">5. ออกงานก่อน(16:30)</button>
+        </div>
+        <div class="p-0 h-96 overflow-y-auto bg-white">
+            <div id="content-missing" class="block">
+                <table class="w-full text-sm text-left"><thead class="bg-gray-100 text-gray-600 sticky top-0" id="headMissing"></thead><tbody id="tblMissing" class="divide-y"></tbody></table>
+            </div>
+            <div id="content-dept" class="hidden">
+                <div class="p-2 bg-yellow-50 text-yellow-800 text-xs text-center border-b">💡 คลิกที่แถวเพื่อดูรายชื่อคนขาดงานในแผนกนั้น</div>
+                <table class="w-full text-sm text-left"><tbody id="tblDept" class="divide-y"></tbody></table>
+            </div>
+            <div id="content-late" class="hidden">
+                <table class="w-full text-sm text-left"><thead class="bg-gray-100 text-gray-600 sticky top-0" id="headLate"></thead><tbody id="tblLate" class="divide-y"></tbody></table>
+            </div>
+            <div id="content-arriveEarly" class="hidden">
+                <table class="w-full text-sm text-left"><thead class="bg-green-50 text-green-900 sticky top-0"><tr><th class="p-3">ชื่อ-นามสกุล</th><th class="p-3">แผนก</th><th class="p-3">เวลาเข้า</th><th class="p-3 text-right">มาก่อน (นาที)</th></tr></thead><tbody id="tblArriveEarly" class="divide-y"></tbody></table>
+            </div>
+             <div id="content-earlyLeave" class="hidden">
+                <table class="w-full text-sm text-left"><tbody id="tblEarlyLeave" class="divide-y"></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalList" class="modal opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
+        <div class="bg-white w-11/12 md:max-w-3xl rounded-xl shadow-lg overflow-hidden max-h-[80vh] flex flex-col">
+            <div class="p-4 border-b flex justify-between items-center bg-indigo-50">
+                <h3 class="font-bold text-indigo-900" id="modalTitle">รายละเอียด</h3>
+                <button onclick="closeModal()" class="text-2xl font-bold text-gray-400 hover:text-red-500">&times;</button>
+            </div>
+            <div class="overflow-y-auto p-4">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-gray-500 bg-gray-100" id="modalHeader"></thead>
+                    <tbody id="tblModalContent" class="divide-y"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🔴🔴 ใส่ URL Firebase ตัวเดียวกับ Admin 🔴🔴
+        const FIREBASE_URL = "https://bdlh-cs-default-rtdb.asia-southeast1.firebasedatabase.app/"; 
+        // ==========================================
+
+        const API_URL = `${FIREBASE_URL}/data.json`;
+        let db = [], currentData = [], isRange = false, chartL = null, chartP = null;
+
+        window.onload = async () => {
+            if(FIREBASE_URL.includes("YOUR-PROJECT")) {
+                document.getElementById('pageLoader').innerHTML = `<h2 class="text-xl font-bold text-red-600">Error: กรุณาใส่ FIREBASE_URL</h2>`;
+                return;
+            }
+            await fetchData();
+        };
+
+        async function fetchData() {
+            try {
+                const res = await fetch(API_URL);
+                if(res.ok) {
+                    const json = await res.json();
+                    if(json && json.records) {
+                        db = json.records || [];
+                        db.sort((a,b) => new Date(a.date) - new Date(b.date));
+                        setView('1D');
+                    } else { alert('ยังไม่มีข้อมูลในระบบ'); }
+                } else { alert('เชื่อมต่อไม่ได้'); }
+            } catch(e) { console.error(e); alert('ไม่สามารถดึงข้อมูลได้: ' + e.message); }
+            document.getElementById('pageLoader').style.display = 'none';
+        }
+
+        // --- View & Render Logic ---
+        function setView(mode) {
+            ['1D','Yesterday','7D','1M'].forEach(id => {
+                const btn = document.getElementById('btn'+id);
+                btn.className = (id === mode) 
+                    ? "px-4 py-2 text-sm font-bold rounded bg-indigo-600 text-white shadow" 
+                    : "px-4 py-2 text-sm font-bold rounded hover:bg-gray-100 text-gray-600";
+            });
+            if(db.length === 0) return;
+            isRange = false;
+            if (mode === '1D') {
+                currentData = [db[db.length-1]];
+                document.getElementById('badgeMode').innerText = "LATEST";
+            } else if (mode === 'Yesterday') {
+                if(db.length < 2) return alert('ไม่มีข้อมูลเมื่อวาน');
+                currentData = [db[db.length-2]];
+                document.getElementById('badgeMode').innerText = "YESTERDAY";
+            } else if (mode === '7D') {
+                currentData = db.slice(-7);
+                isRange = true;
+                document.getElementById('badgeMode').innerText = "7 DAYS AVG";
+            } else if (mode === '1M') {
+                currentData = db.slice(-30);
+                isRange = true;
+                document.getElementById('badgeMode').innerText = "30 DAYS AVG";
+            }
+            render();
+        }
+
+        function render() {
+            const latest = currentData[currentData.length-1];
+            if (isRange) {
+                document.getElementById('txtDate').innerText = `${currentData[0].date} ถึง ${latest.date} (${currentData.length} วัน)`;
+                document.getElementById('badgeWeekend').classList.add('hidden');
+            } else {
+                document.getElementById('txtDate').innerText = `${latest.date} (${latest.day})`;
+                if (latest.isWeekend) document.getElementById('badgeWeekend').classList.remove('hidden'); else document.getElementById('badgeWeekend').classList.add('hidden');
+            }
+
+            let sTotal=0, sScan=0, sLeave=0, sMiss=0;
+            currentData.forEach(d => { sTotal += d.summary.total; sScan += d.summary.scanned; sLeave += d.summary.leave; sMiss += d.summary.missing; });
+            const count = currentData.length;
+            const avgTotal = Math.round(sTotal/count), avgScan = Math.round(sScan/count), avgLeave = Math.round(sLeave/count), avgMiss = Math.round(sMiss/count);
+
+            document.getElementById('kpiTotal').innerText = avgTotal;
+            document.getElementById('kpiScan').innerText = avgScan;
+            document.getElementById('kpiLeave').innerText = avgLeave;
+            document.getElementById('kpiMissing').innerText = avgMiss;
+            document.getElementById('centerPieTotal').innerText = avgTotal;
+
+            const pct = (v,t) => t>0 ? ((v/t)*100).toFixed(1)+'%' : '0%';
+            document.getElementById('pctScan').innerText = pct(avgScan, avgTotal);
+            document.getElementById('pctLeave').innerText = pct(avgLeave, avgTotal);
+            document.getElementById('pctMissing').innerText = pct(avgMiss, avgTotal);
+
+            renderCharts(avgScan, avgLeave, avgMiss, avgTotal);
+            renderTables(latest);
+        }
+
+        function renderCharts(s, l, m, t) {
+            const ctxL = document.getElementById('lineChart'), ctxP = document.getElementById('pieChart');
+            if (chartL) chartL.destroy(); if (chartP) chartP.destroy();
+
+            chartP = new Chart(ctxP, { type: 'doughnut', data: { labels: ['Scan', 'Leave', 'Missing'], datasets: [{ data: [s, l, m], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { generateLabels: (chart) => chart.data.labels.map((lbl, i) => ({ text: `${lbl}: ${chart.data.datasets[0].data[i]} (${t>0 ? ((chart.data.datasets[0].data[i]/t)*100).toFixed(1)+'%':'0%'})`, fillStyle: chart.data.datasets[0].backgroundColor[i] })) } } } } });
+
+            let labels=[], dGreen=[], dBlue=[], dRed=[];
+            if (isRange) {
+                document.getElementById('titleLine').innerText = "📈 แนวโน้มการเข้างาน (ย้อนหลัง)";
+                labels = currentData.map(d => d.date); dGreen = currentData.map(d => d.summary.scanned); dBlue = currentData.map(d => d.summary.checkedOut || 0); dRed = currentData.map(d => d.summary.lateCount || 0);
+            } else {
+                document.getElementById('titleLine').innerText = "📈 ช่วงเวลาเข้า-ออก (รายชั่วโมง)";
+                const h = currentData[0].charts.hourly;
+                for(let i=5; i<=20; i++) { labels.push(i+":00"); dGreen.push(h[i].in); dBlue.push(h[i].out); dRed.push(h[i].late); }
+            }
+            chartL = new Chart(ctxL, { type: 'line', data: { labels: labels, datasets: [{ label: 'เข้างาน (Green)', data: dGreen, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3 }, { label: 'ออกงาน (Blue)', data: dBlue, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3 }, { label: 'สาย (Red)', data: dRed, borderColor: '#ef4444', backgroundColor: '#ef4444', borderDash: [5,5], tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } });
+        }
+
+        function renderTables(latest) {
+            const tMiss = document.getElementById('tblMissing'), hMiss = document.getElementById('headMissing');
+            if (isRange) {
+                hMiss.innerHTML = `<tr><th class="p-3">อันดับ</th><th class="p-3">ชื่อ-นามสกุล</th><th class="p-3">แผนก</th><th class="p-3 text-right">จำนวนครั้งที่ขาด</th></tr>`;
+                const counter = {}; currentData.forEach(d => { if(!d.isWeekend) d.lists.missing.forEach(m => { if(!counter[m.id]) counter[m.id] = {...m, cnt:0}; counter[m.id].cnt++; }); });
+                const list = Object.values(counter).sort((a,b) => b.cnt - a.cnt);
+                tMiss.innerHTML = list.map((m,i) => `<tr class="border-b hover:bg-red-50"><td class="p-3 text-gray-500">${i+1}</td><td class="p-3 font-bold text-gray-700">${m.name}</td><td class="p-3 text-xs text-gray-500">${m.dept}</td><td class="p-3 text-right"><span class="bg-red-100 text-red-800 font-bold px-2 py-1 rounded">${m.cnt} ครั้ง</span></td></tr>`).join('');
+            } else {
+                hMiss.innerHTML = `<tr><th class="p-3">ชื่อ-นามสกุล</th><th class="p-3">แผนก</th><th class="p-3">สถานะ</th></tr>`;
+                if (latest.isWeekend) tMiss.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-green-600 font-bold bg-green-50">วันหยุด (Weekend)</td></tr>'; else tMiss.innerHTML = latest.lists.missing.map(m => `<tr class="border-b"><td class="p-3 font-medium text-gray-700">${m.name}</td><td class="p-3 text-xs text-gray-500">${m.dept}</td><td class="p-3"><span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">No Scan</span></td></tr>`).join('');
+            }
+
+            const tDept = document.getElementById('tblDept');
+            if (isRange) tDept.innerHTML = '<tr><td class="p-4 text-center text-gray-400">-</td></tr>';
+            else { const sorted = Object.entries(latest.lists.missingDept).sort((a,b)=>b[1]-a[1]); tDept.innerHTML = sorted.map(([d, c]) => `<tr class="border-b clickable-row" onclick="openMissingDeptModal('${d}')"><td class="p-3 text-gray-600 flex items-center justify-between">${d} <span class="text-xs text-blue-500">🔍 ดูรายชื่อ</span></td><td class="p-3 text-right font-bold text-red-600">${c}</td></tr>`).join(''); }
+
+            // ... other tables (Late, Arrive, EarlyLeave) same as before ...
+            const tLate = document.getElementById('tblLate'), hLate = document.getElementById('headLate');
+            if (isRange) {
+                hLate.innerHTML = `<tr><th class="p-3">อันดับ</th><th class="p-3">ชื่อ-นามสกุล</th><th class="p-3">แผนก</th><th class="p-3 text-right">จำนวนครั้ง</th><th class="p-3 text-right">เวลารวม (นาที)</th></tr>`;
+                const counter = {}; currentData.forEach(d => d.lists.late.forEach(l => { if(!counter[l.id]) counter[l.id] = {...l, cnt:0, totalMins:0}; counter[l.id].cnt++; counter[l.id].totalMins += (l.lateMins || 0); }));
+                const list = Object.values(counter).filter(x => x.cnt > 3).sort((a,b) => b.cnt - a.cnt);
+                tLate.innerHTML = list.length === 0 ? '<tr><td colspan="5" class="p-4 text-center text-green-500">เยี่ยม! ไม่มีผู้ที่มาสายเกิน 3 ครั้งในช่วงนี้</td></tr>' : list.map((l,i) => `<tr class="border-b hover:bg-orange-50"><td class="p-3 text-gray-500">${i+1}</td><td class="p-3 font-bold text-gray-700">${l.name}</td><td class="p-3 text-xs text-gray-500">${l.dept}</td><td class="p-3 text-right"><span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">${l.cnt} ครั้ง</span></td><td class="p-3 text-right text-red-600 font-bold">+${l.totalMins}</td></tr>`).join('');
+            } else {
+                hLate.innerHTML = `<tr><th class="p-3">ลำดับ</th><th class="p-3">ชื่อ-นามสกุล</th><th class="p-3">เวลาเข้า</th><th class="p-3 text-right">สาย (นาที)</th></tr>`;
+                tLate.innerHTML = latest.lists.late.map((l,i) => `<tr class="border-b"><td class="p-3 text-gray-500">${i+1}</td><td class="p-3 font-medium">${l.name}</td><td class="p-3 font-mono text-orange-600">${l.time}</td><td class="p-3 text-right text-red-600 font-bold">+${l.lateMins}</td></tr>`).join('');
+            }
+            const tArrive = document.getElementById('tblArriveEarly');
+            if(isRange) tArrive.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">ดูรายวันเท่านั้น</td></tr>';
+            else { const list = latest.lists.earlyArrival || []; tArrive.innerHTML = list.length===0 ? '<tr><td colspan="4" class="p-4 text-center text-gray-400">ไม่มีผู้มาเช้ากว่า 08:00</td></tr>' : list.map(e => `<tr class="border-b"><td class="p-3 font-medium">${e.name}</td><td class="p-3 text-xs text-gray-500">${e.dept}</td><td class="p-3 font-mono text-green-600">${e.time}</td><td class="p-3 text-right text-green-600 font-bold">${e.arriveEarlyMins} นาที</td></tr>`).join(''); }
+            const tEarlyL = document.getElementById('tblEarlyLeave');
+            if(isRange) tEarlyL.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400">ดูรายวันเท่านั้น</td></tr>';
+            else tEarlyL.innerHTML = latest.lists.earlyLeave.map(e => `<tr class="border-b"><td class="p-3 font-medium">${e.name}</td><td class="p-3 font-mono text-blue-600">${e.time}</td><td class="p-3 text-right text-blue-600 font-bold">-${e.earlyLeaveMins}</td></tr>`).join('');
+        }
+
+        // --- Fix Modal Logic ---
+        function tab(t) { ['missing','dept','late','arriveEarly','earlyLeave'].forEach(x => { document.getElementById('content-'+x).classList.add('hidden'); document.getElementById('tab-'+x).className = "flex-1 py-4 px-4 text-sm font-bold inactive-tab border-b-2 border-transparent whitespace-nowrap"; }); document.getElementById('content-'+t).classList.remove('hidden'); const color = t === 'arriveEarly' ? 'green' : (t === 'missing' ? 'red' : 'indigo'); document.getElementById('tab-'+t).className = `flex-1 py-4 px-4 text-sm font-bold active-tab border-${color}-600 text-${color}-600 bg-${color}-50 whitespace-nowrap`; }
+        function openModal() { if(db.length) openLeaveModalLogic(); }
+        function openLeaveModalLogic() { const list = []; currentData.forEach(d => { if(d.lists.leave) d.lists.leave.forEach(l => list.push({...l, date: d.date})); }); document.getElementById('modalTitle').innerText = "รายละเอียดการลางาน"; document.getElementById('modalHeader').innerHTML = `<tr><th class="p-2">วันที่</th><th class="p-2">ชื่อ</th><th class="p-2">ประเภท</th></tr>`; document.getElementById('tblModalContent').innerHTML = list.map(l => { let isHalf = (l.type||'').includes('ครึ่ง') || l.isHalf; let badge = isHalf ? `<span class="ml-2 bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded-full border border-orange-200">ครึ่งวัน</span>` : ""; let rowClass = isHalf ? "bg-orange-50/30" : ""; return `<tr class="border-b ${rowClass}"><td class="p-2 text-xs text-gray-500">${l.date}</td><td class="p-2 font-bold text-gray-700">${l.name} ${badge}</td><td class="p-2 text-blue-600 text-xs">${l.type}</td></tr>`; }).join(''); toggleModalDisplay(true); }
+        
+        // 🔥 แก้บั๊กกดรายชื่อแผนกไม่ขึ้น: กรองข้อมูลโดยแปลงชื่อแผนกให้ตรงกันก่อนเปรียบเทียบ
+        function openMissingDeptModal(deptName) { 
+            const latest = currentData[currentData.length-1]; 
+            if(latest.isWeekend && !isRange) return alert('วันหยุดเสาร์-อาทิตย์ ไม่มีคนขาดงาน'); 
+            
+            const list = latest.lists.missing.filter(m => {
+                let safeName = (m.dept || 'ไม่ระบุ').replace(/[.#$/[\]]/g, ' - ');
+                return safeName === deptName;
+            });
+
+            document.getElementById('modalTitle').innerText = `คนขาดงาน: ${deptName}`; 
+            document.getElementById('modalHeader').innerHTML = `<tr><th class="p-2">ID</th><th class="p-2">ชื่อ-นามสกุล</th></tr>`; 
+            document.getElementById('tblModalContent').innerHTML = list.length === 0 ? '<tr><td colspan="2" class="p-4 text-center">ไม่พบรายชื่อ</td></tr>' : list.map(m => `<tr class="border-b"><td class="p-2 text-gray-500 font-mono text-xs">${m.id}</td><td class="p-2 font-bold text-red-600">${m.name}</td></tr>`).join(''); 
+            toggleModalDisplay(true); 
+        }
+
+        function closeModal() { toggleModalDisplay(false); }
+        function toggleModalDisplay(show) { const m = document.getElementById('modalList'); if(show) { m.classList.remove('opacity-0', 'pointer-events-none'); document.body.classList.add('modal-active'); } else { m.classList.add('opacity-0', 'pointer-events-none'); document.body.classList.remove('modal-active'); } }
+    </script>
+</body>
+</html>

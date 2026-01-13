@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - ระบบจัดการฐานข้อมูล (V.Ready to Use)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style> 
+        body { font-family: 'Sarabun', sans-serif; } 
+        .loader { border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #10b981; width: 20px; height: 20px; animation: spin 2s linear infinite; } 
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } 
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-green-600">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">🛠️ Admin Panel (พร้อมใช้งาน)</h1>
+            <div id="loadingIndicator" class="hidden flex items-center gap-2 text-green-600 font-bold"><div class="loader"></div> กำลังทำงาน...</div>
+        </div>
+        
+        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 text-sm text-green-900">
+            <p><strong>Database URL:</strong> <span id="showUrl" class="font-mono bg-white px-1 rounded text-gray-500 text-xs">...</span></p>
+            <div class="mt-2 flex items-center gap-2">
+                <span>สถานะ Cloud:</span>
+                <span id="connectionStatus" class="font-bold text-gray-500">⏳ กำลังเชื่อมต่อ...</span>
+                <button onclick="checkConnection()" class="ml-2 bg-green-200 hover:bg-green-300 text-green-800 px-2 py-0.5 rounded text-xs">ลองเชื่อมต่อใหม่</button>
+            </div>
+        </div>
+
+        <div class="grid gap-6">
+            <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h2 class="font-bold text-blue-800 mb-2">1. รายชื่อบุคลากร (Staff)</h2>
+                <input type="file" id="fileStaff" accept=".xlsx, .xls, .csv" class="block w-full text-sm mb-2"/>
+                <p class="text-xs text-blue-600">
+                    * ระบบจะอ่านเฉพาะ Column A-D (ID, ชื่อ, นามสกุล, แผนก)<br>
+                    * กรองคนที่มีสถานะ "ปิดใช้งาน" ออกอัตโนมัติ
+                </p>
+            </div>
+
+            <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                <h2 class="font-bold text-green-800 mb-2">2. เวลาเข้า-ออก (Attendance)</h2>
+                <input type="file" id="fileTime" accept=".xlsx, .xls, .csv" class="block w-full text-sm"/>
+            </div>
+
+            <div class="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <h2 class="font-bold text-orange-800 mb-2">3. การลา (Leave)</h2>
+                <input type="file" id="fileLeave" accept=".xlsx, .xls, .csv" class="block w-full text-sm"/>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-4 border-t flex justify-between items-center text-sm">
+            <div>
+                <p>พนักงานในระบบ: <span id="cntStaff" class="font-bold text-green-600 text-2xl">-</span> คน</p>
+                <p>ข้อมูลย้อนหลัง: <span id="cntDays" class="font-bold text-green-600 text-2xl">-</span> วัน</p>
+            </div>
+            <button onclick="resetDB()" class="text-white bg-red-600 hover:bg-red-700 border px-4 py-2 rounded shadow transition font-bold">
+                🗑️ ล้างข้อมูลเก่าทิ้ง (Reset DB)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ✅✅ ใส่ URL ให้แล้วครับ ไม่ต้องแก้ ✅✅
+        const RAW_URL = "https://bdlh-cs-default-rtdb.asia-southeast1.firebasedatabase.app/"; 
+        // ==========================================
+        
+        // ตัด / ท้าย URL ออกอัตโนมัติ เพื่อไม่ให้ URL พัง
+        const CLEAN_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
+        const API_URL = `${CLEAN_URL}/data.json`;
+        
+        let globalData = { staff: {}, records: [] };
+
+        // ฟังก์ชันทำงานทันทีเมื่อเปิดหน้าเว็บ
+        (async function initSystem() {
+            document.getElementById('showUrl').innerText = CLEAN_URL;
+            await checkConnection();
+        })();
+
+        async function checkConnection() {
+            setLoading(true);
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.innerText = "⏳ กำลังดึงข้อมูล...";
+            
+            try {
+                // เพิ่ม Timeout กันค้าง
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 วินาที
+
+                const res = await fetch(API_URL, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if(res.ok) {
+                    const json = await res.json();
+                    if(json) {
+                        globalData = json;
+                        if(!globalData.staff) globalData.staff = {};
+                        if(!globalData.records) globalData.records = [];
+                    } else { globalData = { staff: {}, records: [] }; }
+                    
+                    updateUI();
+                    
+                    statusEl.innerText = "✅ เชื่อมต่อสำเร็จ";
+                    statusEl.className = "text-green-600 font-bold";
+                } else { 
+                    throw new Error(`HTTP ${res.status}`); 
+                }
+            } catch (error) {
+                console.error(error);
+                statusEl.innerText = "❌ เชื่อมต่อไม่ได้ (" + error.message + ")";
+                statusEl.className = "text-red-600 font-bold";
+                alert("เชื่อมต่อ Firebase ไม่ได้: " + error.message + "\n(กรุณาเช็คอินเทอร์เน็ต)");
+            }
+            setLoading(false);
+        }
+
+        async function saveToCloud() {
+            setLoading(true);
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(globalData)
+                });
+                if(res.ok) { alert('✅ บันทึกข้อมูลสำเร็จ!'); updateUI(); } 
+                else { const err = await res.json(); alert(`❌ บันทึกไม่สำเร็จ: ${JSON.stringify(err)}`); }
+            } catch (error) { alert('❌ Network Error: ' + error.message); }
+            setLoading(false);
+        }
+
+        async function resetDB() {
+            if(confirm("ยืนยันล้างข้อมูลทั้งหมดให้เป็น 0?\n(ใช้แก้ปัญหากรณีข้อมูลเก่าผิดพลาด)")) {
+                globalData = { staff: {}, records: [] };
+                await saveToCloud();
+                location.reload();
+            }
+        }
+
+        // --- File Processing ---
+        document.getElementById('fileStaff').addEventListener('change', (e) => processFile(e, 'staff'));
+        document.getElementById('fileTime').addEventListener('change', (e) => processFile(e, 'time'));
+        document.getElementById('fileLeave').addEventListener('change', (e) => processFile(e, 'leave'));
+
+        function processFile(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // Auto-detect CSV Encoding
+                    let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    let rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                    
+                    if(file.name.endsWith('.csv') && rows.length > 5 && type === 'time') {
+                        const sample = JSON.stringify(rows.slice(0,5));
+                        if(!sample.includes('ID') && !sample.includes('บันทึก')) {
+                             const textReader = new FileReader();
+                             textReader.onload = (evt) => {
+                                 const text = new TextDecoder('windows-874').decode(evt.target.result);
+                                 const wb = XLSX.read(text, {type: 'string'});
+                                 runProcess(wb, type);
+                             };
+                             textReader.readAsArrayBuffer(file);
+                             return;
+                        }
+                    }
+                    runProcess(workbook, type);
+                } catch(err) { alert("Error reading file: " + err.message); }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function runProcess(workbook, type) {
+            let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            let rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+            if (type === 'staff') processStaff(rows);
+            else if (type === 'time') processTime(rows);
+            else if (type === 'leave') processLeave(rows);
+        }
+
+        async function processStaff(rows) {
+            let headerIdx = -1;
+            for(let i=0; i<Math.min(rows.length, 20); i++) {
+                if(rows[i] && rows[i][0] && (String(rows[i][0]).toUpperCase().includes('ID') || String(rows[i][0]).includes('รหัส'))) {
+                    headerIdx = i;
+                    break;
+                }
+            }
+
+            if (headerIdx === -1) return alert('❌ ไม่พบหัวตาราง "ID" ใน Column A');
+            
+            const newStaff = {};
+            let countTotal = 0;
+            let countSkipped = 0;
+
+            for(let i = headerIdx + 1; i < rows.length; i++) {
+                const row = rows[i];
+                if(!row || row.length === 0) continue;
+
+                // อ่าน A-D (0-3)
+                const id = String(row[0] || '').trim();
+                const fname = String(row[1] || '').trim();
+                const lname = String(row[2] || '').trim();
+                let dept = String(row[3] || 'ไม่ระบุ').trim();
+
+                if (!id) continue;
+                countTotal++;
+
+                // กรองคำว่า "ปิดใช้งาน" จากทั้งแถว
+                const fullRowString = JSON.stringify(row).toLowerCase();
+                if (fullRowString.includes('ปิดใช้งาน') || fullRowString.includes('disable') || fullRowString.includes('ลาออก')) {
+                    countSkipped++;
+                    continue; 
+                }
+
+                const safeDept = dept.replace(/[.#$/[\]]/g, ' - ');
+                newStaff[id] = { id: id, name: `${fname} ${lname}`.trim(), dept: safeDept };
+            }
+
+            const activeCount = Object.keys(newStaff).length;
+            
+            let msg = `🔎 ตรวจสอบข้อมูล:\nพบทั้งหมด: ${countTotal}\nตัดออก: ${countSkipped}\n✅ เหลือใช้งานจริง: ${activeCount} คน\n(เป้าหมาย: 199 คน)\n\nกด OK เพื่อบันทึก`;
+
+            if(confirm(msg)) {
+                globalData.staff = newStaff;
+                await saveToCloud();
+            }
+        }
+
+        async function processTime(rows) {
+            if (!globalData.staff || Object.keys(globalData.staff).length === 0) return alert('⚠️ กรุณาลงไฟล์รายชื่อ (1) ก่อนครับ');
+            const table = smartParse(rows, ['ID', 'บันทึก']);
+            if (!table) return alert('❌ รูปแบบไฟล์เวลาไม่ถูกต้อง');
+            let fileDate = parseDate(table[0]['วันที่']);
+            if (!fileDate) return alert(`❌ ไม่พบวันที่`);
+
+            let dayName = table[0]['สัปดาห์'] || "";
+            const scannedIds = new Set();
+            let checkOutCount = 0;
+            const lateList = [], earlyArrivalList = [], earlyLeaveList = [];
+            const hourlyStats = new Array(24).fill(0).map(()=>({in:0, out:0, late:0}));
+            const WORK_START = 8*60, LATE_LIMIT = 8*60 + 30, LATE_CUTOFF = 16*60, LEAVE_LIMIT = 16*60 + 30, EARLY_CHECK_START = 5*60; 
+
+            table.forEach(r => {
+                const id = String(r['ID']).trim();
+                if (!id || !globalData.staff[id]) return; 
+                
+                scannedIds.add(id);
+                const count = parseInt(r['จำนวนครั้งที่รูดบัตร'] || 0);
+                const recordStr = String(r['บันทึก'] || "");
+                const times = recordStr.split(';').map(t => t.trim()).filter(t => t !== "");
+                let tIn = null, tOut = null;
+                if (count >= 1 && times.length > 0) tIn = parseTime(times[0]); 
+                if (count >= 2 && times.length > 1) tOut = parseTime(times[1]); 
+
+                if (tIn) {
+                    hourlyStats[tIn.h].in++;
+                    if (tIn.mins > LATE_LIMIT && tIn.mins <= LATE_CUTOFF) {
+                        hourlyStats[tIn.h].late++;
+                        lateList.push({ id, name: globalData.staff[id].name, dept: globalData.staff[id].dept, time: tIn.str, lateMins: tIn.mins - LATE_LIMIT });
+                    }
+                    if (tIn.mins >= EARLY_CHECK_START && tIn.mins < WORK_START) {
+                        earlyArrivalList.push({ id, name: globalData.staff[id].name, dept: globalData.staff[id].dept, time: tIn.str, arriveEarlyMins: WORK_START - tIn.mins });
+                    }
+                }
+                if (tOut) {
+                    checkOutCount++;
+                    hourlyStats[tOut.h].out++;
+                    if (tOut.mins < LEAVE_LIMIT) {
+                        earlyLeaveList.push({ id, name: globalData.staff[id].name, dept: globalData.staff[id].dept, time: tOut.str, earlyLeaveMins: LEAVE_LIMIT - tOut.mins });
+                    }
+                }
+            });
+
+            const missingList = [], missingDept = {};
+            Object.values(globalData.staff).forEach(emp => {
+                if (!scannedIds.has(emp.id)) {
+                    missingList.push(emp);
+                    let safeDeptName = emp.dept || 'ไม่ระบุ';
+                    missingDept[safeDeptName] = (missingDept[safeDeptName] || 0) + 1;
+                }
+            });
+
+            const sortByTime = (a, b) => a.time.localeCompare(b.time);
+            lateList.sort(sortByTime); earlyArrivalList.sort(sortByTime); earlyLeaveList.sort(sortByTime);
+
+            const dailyRecord = {
+                date: fileDate, day: dayName, isWeekend: (dayName.includes('เสาร์') || dayName.includes('อาทิตย์')),
+                scannedIds: Array.from(scannedIds),
+                summary: { total: Object.keys(globalData.staff).length, scanned: scannedIds.size, checkedOut: checkOutCount, lateCount: lateList.length, leave: 0, missing: missingList.length },
+                lists: { late: lateList, earlyArrival: earlyArrivalList, earlyLeave: earlyLeaveList, missing: missingList, missingDept: missingDept, leave: [] },
+                charts: { hourly: hourlyStats }
+            };
+
+            globalData.records = globalData.records.filter(d => d.date !== fileDate);
+            globalData.records.push(dailyRecord);
+            globalData.records.sort((a,b) => new Date(a.date) - new Date(b.date));
+            if (globalData.records.length > 90) globalData.records = globalData.records.slice(globalData.records.length - 90);
+
+            await saveToCloud();
+        }
+
+        async function processLeave(rows) {
+            if (!globalData.records || globalData.records.length === 0) return alert('⚠️ ลงไฟล์เวลาเข้างานก่อนครับ');
+            const table = smartParse(rows, ['ID', 'วันที่ลางาน']);
+            if (!table) return alert('❌ ไฟล์ไม่ถูกต้อง');
+            const leavesByDate = {};
+            table.forEach(r => {
+                let d = parseDate(r['วันที่ลางาน']);
+                let id = String(r['ID']).trim();
+                if (d && id && globalData.staff[id]) {
+                    if (!leavesByDate[d]) leavesByDate[d] = [];
+                    leavesByDate[d].push({ id, name: globalData.staff[id].name, dept: globalData.staff[id].dept, type: r['ประเภท'], isHalf: (r['ประเภท']||'').includes('ครึ่ง') });
+                }
+            });
+            globalData.records = globalData.records.map(day => {
+                if (leavesByDate[day.date]) {
+                    const rawLeaves = leavesByDate[day.date];
+                    const scannedIds = new Set(day.scannedIds);
+                    const filteredLeaves = rawLeaves.filter(l => !scannedIds.has(l.id));
+                    const rawLeaveIds = new Set(rawLeaves.map(l => l.id)); 
+                    const newMissing = [], newMissingDept = {};
+                    Object.values(globalData.staff).forEach(emp => {
+                        if (!scannedIds.has(emp.id) && !rawLeaveIds.has(emp.id)) {
+                            newMissing.push(emp);
+                            let safeDeptName = emp.dept || 'ไม่ระบุ';
+                            newMissingDept[safeDeptName] = (newMissingDept[safeDeptName] || 0) + 1;
+                        }
+                    });
+                    day.lists.leave = filteredLeaves;
+                    day.lists.missing = newMissing;
+                    day.lists.missingDept = newMissingDept;
+                    day.summary.leave = filteredLeaves.length;
+                    day.summary.missing = newMissing.length;
+                }
+                return day;
+            });
+            await saveToCloud();
+        }
+
+        // --- Utils ---
+        function setLoading(b) { document.getElementById('loadingIndicator').classList.toggle('hidden', !b); }
+        function updateUI() {
+            if(document.getElementById('cntStaff')) document.getElementById('cntStaff').innerText = Object.keys(globalData.staff).length;
+            if(document.getElementById('cntDays')) document.getElementById('cntDays').innerText = globalData.records.length;
+        }
+        function smartParse(rawRows, keywords) {
+            let headerIdx = -1;
+            for(let i=0; i < Math.min(rawRows.length, 30); i++) {
+                const rowStr = JSON.stringify(rawRows[i] || []);
+                if (keywords.every(k => rowStr.includes(k))) { headerIdx = i; break; }
+            }
+            if (headerIdx === -1) return null;
+            const headers = rawRows[headerIdx].map(h => h ? String(h).trim() : "");
+            const result = [];
+            for(let i = headerIdx + 1; i < rawRows.length; i++) {
+                const row = rawRows[i];
+                if (!row || row.length === 0) continue;
+                let obj = {};
+                headers.forEach((h, idx) => { if(h) obj[h] = row[idx]; });
+                if (obj['ID']) result.push(obj);
+            }
+            return result;
+        }
+        function parseTime(str) {
+            if (!str) return null;
+            const parts = str.split(':'); if (parts.length < 2) return null;
+            const h = parseInt(parts[0]), m = parseInt(parts[1]);
+            return { str: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`, mins: h*60+m, h };
+        }
+        function parseDate(val) {
+            if (!val) return null;
+            if (val instanceof Date) return val.toISOString().split('T')[0];
+            if (typeof val === 'string') {
+                const parts = val.split(/[-/]/);
+                if(parts.length === 3) { 
+                    if (parseInt(parts[0]) > 2000) return `${parts[0]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
+                    let y = parseInt(parts[2]); if (y > 2400) y -= 543; 
+                    return `${y}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`; 
+                }
+                return val.trim();
+            }
+            if(typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000)).toISOString().split('T')[0];
+            return null;
+        }
+    </script>
+</body>
+</html>
