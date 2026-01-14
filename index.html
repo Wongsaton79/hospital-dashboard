@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospital Dashboard (Fixed)</title>
+    <title>Dashboard ผู้บริหาร (Restored)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -13,13 +13,15 @@
         .active-tab { border-bottom: 3px solid #f59e0b; color: #d97706; background-color: #fffbeb; }
         .inactive-tab { color: #64748b; }
         .inactive-tab:hover { background-color: #f8fafc; }
+        /* Modal Transition */
+        .modal-content { transition: transform 0.3s ease-out; }
     </style>
 </head>
 <body class="p-6">
     
     <div id="loader" class="fixed inset-0 bg-white z-50 flex flex-col justify-center items-center">
-        <div class="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-        <p class="mt-4 text-gray-500 font-bold">กำลังดึงข้อมูล...</p>
+        <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="mt-4 text-gray-500 font-bold">กำลังดึงข้อมูลล่าสุด...</p>
     </div>
 
     <div class="max-w-7xl mx-auto flex justify-between items-center mb-6">
@@ -81,7 +83,7 @@
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal()"></div>
         <div class="fixed inset-0 z-10 overflow-y-auto">
             <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg modal-content">
                     <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                         <h3 class="text-lg font-semibold leading-6 text-gray-900 mb-4" id="modalTitle">รายชื่อ</h3>
                         <div class="max-h-96 overflow-y-auto">
@@ -100,64 +102,70 @@
     </div>
 
     <script>
+        // ✅ URL Firebase
         const API_URL = "https://bdlh-cs-default-rtdb.asia-southeast1.firebasedatabase.app/data.json";
+        
         let db = { staff: {}, records: [] };
-        let currentRecords = [];
+        let currentData = [];
         let chartL = null, chartP = null;
         let isRange = false;
 
         window.onload = async () => {
             try {
-                // Cache Busting: บังคับโหลดใหม่ ไม่เอาจากแคช
+                // 🔥 Cache Busting: บังคับโหลดใหม่ ไม่เอาจากแคช
                 const res = await fetch(`${API_URL}?t=${Date.now()}`);
                 const json = await res.json();
                 if(json) {
                     db = json;
                     if(!db.records) db.records = [];
-                    // เรียงวันที่
+                    // เรียงวันที่จากเก่าไปใหม่
                     db.records.sort((a,b) => new Date(a.date) - new Date(b.date));
                     setView('1D');
                 } else {
-                    alert('ไม่พบข้อมูลในระบบ');
+                    document.getElementById('dateInfo').innerText = "ไม่พบข้อมูลในระบบ";
                 }
-            } catch(e) { console.error(e); alert('เชื่อมต่อฐานข้อมูลไม่ได้'); }
+            } catch(e) { 
+                console.error(e); 
+                document.getElementById('dateInfo').innerText = "เชื่อมต่อไม่ได้"; 
+            }
             document.getElementById('loader').classList.add('hidden');
         };
 
         function setView(mode) {
-            // Update Buttons
+            // Update Buttons Style
             ['1D','7D','1M'].forEach(id => {
-                document.getElementById('btn'+id).className = id === mode 
-                    ? "px-4 py-1 text-sm font-bold rounded-md bg-amber-500 text-white shadow" 
-                    : "px-4 py-1 text-sm font-bold rounded-md text-gray-600 hover:bg-gray-100";
+                const btn = document.getElementById('btn'+id);
+                if(id === mode) btn.className = "px-4 py-1 text-sm font-bold rounded-md bg-amber-500 text-white shadow";
+                else btn.className = "px-4 py-1 text-sm font-bold rounded-md text-gray-600 hover:bg-gray-100";
             });
 
             if(db.records.length === 0) return;
 
             isRange = mode !== '1D';
-            if(mode === '1D') currentRecords = [db.records[db.records.length-1]];
-            else if(mode === '7D') currentRecords = db.records.slice(-7);
-            else currentRecords = db.records.slice(-30);
+            if(mode === '1D') currentData = [db.records[db.records.length-1]];
+            else if(mode === '7D') currentData = db.records.slice(-7);
+            else currentData = db.records.slice(-30);
 
             renderDashboard();
         }
 
         function renderDashboard() {
-            const latest = currentRecords[currentRecords.length-1];
+            const latest = currentData[currentData.length-1];
+            
+            // Text Header
             document.getElementById('dateInfo').innerText = isRange 
-                ? `ข้อมูลเฉลี่ยย้อนหลัง ${currentRecords.length} วัน` 
-                : `ประจำวันที่: ${latest.date} (${latest.day})`;
+                ? `แสดงข้อมูลเฉลี่ยย้อนหลัง ${currentData.length} วัน` 
+                : `ข้อมูลประจำวันที่: ${latest.date} (${latest.day})`;
 
             // KPI Calculation
             const staffCount = Object.keys(db.staff).length;
             let sumScan=0, sumLeave=0;
-            currentRecords.forEach(r => {
+            currentData.forEach(r => {
                 sumScan += r.summary.scanned;
                 sumLeave += (r.summary.leave || 0);
             });
             
-            // Average for range
-            const div = currentRecords.length;
+            const div = currentData.length;
             const avgScan = Math.round(sumScan/div);
             const avgLeave = Math.round(sumLeave/div);
             // คำนวณ Missing ใหม่จาก Staff ปัจจุบัน - Scan - Leave
@@ -196,13 +204,13 @@
             // Line Chart
             let labels = [], dataIn = [];
             if(isRange) {
-                // Range View: Show trend by date
-                labels = currentRecords.map(r => r.date.split('-').slice(1).join('/')); // MM/DD
-                dataIn = currentRecords.map(r => r.summary.scanned);
+                // Range View: Trend by Date
+                labels = currentData.map(r => r.date.split('-').slice(1).join('/')); // MM/DD
+                dataIn = currentData.map(r => r.summary.scanned);
             } else {
-                // Daily View: Show hourly trend
+                // Daily View: Hourly
                 labels = Array.from({length: 15}, (_, i) => `${i+6}:00`); // 6:00 - 20:00
-                const hourly = currentRecords[0].charts.hourly;
+                const hourly = currentData[0].charts.hourly;
                 dataIn = labels.map((_, i) => hourly[i+6] ? hourly[i+6].in : 0);
             }
 
@@ -224,16 +232,15 @@
         }
 
         function renderTables(data) {
-            // 1. Missing (Group by Dept)
-            // Recalculate missing based on CURRENT Staff list (Anti-Crash)
+            // 1. Missing Table (Group by Dept)
             const missingDept = {};
             const scannedIds = new Set(data.scannedIds);
             
-            // Loop Staff ปัจจุบันเท่านั้น
+            // Loop จาก Staff ปัจจุบันเท่านั้น (Anti-Crash)
             Object.values(db.staff).forEach(emp => {
                 if(!scannedIds.has(emp.id)) {
-                    // Check if Leave? (Optional: ถ้ามี logic leave id)
-                    const dept = emp.dept || 'ไม่ระบุ';
+                    // Normalize Dept Name
+                    const dept = (emp.dept || 'ไม่ระบุ').replace(/[.#$/[\]]/g, ' - ');
                     missingDept[dept] = (missingDept[dept] || 0) + 1;
                 }
             });
@@ -244,7 +251,7 @@
             } else {
                 let html = '<div class="grid grid-cols-2 md:grid-cols-3 gap-3">';
                 Object.entries(missingDept).forEach(([dept, count]) => {
-                    html += `<div onclick="openMissingModal('${dept}')" class="bg-white border border-red-100 p-3 rounded-lg shadow-sm cursor-pointer hover:bg-red-50 transition">
+                    html += `<div onclick="openMissingDeptModal('${dept}')" class="bg-white border border-red-100 p-3 rounded-lg shadow-sm cursor-pointer hover:bg-red-50 transition">
                         <div class="text-xs text-gray-500 truncate" title="${dept}">${dept}</div>
                         <div class="text-2xl font-bold text-red-600 mt-1">${count} <span class="text-xs font-normal text-gray-400">คน</span></div>
                     </div>`;
@@ -253,7 +260,7 @@
                 missDiv.innerHTML = html;
             }
 
-            // 2. Late
+            // 2. Late Table
             const lateDiv = document.getElementById('content-late');
             if(!data.lists.late || data.lists.late.length === 0) {
                 lateDiv.innerHTML = '<p class="text-center text-gray-400 py-4">ไม่มีคนสาย</p>';
@@ -261,7 +268,7 @@
                 lateDiv.innerHTML = '<table class="w-full text-sm text-left">' + 
                     data.lists.late.map(l => `
                         <tr class="border-b hover:bg-gray-50">
-                            <td class="p-2 font-bold text-gray-700">${l.name || 'Unknown'}</td>
+                            <td class="p-2 font-bold text-gray-700">${l.name}</td>
                             <td class="p-2 text-gray-500 text-xs">${l.dept}</td>
                             <td class="p-2 text-orange-600 font-mono text-right">${l.time}</td>
                             <td class="p-2 text-red-600 font-bold text-right">+${l.lateMins} น.</td>
@@ -269,7 +276,7 @@
                     `).join('') + '</table>';
             }
 
-            // 3. Leave
+            // 3. Leave Table
              const leaveDiv = document.getElementById('content-leave');
              if(!data.lists.leave || data.lists.leave.length === 0) {
                  leaveDiv.innerHTML = '<p class="text-center text-gray-400 py-4">ไม่มีคนลา</p>';
@@ -284,7 +291,7 @@
              }
         }
 
-        // --- Tab Switching ---
+        // --- Tabs ---
         window.switchTab = function(tabName) {
             ['missing','late','leave'].forEach(t => {
                 document.getElementById('content-'+t).className = t===tabName ? 'block' : 'hidden';
@@ -293,35 +300,34 @@
         }
 
         // --- Modals ---
-        window.openMissingModal = function(deptName) {
-            const data = currentRecords[currentRecords.length-1];
-            const scannedIds = new Set(data.scannedIds);
-            const missingList = [];
+        window.openMissingDeptModal = function(deptName) {
+            const latest = currentData[currentData.length-1];
+            const scannedIds = new Set(latest.scannedIds);
+            const list = [];
 
-            // คำนวณรายชื่อคนขาดเฉพาะแผนกที่เลือก
+            // หาคนขาดในแผนกนั้น
             Object.values(db.staff).forEach(emp => {
-                const empDept = emp.dept || 'ไม่ระบุ';
-                if(!scannedIds.has(emp.id) && empDept === deptName) {
-                    missingList.push(emp);
+                const safeDept = (emp.dept || 'ไม่ระบุ').replace(/[.#$/[\]]/g, ' - ');
+                if(!scannedIds.has(emp.id) && safeDept === deptName) {
+                    list.push(emp);
                 }
             });
 
             document.getElementById('modalTitle').innerText = `คนขาดงาน: ${deptName}`;
-            document.getElementById('modalHeader').innerHTML = `<tr><th class="p-2 text-left">ID</th><th class="p-2 text-left">ชื่อ-นามสกุล</th></tr>`;
+            document.getElementById('modalHeader').innerHTML = `<tr><th class="p-2">ID</th><th class="p-2">ชื่อ-นามสกุล</th></tr>`;
             
-            const tbody = document.getElementById('tblModalContent');
-            tbody.innerHTML = missingList.map(m => `
-                <tr class="border-b">
-                    <td class="p-2 font-mono text-xs text-gray-500">${m.id}</td>
-                    <td class="p-2 font-bold text-red-600">${m.name}</td>
-                </tr>
-            `).join('');
-
-            document.getElementById('modalList').classList.remove('hidden');
+            document.getElementById('tblModalContent').innerHTML = list.length === 0 
+                ? '<tr><td colspan="2" class="p-4 text-center">ไม่พบรายชื่อ</td></tr>' 
+                : list.map(m => `<tr class="border-b"><td class="p-2 text-gray-500 font-mono text-xs">${m.id}</td><td class="p-2 font-bold text-red-600">${m.name}</td></tr>`).join('');
+            
+            toggleModalDisplay(true);
         }
 
-        window.closeModal = function() {
-            document.getElementById('modalList').classList.add('hidden');
+        window.closeModal = function() { toggleModalDisplay(false); }
+        function toggleModalDisplay(show) {
+            const m = document.getElementById('modalList');
+            if(show) { m.classList.remove('hidden'); }
+            else { m.classList.add('hidden'); }
         }
     </script>
 </body>
