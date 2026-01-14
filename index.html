@@ -3,144 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Hospital Dashboard (Full Version)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Sarabun', sans-serif; background: #f8fafc; } </style>
+    <style> 
+        body { font-family: 'Sarabun', sans-serif; background: #f8fafc; }
+        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .active-tab { border-bottom: 3px solid #4f46e5; color: #4f46e5; background: #eef2ff; }
+        .inactive-tab { color: #64748b; }
+    </style>
 </head>
 <body class="p-6">
-    
-    <div id="pageLoader" class="fixed inset-0 bg-white z-50 flex flex-col justify-center items-center">
+    <div id="loader" class="fixed inset-0 bg-white z-50 flex flex-col justify-center items-center">
         <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-        <p class="mt-4 text-gray-500 font-bold">กำลังโหลดข้อมูล...</p>
     </div>
 
     <div class="max-w-7xl mx-auto flex justify-between items-center mb-6">
         <div>
             <h1 class="text-3xl font-bold text-indigo-900">🏥 Hospital Dashboard</h1>
-            <p id="lastUpdate" class="text-sm text-gray-500">Connecting...</p>
+            <p id="dateInfo" class="text-sm text-gray-500">Connecting...</p>
         </div>
-        <div class="flex gap-2">
-            <button onclick="fetchData()" class="bg-indigo-50 text-indigo-600 px-4 py-2 rounded font-bold hover:bg-indigo-100">Refresh</button>
+        <div class="bg-white p-1 rounded border flex">
+            <button onclick="setView('1D')" id="btn1D" class="px-4 py-1 text-sm font-bold rounded">วันนี้</button>
+            <button onclick="setView('7D')" id="btn7D" class="px-4 py-1 text-sm font-bold rounded">7 วัน</button>
+            <button onclick="setView('1M')" id="btn1M" class="px-4 py-1 text-sm font-bold rounded">30 วัน</button>
         </div>
     </div>
 
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white p-5 rounded-xl shadow border-l-4 border-gray-400">
-            <p class="text-xs font-bold text-gray-400 uppercase">บุคลากรทั้งหมด</p>
-            <h2 class="text-4xl font-bold text-gray-800 mt-1" id="kpiTotal">0</h2>
+        <div class="card border-l-4 border-gray-400">
+            <p class="text-xs font-bold text-gray-400">บุคลากร</p>
+            <h2 class="text-4xl font-bold text-gray-800" id="kpiTotal">0</h2>
         </div>
-        <div class="bg-white p-5 rounded-xl shadow border-l-4 border-green-500">
-            <p class="text-xs font-bold text-green-600 uppercase">เข้างาน (Scan)</p>
-            <h2 class="text-4xl font-bold text-green-600 mt-1" id="kpiScan">0</h2>
+        <div class="card border-l-4 border-green-500">
+            <p class="text-xs font-bold text-green-600">เข้างาน</p>
+            <h2 class="text-4xl font-bold text-green-600" id="kpiScan">0</h2>
         </div>
-        <div class="bg-white p-5 rounded-xl shadow border-l-4 border-blue-500">
-            <p class="text-xs font-bold text-blue-600 uppercase">ลางาน (Leave)</p>
-            <h2 class="text-4xl font-bold text-blue-600 mt-1" id="kpiLeave">0</h2>
+        <div class="card border-l-4 border-blue-500">
+            <p class="text-xs font-bold text-blue-600">ลางาน</p>
+            <h2 class="text-4xl font-bold text-blue-600" id="kpiLeave">0</h2>
         </div>
-        <div class="bg-white p-5 rounded-xl shadow border-l-4 border-red-500">
-            <p class="text-xs font-bold text-red-600 uppercase">ขาดงาน (Missing)</p>
-            <h2 class="text-4xl font-bold text-red-600 mt-1" id="kpiMissing">0</h2>
+        <div class="card border-l-4 border-red-500">
+            <p class="text-xs font-bold text-red-600">ขาดงาน</p>
+            <h2 class="text-4xl font-bold text-red-600" id="kpiMissing">0</h2>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="bg-white p-5 rounded-xl shadow lg:col-span-2 h-80">
-            <h3 class="font-bold text-gray-700 mb-2">📈 กราฟแสดงการเข้างาน (ตามเวลา)</h3>
-            <div class="h-64"><canvas id="lineChart"></canvas></div>
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="card lg:col-span-2 h-80">
+            <div class="h-full"><canvas id="lineChart"></canvas></div>
         </div>
-        <div class="bg-white p-5 rounded-xl shadow h-80 flex flex-col items-center">
-            <h3 class="font-bold text-gray-700 mb-2 w-full">📊 สัดส่วนสถานะ</h3>
-            <div class="h-56 w-56 relative">
-                <canvas id="pieChart"></canvas>
-            </div>
+        <div class="card h-80 flex justify-center items-center">
+            <div class="h-56 w-56 relative"><canvas id="pieChart"></canvas></div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow overflow-hidden">
+        <div class="flex border-b">
+            <button onclick="tab('missing')" class="flex-1 py-3 text-sm font-bold active-tab" id="tab-missing">คนขาดงาน</button>
+            <button onclick="tab('late')" class="flex-1 py-3 text-sm font-bold inactive-tab" id="tab-late">มาสาย</button>
+        </div>
+        <div class="h-64 overflow-y-auto p-4">
+            <div id="content-missing"></div>
+            <div id="content-late" class="hidden"></div>
         </div>
     </div>
 
     <script>
-        // ✅ URL Firebase (ใช้งานได้เลย)
-        const RAW_URL = "https://bdlh-cs-default-rtdb.asia-southeast1.firebasedatabase.app/"; 
-        const CLEAN_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
-        const API_URL = `${CLEAN_URL}/data.json`;
-        
-        let chartL = null, chartP = null;
+        const API_URL = "https://bdlh-cs-default-rtdb.asia-southeast1.firebasedatabase.app/data.json";
+        let db = [], currentData = [], chartL, chartP;
 
-        window.onload = fetchData;
-
-        async function fetchData() {
+        window.onload = async () => {
             try {
-                const res = await fetch(API_URL);
-                if(res.ok) {
-                    const data = await res.json();
-                    if(data && data.records && data.records.length > 0) {
-                        // เอาข้อมูลวันล่าสุด
-                        const latest = data.records[data.records.length - 1];
-                        const staffCount = data.staff ? Object.keys(data.staff).length : 0;
-                        renderDashboard(latest, staffCount);
-                    } else {
-                        alert("ยังไม่มีข้อมูลเข้างานในระบบ");
-                        document.getElementById('pageLoader').classList.add('hidden');
-                    }
+                // Cache Busting
+                const res = await fetch(API_URL + "?t=" + Date.now());
+                const json = await res.json();
+                if(json && json.records) {
+                    db = json.records.sort((a,b)=>new Date(a.date)-new Date(b.date));
+                    setView('1D');
                 }
-            } catch(e) { console.error(e); alert("โหลดข้อมูลไม่ได้"); }
+            } catch(e) { console.error(e); }
+            document.getElementById('loader').classList.add('hidden');
+        };
+
+        function setView(mode) {
+            ['1D','7D','1M'].forEach(i => document.getElementById('btn'+i).className = "px-4 py-1 text-sm font-bold rounded " + (i===mode ? "bg-indigo-600 text-white" : "text-gray-600 hover:bg-gray-100"));
+            
+            if(db.length === 0) return;
+            if(mode === '1D') currentData = [db[db.length-1]];
+            else if(mode === '7D') currentData = db.slice(-7);
+            else currentData = db.slice(-30);
+            
+            render();
         }
 
-        function renderDashboard(data, totalStaff) {
-            document.getElementById('pageLoader').classList.add('hidden');
-            document.getElementById('lastUpdate').innerText = `ข้อมูลประจำวันที่: ${data.date} (${data.day})`;
+        function render() {
+            const last = currentData[currentData.length-1];
+            document.getElementById('dateInfo').innerText = currentData.length > 1 ? `เฉลี่ย ${currentData.length} วันล่าสุด` : `ข้อมูลวันที่: ${last.date} (${last.day})`;
 
-            // KPI
-            document.getElementById('kpiTotal').innerText = totalStaff;
-            document.getElementById('kpiScan').innerText = data.summary.scanned;
-            document.getElementById('kpiLeave').innerText = data.summary.leave || 0;
+            // KPI Avg
+            let t=0, s=0, l=0, m=0;
+            currentData.forEach(d => { t+=d.summary.total; s+=d.summary.scanned; l+=(d.summary.leave||0); m+=d.summary.missing; });
+            const div = currentData.length;
             
-            // 🔥 คำนวณ Missing ใหม่ เพื่อความชัวร์ (Total - Scan - Leave)
-            // (ป้องกันกรณีข้อมูลเก่าค้าง)
-            const missing = totalStaff - data.summary.scanned - (data.summary.leave || 0);
-            document.getElementById('kpiMissing').innerText = missing < 0 ? 0 : missing;
+            document.getElementById('kpiTotal').innerText = Math.round(t/div);
+            document.getElementById('kpiScan').innerText = Math.round(s/div);
+            document.getElementById('kpiLeave').innerText = Math.round(l/div);
+            document.getElementById('kpiMissing').innerText = Math.round(m/div);
 
-            // Charts
+            renderCharts();
+            renderTables(last);
+        }
+
+        function renderCharts() {
             const ctxL = document.getElementById('lineChart');
             const ctxP = document.getElementById('pieChart');
-
             if(chartL) chartL.destroy();
             if(chartP) chartP.destroy();
 
-            // Pie Chart
+            // Pie
+            const avgS = Math.round(currentData.reduce((a,b)=>a+b.summary.scanned,0)/currentData.length);
+            const avgL = Math.round(currentData.reduce((a,b)=>a+(b.summary.leave||0),0)/currentData.length);
+            const avgM = Math.round(currentData.reduce((a,b)=>a+b.summary.missing,0)/currentData.length);
+
             chartP = new Chart(ctxP, {
                 type: 'doughnut',
-                data: {
-                    labels: ['มาทำงาน', 'ลางาน', 'ขาดงาน'],
-                    datasets: [{
-                        data: [data.summary.scanned, data.summary.leave || 0, missing < 0 ? 0 : missing],
-                        backgroundColor: ['#10b981', '#3b82f6', '#ef4444'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+                data: { labels: ['มา', 'ลา', 'ขาด'], datasets: [{ data: [avgS, avgL, avgM], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWidth: 0 }] },
+                options: { maintainAspectRatio: false, cutout: '70%' }
             });
 
-            // Line Chart (Hourly)
-            const h = data.charts.hourly;
-            const labels = [], dIn = [], dOut = [];
-            for(let i=6; i<=20; i++) { // 06:00 - 20:00
-                labels.push(`${i}:00`);
-                dIn.push(h[i] ? h[i].in : 0);
-                dOut.push(h[i] ? h[i].out : 0);
-            }
-
+            // Line
+            const labels = currentData.length > 1 ? currentData.map(d=>d.date) : Array.from({length:15},(_,i)=>`${i+6}:00`);
+            const dIn = currentData.length > 1 ? currentData.map(d=>d.summary.scanned) : currentData[0].charts.hourly.slice(6,21).map(h=>h.in);
+            
             chartL = new Chart(ctxL, {
                 type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'เข้างาน', data: dIn, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3 },
-                        { label: 'ออกงาน', data: dOut, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
+                data: { labels: labels, datasets: [{ label: 'เข้างาน', data: dIn, borderColor: '#10b981', tension: 0.3 }] },
+                options: { maintainAspectRatio: false }
             });
+        }
+
+        function renderTables(d) {
+            // Missing Table
+            const tMiss = document.getElementById('content-missing');
+            if(d.lists.missing.length === 0) tMiss.innerHTML = '<p class="text-center text-gray-400 mt-4">ไม่มีคนขาดงาน</p>';
+            else {
+                tMiss.innerHTML = '<table class="w-full text-sm text-left">' + 
+                d.lists.missing.map((m, i) => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-2 text-gray-500">${i+1}</td>
+                        <td class="p-2 font-bold">${m.name || 'Unknown'}</td> <td class="p-2 text-xs text-gray-400">${m.dept || '-'}</td>
+                    </tr>
+                `).join('') + '</table>';
+            }
+
+            // Late Table
+            const tLate = document.getElementById('content-late');
+            if(d.lists.late.length === 0) tLate.innerHTML = '<p class="text-center text-gray-400 mt-4">ไม่มีคนมาสาย</p>';
+            else {
+                tLate.innerHTML = '<table class="w-full text-sm text-left">' + 
+                d.lists.late.map((l, i) => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-2 font-bold">${l.name || 'Unknown'}</td>
+                        <td class="p-2 text-orange-600 font-mono">${l.time}</td>
+                        <td class="p-2 text-red-600 font-bold">+${l.lateMins} น.</td>
+                    </tr>
+                `).join('') + '</table>';
+            }
+        }
+
+        function tab(t) {
+            document.getElementById('content-missing').classList.add('hidden');
+            document.getElementById('content-late').classList.add('hidden');
+            document.getElementById('tab-missing').className = "flex-1 py-3 text-sm font-bold inactive-tab";
+            document.getElementById('tab-late').className = "flex-1 py-3 text-sm font-bold inactive-tab";
+            
+            document.getElementById('content-'+t).classList.remove('hidden');
+            document.getElementById('tab-'+t).className = "flex-1 py-3 text-sm font-bold active-tab";
         }
     </script>
 </body>
