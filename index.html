@@ -3,455 +3,343 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard ผู้บริหาร (Premium UI)</title>
+    <title>Executive Dashboard - Premium 5 Tables (Final Edition)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style> 
-        body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 24px 24px; }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f0f4f8; color: #1e293b; background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%); background-size: cover; background-attachment: fixed; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .glass-card:hover { transform: translateY(-3px); box-shadow: 0 15px 50px -10px rgba(0,0,0,0.15); }
+        .tab-btn { transition: all 0.3s ease; }
+        .tab-active { background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); color: white; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4); transform: scale(1.05); }
+        .tab-inactive { background: rgba(255,255,255,0.6); color: #64748b; }
+        .loader-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 999; display: flex; justify-content: center; align-items: center; }
         
-        /* Premium Card Style */
-        .card { 
-            background: rgba(255, 255, 255, 0.9); 
-            backdrop-filter: blur(10px);
-            border-radius: 20px; 
-            padding: 24px; 
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        /* Modern Tabs */
-        .tab-btn { transition: all 0.3s ease; border-bottom: 3px solid transparent; }
-        .active-tab { 
-            border-bottom: 3px solid #6366f1; 
-            color: #4f46e5; 
-            background: linear-gradient(to top, #eef2ff 0%, transparent 100%);
-        }
-        .inactive-tab { color: #64748b; }
-        .inactive-tab:hover { color: #334155; background-color: #f8fafc; }
-
-        /* Loader */
-        .page-loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); backdrop-filter: blur(5px); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; }
-        .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #6366f1; border-radius: 50%; width: 50px; height: 50px; animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Table Styling */
-        .custom-table th { font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b; background-color: #f8fafc; }
-        .clickable-row { cursor: pointer; transition: background 0.15s; }
-        .clickable-row:hover { background-color: #f1f5f9; }
-
-        /* Modal Animation */
-        .modal { transition: opacity 0.3s ease-in-out, visibility 0.3s; }
-        .modal-active { overflow: hidden; }
-        .modal-content { transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .modal:not(.opacity-0) .modal-content { transform: scale(1); opacity: 1; }
+        /* Custom Scrollbar for Luxury feel */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-8 text-slate-800 antialiased">
+<body class="min-h-screen p-4 md:p-8">
 
-    <div id="pageLoader" class="page-loader">
-        <div class="spinner mb-6 shadow-lg"></div>
-        <h2 class="text-2xl font-bold text-slate-800">กำลังประมวลผลข้อมูล...</h2>
-        <p class="text-sm text-slate-500 mt-2">Connecting to Secure Cloud Database</p>
-    </div>
+    <div id="pageLoader" class="loader-overlay"><div class="flex flex-col items-center"><div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div><p class="mt-4 font-bold text-indigo-900 animate-pulse">กำลังตรวจสอบความถูกต้องของข้อมูล...</p></div></div>
 
-    <div class="max-w-[1400px] mx-auto flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+    <div class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-end gap-6 text-white">
         <div>
-            <div class="flex items-center gap-3 mb-1">
-                <span class="bg-indigo-100 text-indigo-700 p-2 rounded-lg text-2xl">🏥</span>
-                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Executive Dashboard</h1>
-            </div>
-            <p class="text-sm text-slate-500 ml-12">ระบบติดตามสถานะบุคลากรแบบ Real-time</p>
+            <div class="flex items-center gap-3 mb-1"><span class="text-3xl bg-white/20 p-2 rounded-xl backdrop-blur-sm">🏥</span><span class="text-xs font-bold tracking-widest uppercase bg-indigo-500/80 px-3 py-1 rounded-full border border-indigo-400">Executive View</span></div>
+            <h1 class="text-4xl font-bold tracking-tight text-white drop-shadow-md">Hospital Dashboard</h1>
+            <p class="text-indigo-100 mt-1 font-light opacity-90">ระบบวิเคราะห์ข้อมูลเวลาปฏิบัติงาน (Premium 5 Layers)</p>
         </div>
-        
-        <div class="bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm flex overflow-x-auto">
-            <button onclick="setView('1D')" id="btn1D" class="px-5 py-2 text-sm font-semibold rounded-lg transition-all shadow-sm bg-indigo-600 text-white">วันนี้</button>
-            <button onclick="setView('Yesterday')" id="btnYesterday" class="px-5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition-all">เมื่อวาน</button>
-            <button onclick="setView('7D')" id="btn7D" class="px-5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition-all">7 วัน</button>
-            <button onclick="setView('1M')" id="btn1M" class="px-5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition-all">1 เดือน</button>
+        <div class="glass-card !bg-white/95 p-1.5 flex gap-1 rounded-xl overflow-x-auto shadow-xl">
+            <button onclick="setView('1D')" id="btn1D" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap">วันนี้</button>
+            <button onclick="setView('Yesterday')" id="btnYesterday" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap">เมื่อวาน</button>
+            <button onclick="setView('7D')" id="btn7D" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap">7 วัน</button>
+            <button onclick="setView('1M')" id="btn1M" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap">1 เดือน</button>
         </div>
     </div>
 
-    <div class="max-w-[1400px] mx-auto mb-8 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-8 py-5 rounded-2xl shadow-lg shadow-indigo-200 flex items-center justify-between relative overflow-hidden">
-        <div class="absolute right-0 top-0 h-full w-1/3 bg-white/10 skew-x-12 transform origin-bottom-left"></div>
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center gap-4">
-            <span id="badgeMode" class="bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider w-fit">TODAY VIEW</span>
-            <div>
-                <span class="text-indigo-100 text-xs uppercase font-semibold tracking-wider block mb-1">Period Selection</span>
-                <span id="txtDate" class="text-white font-bold text-xl md:text-2xl drop-shadow-sm">-</span>
+    <div class="max-w-7xl mx-auto space-y-8">
+        <div class="glass-card p-6 md:p-8 flex flex-col md:flex-row items-center justify-between relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-indigo-500/20 to-transparent rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+            <div class="relative z-10">
+                <p class="text-slate-500 text-sm font-bold uppercase tracking-wider mb-1 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> ช่วงเวลาที่กำลังตรวจสอบ</p>
+                <h2 id="txtDate" class="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight">-</h2>
             </div>
+            <div id="badgeStatus" class="relative z-10 mt-4 md:mt-0 px-6 py-2 rounded-full font-bold text-sm bg-indigo-100 text-indigo-700 shadow-sm border border-indigo-200">ประมวลผลสำเร็จ</div>
         </div>
-        <div id="badgeWeekend" class="hidden relative z-10 bg-orange-400/90 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-sm flex items-center gap-2">
-            <span>📅</span> วันหยุดเสาร์-อาทิตย์
-        </div>
-    </div>
 
-    <div class="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="card border-l-[6px] border-slate-400 group">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">บุคลากรทั้งหมด</p>
-                    <h2 class="text-4xl font-bold text-slate-700" id="kpiTotal">0</h2>
-                </div>
-                <div class="bg-slate-100 p-3 rounded-xl group-hover:bg-slate-200 transition">👥</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="glass-card p-6 border-l-4 border-slate-400">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">บุคลากรทั้งหมด</p>
+                <div class="flex justify-between items-end mt-2"><h3 id="kpiTotal" class="text-4xl font-bold text-slate-700">0</h3><span class="text-3xl text-slate-200">👥</span></div>
+            </div>
+            <div class="glass-card p-6 border-l-4 border-emerald-500">
+                <div class="flex justify-between items-start"><div><p class="text-emerald-600 text-xs font-bold uppercase tracking-wider">เข้างาน (Scan)</p><h3 id="kpiScan" class="text-4xl font-bold text-emerald-700 mt-2">0</h3></div><div class="text-right"><p id="pctScan" class="text-xl font-bold text-emerald-600">0%</p></div></div>
+                <div class="w-full bg-emerald-100 h-1.5 rounded-full mt-4 overflow-hidden"><div id="barScan" class="bg-emerald-500 h-full rounded-full shadow-lg" style="width:0%"></div></div>
+            </div>
+            <div class="glass-card p-6 border-l-4 border-blue-500 cursor-pointer hover:bg-blue-50/40 transition group" onclick="openModal('leave')">
+                <div class="flex justify-between items-start"><div><p class="text-blue-600 text-xs font-bold uppercase tracking-wider flex items-center gap-1">ลางาน <span class="bg-blue-100 text-[10px] px-1.5 py-0.5 rounded text-blue-700 group-hover:bg-blue-200 transition">View</span></p><h3 id="kpiLeave" class="text-4xl font-bold text-blue-700 mt-2">0</h3></div><div class="text-right"><p id="pctLeave" class="text-xl font-bold text-blue-600">0%</p></div></div>
+                <div class="w-full bg-blue-100 h-1.5 rounded-full mt-4 overflow-hidden"><div id="barLeave" class="bg-blue-500 h-full rounded-full shadow-lg" style="width:0%"></div></div>
+            </div>
+            <div class="glass-card p-6 border-l-4 border-rose-500">
+                <div class="flex justify-between items-start"><div><p class="text-rose-600 text-xs font-bold uppercase tracking-wider">ขาดงาน / ไม่สแกน</p><h3 id="kpiMissing" class="text-4xl font-bold text-rose-700 mt-2">0</h3></div><div class="text-right"><p id="pctMissing" class="text-xl font-bold text-rose-600">0%</p></div></div>
+                <div class="w-full bg-rose-100 h-1.5 rounded-full mt-4 overflow-hidden"><div id="barMissing" class="bg-rose-500 h-full rounded-full shadow-lg" style="width:0%"></div></div>
             </div>
         </div>
-        <div class="card border-l-[6px] border-emerald-500 group">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">เข้างาน (Scan)</p>
-                    <h2 class="text-4xl font-bold text-emerald-600" id="kpiScan">0</h2>
-                </div>
-                <div class="bg-emerald-50 p-3 rounded-xl group-hover:bg-emerald-100 transition">✅</div>
-            </div>
-            <div class="mt-4 w-full bg-emerald-100 rounded-full h-1.5">
-                <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000" id="barScan" style="width: 0%"></div>
-            </div>
-            <p class="text-xs text-emerald-600 mt-2 font-bold text-right" id="pctScan">0%</p>
-        </div>
-        <div class="card border-l-[6px] border-blue-500 cursor-pointer group hover:ring-4 hover:ring-blue-50 transition-all" onclick="openModal()">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1">ลางาน/ราชการ <span class="text-[10px] bg-blue-100 px-1 rounded">CLICK</span></p>
-                    <h2 class="text-4xl font-bold text-blue-600" id="kpiLeave">0</h2>
-                </div>
-                <div class="bg-blue-50 p-3 rounded-xl group-hover:bg-blue-100 transition">📝</div>
-            </div>
-            <div class="mt-4 w-full bg-blue-100 rounded-full h-1.5">
-                <div class="bg-blue-500 h-1.5 rounded-full transition-all duration-1000" id="barLeave" style="width: 0%"></div>
-            </div>
-            <p class="text-xs text-blue-600 mt-2 font-bold text-right" id="pctLeave">0%</p>
-        </div>
-        <div class="card border-l-[6px] border-rose-500 group">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-xs font-bold text-rose-600 uppercase tracking-wider mb-2">ไม่ได้สแกน (Missing)</p>
-                    <h2 class="text-4xl font-bold text-rose-600" id="kpiMissing">0</h2>
-                </div>
-                <div class="bg-rose-50 p-3 rounded-xl group-hover:bg-rose-100 transition">⚠️</div>
-            </div>
-            <div class="mt-4 w-full bg-rose-100 rounded-full h-1.5">
-                <div class="bg-rose-500 h-1.5 rounded-full transition-all duration-1000" id="barMissing" style="width: 0%"></div>
-            </div>
-            <p class="text-xs text-rose-600 mt-2 font-bold text-right" id="pctMissing">0%</p>
-        </div>
-    </div>
 
-    <div class="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div class="card lg:col-span-2 min-h-[400px]">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="font-bold text-slate-700 text-lg flex items-center gap-2">
-                    <span class="w-2 h-6 bg-indigo-500 rounded-full"></span>
-                    <span id="titleLine">📈 ข้อมูลการเข้างาน</span>
-                </h3>
-            </div>
-            <div class="h-[320px] w-full"><canvas id="lineChart"></canvas></div>
-        </div>
-        
-        <div class="card min-h-[400px] flex flex-col items-center justify-center relative">
-            <h3 class="font-bold text-slate-700 text-lg absolute top-6 left-6 flex items-center gap-2">
-                <span class="w-2 h-6 bg-slate-500 rounded-full"></span>
-                📊 สัดส่วนสถานะ
-            </h3>
-            <div class="h-64 w-64 relative mt-8">
-                <canvas id="pieChart"></canvas>
-                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Total</span>
-                    <span class="text-4xl font-bold text-slate-700" id="centerPieTotal">0</span>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="glass-card p-6 lg:col-span-2 min-h-[450px] flex flex-col">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-2"><div class="w-1.5 h-6 bg-indigo-500 rounded-full"></div><h3 id="titleLine" class="font-bold text-slate-700 text-lg tracking-tight">กราฟแสดงช่วงเวลาการปฏิบัติงาน</h3></div>
+                    <div class="flex gap-4 text-xs font-semibold"><div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-400"></span> เข้างาน</div><div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500"></span> ออกงาน</div><div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-rose-500"></span> สาย</div></div>
                 </div>
+                <div class="flex-1 w-full relative"><canvas id="lineChart"></canvas></div>
+            </div>
+            <div class="glass-card p-6 min-h-[450px] flex flex-col justify-center items-center relative">
+                <h3 class="absolute top-6 left-6 font-bold text-slate-700 text-lg flex items-center gap-2"><div class="w-1.5 h-6 bg-slate-400 rounded-full"></div> สัดส่วนภาพรวม</h3>
+                <div class="h-72 w-72 relative mt-4">
+                    <canvas id="pieChart"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"><span class="text-xs font-bold text-slate-400 uppercase tracking-widest">TOTAL</span><span id="centerPieTotal" class="text-4xl font-extrabold text-slate-700 mt-1">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card overflow-hidden">
+            <div class="flex overflow-x-auto p-2 gap-2 bg-slate-50/50 border-b border-slate-200">
+                <button onclick="tab('missing')" id="tab-missing" class="tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap">1. รายชื่อคนขาด</button>
+                <button onclick="tab('dept')" id="tab-dept" class="tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap">2. ขาดตามแผนก</button>
+                <button onclick="tab('late')" id="tab-late" class="tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap text-rose-700">3. สาย (08:31-11:00)</button>
+                <button onclick="tab('earlyArrive')" id="tab-earlyArrive" class="tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap text-emerald-700">4. เข้าก่อน (06:00-08:00)</button>
+                <button onclick="tab('earlyLeave')" id="tab-earlyLeave" class="tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap text-orange-600">5. กลับก่อน (15:00-16:30)</button>
+            </div>
+
+            <div class="p-0 max-h-[600px] overflow-y-auto bg-white/40">
+                <div id="content-missing" class="block"><table class="w-full text-sm text-left"><thead id="headMissing" class="bg-slate-100 text-slate-500 sticky top-0 font-bold uppercase text-xs tracking-wider"></thead><tbody id="tblMissing" class="divide-y divide-slate-100"></tbody></table></div>
+                
+                <div id="content-dept" class="hidden"><div class="p-3 bg-indigo-50 text-indigo-800 text-xs text-center border-b border-indigo-100 font-semibold">💡 คลิกที่ชื่อแผนกเพื่อดูรายชื่อ</div><table class="w-full text-sm text-left"><tbody id="tblDept" class="divide-y divide-slate-100"></tbody></table></div>
+                
+                <div id="content-late" class="hidden"><table class="w-full text-sm text-left"><thead id="headLate" class="bg-rose-50 text-rose-800 sticky top-0 font-bold uppercase text-xs tracking-wider"></thead><tbody id="tblLate" class="divide-y divide-slate-100"></tbody></table></div>
+                
+                <div id="content-earlyArrive" class="hidden"><table class="w-full text-sm text-left"><thead class="bg-emerald-50 text-emerald-800 sticky top-0 font-bold uppercase text-xs tracking-wider"><tr><th class="p-4">ชื่อ-นามสกุล</th><th class="p-4">แผนก</th><th class="p-4">เวลาเข้า</th><th class="p-4 text-right">มาก่อน (นาที)</th></tr></thead><tbody id="tblEarlyArrive" class="divide-y divide-slate-100"></tbody></table></div>
+                
+                <div id="content-earlyLeave" class="hidden"><table class="w-full text-sm text-left"><thead class="bg-orange-50 text-orange-800 sticky top-0 font-bold uppercase text-xs tracking-wider"><tr><th class="p-4">ชื่อ-นามสกุล</th><th class="p-4">แผนก</th><th class="p-4">เวลาออก</th><th class="p-4 text-right">ก่อนเวลา (นาที)</th></tr></thead><tbody id="tblEarlyLeave" class="divide-y divide-slate-100"></tbody></table></div>
             </div>
         </div>
     </div>
 
-    <div class="max-w-[1400px] mx-auto bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden mb-12">
-        <div class="flex border-b border-slate-100 overflow-x-auto bg-slate-50/50 p-2 gap-2">
-            <button onclick="tab('missing')" id="tab-missing" class="tab-btn flex-1 py-3 px-4 text-sm font-bold active-tab rounded-lg whitespace-nowrap">1. ยังไม่ได้สแกน</button>
-            <button onclick="tab('dept')" id="tab-dept" class="tab-btn flex-1 py-3 px-4 text-sm font-bold inactive-tab rounded-lg whitespace-nowrap">2. แยกตามแผนก</button>
-            <button onclick="tab('late')" id="tab-late" class="tab-btn flex-1 py-3 px-4 text-sm font-bold inactive-tab rounded-lg whitespace-nowrap">3. สาย (>08:30)</button>
-            <button onclick="tab('arriveEarly')" id="tab-arriveEarly" class="tab-btn flex-1 py-3 px-4 text-sm font-bold inactive-tab rounded-lg whitespace-nowrap text-emerald-700">4. มาเช้า (<08:00)</button>
-            <button onclick="tab('earlyLeave')" id="tab-earlyLeave" class="tab-btn flex-1 py-3 px-4 text-sm font-bold inactive-tab rounded-lg whitespace-nowrap">5. กลับก่อน (16:30)</button>
-        </div>
-        
-        <div class="p-0 h-[450px] overflow-y-auto bg-white scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
-            <div id="content-missing" class="block p-4">
-                <table class="w-full text-sm text-left custom-table rounded-lg overflow-hidden">
-                    <thead class="sticky top-0 shadow-sm" id="headMissing"></thead>
-                    <tbody id="tblMissing" class="divide-y divide-slate-100"></tbody>
-                </table>
-            </div>
-            
-            <div id="content-dept" class="hidden p-4">
-                <div class="p-3 bg-amber-50 text-amber-800 text-xs font-semibold text-center rounded-lg mb-3 border border-amber-100">
-                    💡 Tips: คลิกที่แถวเพื่อดูรายชื่อคนขาดงานในแผนกนั้น
-                </div>
-                <table class="w-full text-sm text-left custom-table rounded-lg overflow-hidden">
-                    <tbody id="tblDept" class="divide-y divide-slate-100"></tbody>
-                </table>
-            </div>
-
-            <div id="content-late" class="hidden p-4">
-                <table class="w-full text-sm text-left custom-table rounded-lg overflow-hidden">
-                    <thead class="sticky top-0 shadow-sm" id="headLate"></thead>
-                    <tbody id="tblLate" class="divide-y divide-slate-100"></tbody>
-                </table>
-            </div>
-
-            <div id="content-arriveEarly" class="hidden p-4">
-                <table class="w-full text-sm text-left custom-table rounded-lg overflow-hidden">
-                    <thead class="bg-emerald-50 text-emerald-900 sticky top-0 shadow-sm">
-                        <tr><th class="p-4 rounded-tl-lg">ชื่อ-นามสกุล</th><th class="p-4">แผนก</th><th class="p-4">เวลาเข้า</th><th class="p-4 text-right rounded-tr-lg">มาก่อน (นาที)</th></tr>
-                    </thead>
-                    <tbody id="tblArriveEarly" class="divide-y divide-slate-100"></tbody>
-                </table>
-            </div>
-
-            <div id="content-earlyLeave" class="hidden p-4">
-                <table class="w-full text-sm text-left custom-table rounded-lg overflow-hidden">
-                    <tbody id="tblEarlyLeave" class="divide-y divide-slate-100"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div id="modalList" class="modal opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-        <div class="bg-white w-full md:max-w-3xl rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col modal-content">
-            <div class="p-5 border-b bg-slate-50 flex justify-between items-center">
-                <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <span class="w-1.5 h-6 bg-indigo-600 rounded-full"></span>
-                    <span id="modalTitle">รายละเอียด</span>
-                </h3>
-                <button onclick="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition shadow-sm font-bold text-xl">&times;</button>
-            </div>
-            <div class="overflow-y-auto p-0 flex-1">
-                <table class="w-full text-sm text-left custom-table">
-                    <thead class="text-slate-500 bg-slate-50 sticky top-0" id="modalHeader"></thead>
-                    <tbody id="tblModalContent" class="divide-y divide-slate-100"></tbody>
-                </table>
-            </div>
-            <div class="p-4 border-t bg-slate-50 text-right">
-                <button onclick="closeModal()" class="px-5 py-2 bg-white border border-slate-300 text-slate-700 font-bold rounded-lg hover:bg-slate-100 transition shadow-sm text-sm">ปิดหน้าต่าง</button>
-            </div>
+    <div id="modalList" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col transform scale-95 transition-transform duration-300" id="modalContent">
+            <div class="p-5 border-b bg-slate-50 flex justify-between items-center"><h3 class="font-bold text-slate-800 text-lg flex items-center gap-2"><span class="w-1.5 h-6 bg-indigo-600 rounded-full"></span> <span id="modalTitle">รายละเอียด</span></h3><button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white text-slate-400 hover:bg-rose-50 hover:text-rose-500 shadow-sm flex items-center justify-center transition text-xl">&times;</button></div>
+            <div class="flex-1 overflow-y-auto p-0"><table class="w-full text-sm text-left"><thead id="modalHeader" class="bg-slate-100 text-slate-500 sticky top-0 font-bold uppercase text-xs"></thead><tbody id="tblModalContent" class="divide-y divide-slate-100"></tbody></table></div>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // 🛑 DO NOT TOUCH LOGIC BELOW - PURE COPY 🛑
-        // ==========================================
-        const FIREBASE_URL = "https://bdlh-cs-default-rtdb.asia-southeast1.firebasedatabase.app/"; 
-
-        const API_URL = `${FIREBASE_URL}/data.json`;
+        const API_URL = "https://bdlh-cs-default-rtdb.asia-southeast1.firebasedatabase.app/data.json"; 
         let db = [], currentData = [], isRange = false, chartL = null, chartP = null;
+        Chart.defaults.font.family = "'Sarabun', sans-serif";
 
-        window.onload = async () => {
-            if(FIREBASE_URL.includes("YOUR-PROJECT")) {
-                document.getElementById('pageLoader').innerHTML = `<h2 class="text-xl font-bold text-red-600">Error: กรุณาใส่ FIREBASE_URL</h2>`;
-                return;
-            }
-            await fetchData();
-        };
+        window.onload = async () => { await fetchData(); };
 
         async function fetchData() {
             try {
-                const res = await fetch(API_URL);
+                const res = await fetch(`${API_URL}?t=${Date.now()}`);
                 if(res.ok) {
                     const json = await res.json();
                     if(json && json.records) {
                         db = json.records || [];
                         db.sort((a,b) => new Date(a.date) - new Date(b.date));
                         setView('1D');
-                    } else { alert('ยังไม่มีข้อมูลในระบบ'); }
-                } else { alert('เชื่อมต่อไม่ได้'); }
-            } catch(e) { console.error(e); alert('ไม่สามารถดึงข้อมูลได้: ' + e.message); }
+                    } else alert('ไม่พบข้อมูลในระบบ');
+                }
+            } catch(e) { console.error(e); }
             document.getElementById('pageLoader').style.display = 'none';
         }
 
-        // --- View & Render Logic ---
         function setView(mode) {
             ['1D','Yesterday','7D','1M'].forEach(id => {
                 const btn = document.getElementById('btn'+id);
-                btn.className = (id === mode) 
-                    ? "px-5 py-2 text-sm font-semibold rounded-lg transition-all shadow-md bg-indigo-600 text-white transform scale-105" 
-                    : "px-5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-100 transition-all";
+                if(id === mode) btn.className = "px-5 py-2.5 rounded-lg text-sm font-bold transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-200 transform scale-105";
+                else btn.className = "px-5 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-500 hover:bg-slate-100";
             });
             if(db.length === 0) return;
             isRange = false;
-            if (mode === '1D') {
-                currentData = [db[db.length-1]];
-                document.getElementById('badgeMode').innerText = "LATEST UPDATE";
-            } else if (mode === 'Yesterday') {
-                if(db.length < 2) return alert('ไม่มีข้อมูลเมื่อวาน');
-                currentData = [db[db.length-2]];
-                document.getElementById('badgeMode').innerText = "YESTERDAY";
-            } else if (mode === '7D') {
-                currentData = db.slice(-7);
-                isRange = true;
-                document.getElementById('badgeMode').innerText = "7 DAYS AVG";
-            } else if (mode === '1M') {
-                currentData = db.slice(-30);
-                isRange = true;
-                document.getElementById('badgeMode').innerText = "30 DAYS AVG";
-            }
+            
+            if (mode === '1D') currentData = [db[db.length-1]];
+            else if (mode === 'Yesterday') {
+                if(db.length < 2) { alert('ข้อมูลย้อนหลังไม่พอ'); currentData = [db[db.length-1]]; }
+                else currentData = [db[db.length-2]];
+            } else if (mode === '7D') { currentData = db.slice(-7); isRange = true; } 
+            else if (mode === '1M') { currentData = db.slice(-30); isRange = true; }
             render();
         }
 
         function render() {
+            if(!currentData || currentData.length === 0) return;
             const latest = currentData[currentData.length-1];
+
             if (isRange) {
-                document.getElementById('txtDate').innerText = `${currentData[0].date} ถึง ${latest.date} (${currentData.length} วัน)`;
-                document.getElementById('badgeWeekend').classList.add('hidden');
+                document.getElementById('txtDate').innerText = `${currentData[0].date} ถึง ${latest.date}`;
+                document.getElementById('badgeStatus').innerText = "📊 ภาพรวมย้อนหลัง";
+                document.getElementById('badgeStatus').className = "px-6 py-2 rounded-full font-bold text-sm bg-indigo-100 text-indigo-700";
             } else {
                 document.getElementById('txtDate').innerText = `${latest.date} (${latest.day})`;
-                if (latest.isWeekend) document.getElementById('badgeWeekend').classList.remove('hidden'); else document.getElementById('badgeWeekend').classList.add('hidden');
+                if(latest.isWeekend) { document.getElementById('badgeStatus').innerText = "🌴 วันหยุด (Weekend)"; document.getElementById('badgeStatus').className = "px-6 py-2 rounded-full font-bold text-sm bg-amber-100 text-amber-700"; }
+                else { document.getElementById('badgeStatus').innerText = "✅ วันทำการปกติ"; document.getElementById('badgeStatus').className = "px-6 py-2 rounded-full font-bold text-sm bg-emerald-100 text-emerald-700"; }
             }
 
             let sTotal=0, sScan=0, sLeave=0, sMiss=0;
-            currentData.forEach(d => { sTotal += d.summary.total; sScan += d.summary.scanned; sLeave += d.summary.leave; sMiss += d.summary.missing; });
+            currentData.forEach(d => { sTotal += (d.summary?.total||0); sScan += (d.summary?.scanned||0); sLeave += (d.summary?.leave||0); sMiss += (d.summary?.missing||0); });
             const count = currentData.length;
-            const avgTotal = Math.round(sTotal/count), avgScan = Math.round(sScan/count), avgLeave = Math.round(sLeave/count), avgMiss = Math.round(sMiss/count);
+            const avgTotal=Math.round(sTotal/count), avgScan=Math.round(sScan/count), avgLeave=Math.round(sLeave/count), avgMiss=Math.round(sMiss/count);
 
             document.getElementById('kpiTotal').innerText = avgTotal;
             document.getElementById('kpiScan').innerText = avgScan;
             document.getElementById('kpiLeave').innerText = avgLeave;
             document.getElementById('kpiMissing').innerText = avgMiss;
             document.getElementById('centerPieTotal').innerText = avgTotal;
-
             const pct = (v,t) => t>0 ? ((v/t)*100).toFixed(1)+'%' : '0%';
             document.getElementById('pctScan').innerText = pct(avgScan, avgTotal);
             document.getElementById('pctLeave').innerText = pct(avgLeave, avgTotal);
             document.getElementById('pctMissing').innerText = pct(avgMiss, avgTotal);
-            
-            // Update Progress Bars
-            const pb = (id, v, t) => {
-                const p = t>0 ? (v/t)*100 : 0;
-                document.getElementById(id).style.width = `${p}%`;
-            };
-            pb('barScan', avgScan, avgTotal);
-            pb('barLeave', avgLeave, avgTotal);
-            pb('barMissing', avgMiss, avgTotal);
+            document.getElementById('barScan').style.width = pct(avgScan, avgTotal);
+            document.getElementById('barLeave').style.width = pct(avgLeave, avgTotal);
+            document.getElementById('barMissing').style.width = pct(avgMiss, avgTotal);
 
-            renderCharts(avgScan, avgLeave, avgMiss, avgTotal);
+            renderCharts(avgScan, avgLeave, avgMiss);
             renderTables(latest);
         }
 
-        function renderCharts(s, l, m, t) {
-            const ctxL = document.getElementById('lineChart'), ctxP = document.getElementById('pieChart');
-            if (chartL) chartL.destroy(); if (chartP) chartP.destroy();
+        // Helper: Convert "HH:mm" to Minutes for Calculation
+        const toMins = (t) => {
+            if(!t || typeof t !== 'string') return 0;
+            const [h,m] = t.split(':').map(Number);
+            return h*60 + m;
+        };
 
-            chartP = new Chart(ctxP, { type: 'doughnut', data: { labels: ['Scan', 'Leave', 'Missing'], datasets: [{ data: [s, l, m], backgroundColor: ['#10b981', '#3b82f6', '#f43f5e'], borderWidth: 0, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } } } });
+        function renderCharts(s, l, m) {
+            const ctxL = document.getElementById('lineChart').getContext('2d');
+            const ctxP = document.getElementById('pieChart').getContext('2d');
+            if (chartL) chartL.destroy(); 
+            if (chartP) chartP.destroy();
 
-            let labels=[], dGreen=[], dBlue=[], dRed=[];
+            chartP = new Chart(ctxP, { type: 'doughnut', data: { labels: ['มาทำงาน', 'ลางาน', 'ขาดงาน'], datasets: [{ data: [s, l, m], backgroundColor: ['#34d399', '#60a5fa', '#f43f5e'], borderWidth: 0, hoverOffset: 15, borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } } });
+
+            let labels=[], dIn=[], dOut=[], dLate=[];
             if (isRange) {
-                document.getElementById('titleLine').innerText = "📈 แนวโน้มการเข้างาน (ย้อนหลัง)";
-                labels = currentData.map(d => d.date); dGreen = currentData.map(d => d.summary.scanned); dBlue = currentData.map(d => d.summary.checkedOut || 0); dRed = currentData.map(d => d.summary.lateCount || 0);
+                document.getElementById('titleLine').innerText = "📈 แนวโน้มย้อนหลัง";
+                labels = currentData.map(d => d.date.split('-').slice(1).join('/')); 
+                dIn = currentData.map(d => d.summary?.scanned || 0);
+                dOut = currentData.map(d => d.summary?.checkedOut || 0);
+                dLate = currentData.map(d => d.lists?.late?.length || 0);
             } else {
-                document.getElementById('titleLine').innerText = "📈 ช่วงเวลาเข้า-ออก (รายชั่วโมง)";
-                const h = currentData[0].charts.hourly;
-                for(let i=5; i<=20; i++) { labels.push(i+":00"); dGreen.push(h[i].in); dBlue.push(h[i].out); dRed.push(h[i].late); }
+                document.getElementById('titleLine').innerText = "⏰ รายละเอียดช่วงเวลา (05:00 - 22:00)";
+                const hours = {};
+                for(let i=5; i<=22; i++) hours[i] = { in: 0, out: 0, late: 0 };
+                const rawHourly = currentData[0].charts?.hourly || [];
+                rawHourly.forEach((h, i) => { if(i >= 5 && i <= 22) { hours[i].in = h.in; hours[i].out = h.out; } });
+                const lateList = currentData[0].lists?.late || [];
+                lateList.forEach(p => { const h = parseInt(p.time.split(':')[0]); if(h >= 5 && h <= 22) hours[h].late++; });
+                for(let i=5; i<=22; i++) { labels.push(`${String(i).padStart(2,'0')}:00`); dIn.push(hours[i].in); dOut.push(hours[i].out); dLate.push(hours[i].late); }
             }
-            
-            // Gradient for Line Chart
-            const gradientGreen = ctxL.getContext('2d').createLinearGradient(0, 0, 0, 400);
-            gradientGreen.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
-            gradientGreen.addColorStop(1, 'rgba(16, 185, 129, 0)');
-
-            chartL = new Chart(ctxL, { type: 'line', data: { labels: labels, datasets: [{ label: 'เข้างาน (Green)', data: dGreen, borderColor: '#10b981', backgroundColor: gradientGreen, tension: 0.4, fill: true, pointRadius: 4, pointHoverRadius: 6 }, { label: 'ออกงาน (Blue)', data: dBlue, borderColor: '#3b82f6', backgroundColor: 'transparent', tension: 0.4, pointRadius: 2 }, { label: 'สาย (Red)', data: dRed, borderColor: '#f43f5e', backgroundColor: 'transparent', borderDash: [5,5], tension: 0.4, pointRadius: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end' } }, scales: { y: { grid: { borderDash: [2, 4], color: '#f1f5f9' }, beginAtZero: true }, x: { grid: { display: false } } } } });
+            const gradIn = ctxL.createLinearGradient(0,0,0,400); gradIn.addColorStop(0, 'rgba(16, 185, 129, 0.4)'); gradIn.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+            chartL = new Chart(ctxL, { type: 'line', data: { labels: labels, datasets: [{ label: 'เข้างาน', data: dIn, borderColor: '#10b981', backgroundColor: gradIn, tension: 0.4, fill: true, borderWidth: 3, pointBackgroundColor: '#fff', pointBorderColor: '#10b981' }, { label: 'ออกงาน', data: dOut, borderColor: '#3b82f6', backgroundColor: 'transparent', tension: 0.4, fill: false, borderWidth: 3, pointBackgroundColor: '#fff', pointBorderColor: '#3b82f6' }, { label: 'สาย', data: dLate, borderColor: '#f43f5e', backgroundColor: 'transparent', tension: 0.2, borderDash: [5, 5], borderWidth: 2, pointBackgroundColor: '#f43f5e' }] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#f1f5f9' } }, x: { grid: { display: false } } } } });
         }
 
         function renderTables(latest) {
+            // 🛡️ Data Sanitization & Strict Range Re-Check 
+            const missingList = latest.lists?.missing || [];
+            const missingDept = latest.lists?.missingDept || {};
+            
+            // Rule 3: Late (08:31-11:00)
+            const lateList = (latest.lists?.late || []).filter(l => {
+                const m = toMins(l.time);
+                return m > (8*60+30) && m <= (11*60);
+            }).sort((a,b) => b.lateMins - a.lateMins);
+
+            // Rule 4: Early Arrive (06:00-08:00)
+            const earlyArriveList = (latest.lists?.earlyArrival || []).filter(e => {
+                const m = toMins(e.time);
+                return m >= (6*60) && m < (8*60);
+            }).sort((a,b) => b.arriveEarlyMins - a.arriveEarlyMins);
+
+            // Rule 5: Early Leave (15:00-16:29)
+            const earlyLeaveList = (latest.lists?.earlyLeave || []).filter(e => {
+                const m = toMins(e.time);
+                return m >= (15*60) && m < (16*60+30);
+            }).sort((a,b) => b.earlyLeaveMins - a.earlyLeaveMins);
+
+            // --- 1. Missing ---
             const tMiss = document.getElementById('tblMissing'), hMiss = document.getElementById('headMissing');
             if (isRange) {
-                hMiss.innerHTML = `<tr><th class="p-4 rounded-tl-lg">อันดับ</th><th class="p-4">ชื่อ-นามสกุล</th><th class="p-4">แผนก</th><th class="p-4 text-right rounded-tr-lg">จำนวนครั้งที่ขาด</th></tr>`;
-                const counter = {}; currentData.forEach(d => { if(!d.isWeekend) d.lists.missing.forEach(m => { if(!counter[m.id]) counter[m.id] = {...m, cnt:0}; counter[m.id].cnt++; }); });
+                hMiss.innerHTML = `<tr><th class="p-4">อันดับ</th><th class="p-4">ชื่อ-นามสกุล</th><th class="p-4">แผนก</th><th class="p-4 text-right">ขาด (ครั้ง)</th></tr>`;
+                const counter = {}; currentData.forEach(d => { if(!d.isWeekend) (d.lists?.missing||[]).forEach(m => { if(!counter[m.id]) counter[m.id] = {...m, cnt:0}; counter[m.id].cnt++; }); });
                 const list = Object.values(counter).sort((a,b) => b.cnt - a.cnt);
-                tMiss.innerHTML = list.map((m,i) => `<tr class="border-b border-slate-50 hover:bg-rose-50/50 transition"><td class="p-4 text-slate-500 font-mono">${String(i+1).padStart(2,'0')}</td><td class="p-4 font-bold text-slate-700">${m.name}</td><td class="p-4 text-xs text-slate-500">${m.dept}</td><td class="p-4 text-right"><span class="bg-rose-100 text-rose-800 font-bold px-3 py-1 rounded-full text-xs">${m.cnt} ครั้ง</span></td></tr>`).join('');
+                tMiss.innerHTML = list.map((m,i) => `<tr class="border-b border-slate-50 hover:bg-rose-50/50 transition"><td class="p-4 text-slate-400 font-mono">${i+1}</td><td class="p-4 font-bold text-slate-700">${m.name}</td><td class="p-4 text-xs text-slate-500">${m.dept}</td><td class="p-4 text-right"><span class="bg-rose-100 text-rose-700 font-bold px-3 py-1 rounded-full text-xs">${m.cnt}</span></td></tr>`).join('');
             } else {
-                hMiss.innerHTML = `<tr><th class="p-4 rounded-tl-lg">ชื่อ-นามสกุล</th><th class="p-4">แผนก</th><th class="p-4 rounded-tr-lg">สถานะ</th></tr>`;
-                if (latest.isWeekend) tMiss.innerHTML = '<tr><td colspan="3" class="p-6 text-center text-emerald-600 font-bold bg-emerald-50/50 rounded-lg">🌴 วันหยุด (Weekend)</td></tr>'; else tMiss.innerHTML = latest.lists.missing.map(m => `<tr class="border-b border-slate-50 hover:bg-rose-50/30 transition"><td class="p-4 font-medium text-slate-700">${m.name}</td><td class="p-4 text-xs text-slate-500">${m.dept}</td><td class="p-4"><span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">No Scan</span></td></tr>`).join('');
+                hMiss.innerHTML = `<tr><th class="p-4">ชื่อ-นามสกุล</th><th class="p-4">แผนก</th><th class="p-4 text-right">สถานะ</th></tr>`;
+                if(latest.isWeekend) tMiss.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-emerald-600 font-bold bg-emerald-50 rounded-lg">🌴 วันหยุด (Weekend)</td></tr>'; 
+                else if(missingList.length === 0) tMiss.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-slate-400">✅ ครบทุกคน (ไม่มีคนขาด)</td></tr>';
+                else tMiss.innerHTML = missingList.map(m => `<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-4 font-medium text-slate-700">${m.name}</td><td class="p-4 text-xs text-slate-500">${m.dept}</td><td class="p-4 text-right"><span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">No Scan</span></td></tr>`).join('');
             }
 
+            // --- 2. Dept ---
             const tDept = document.getElementById('tblDept');
-            if (isRange) tDept.innerHTML = '<tr><td class="p-6 text-center text-slate-400">Not available in range view</td></tr>';
-            else { const sorted = Object.entries(latest.lists.missingDept).sort((a,b)=>b[1]-a[1]); tDept.innerHTML = sorted.map(([d, c]) => `<tr class="border-b border-slate-50 clickable-row" onclick="openMissingDeptModal('${d}')"><td class="p-4 text-slate-600 flex items-center justify-between group"><span class="font-medium">${d}</span> <span class="text-xs text-indigo-500 bg-indigo-50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">🔎 ดูรายชื่อ</span></td><td class="p-4 text-right font-bold text-rose-600 text-lg">${c}</td></tr>`).join(''); }
-
-            const tLate = document.getElementById('tblLate'), hLate = document.getElementById('headLate');
-            if (isRange) {
-                hLate.innerHTML = `<tr><th class="p-4 rounded-tl-lg">อันดับ</th><th class="p-4">ชื่อ-นามสกุล</th><th class="p-4">แผนก</th><th class="p-4 text-right">จำนวนครั้ง</th><th class="p-4 text-right rounded-tr-lg">เวลารวม (นาที)</th></tr>`;
-                const counter = {}; currentData.forEach(d => d.lists.late.forEach(l => { if(!counter[l.id]) counter[l.id] = {...l, cnt:0, totalMins:0}; counter[l.id].cnt++; counter[l.id].totalMins += (l.lateMins || 0); }));
-                const list = Object.values(counter).filter(x => x.cnt > 3).sort((a,b) => b.cnt - a.cnt);
-                tLate.innerHTML = list.length === 0 ? '<tr><td colspan="5" class="p-6 text-center text-emerald-500 font-medium">👏 เยี่ยมมาก! ไม่มีผู้ที่มาสายเกิน 3 ครั้งในช่วงนี้</td></tr>' : list.map((l,i) => `<tr class="border-b border-slate-50 hover:bg-amber-50/50"><td class="p-4 text-slate-400 font-mono">${i+1}</td><td class="p-4 font-bold text-slate-700">${l.name}</td><td class="p-4 text-xs text-slate-500">${l.dept}</td><td class="p-4 text-right"><span class="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs font-bold">${l.cnt} ครั้ง</span></td><td class="p-4 text-right text-rose-600 font-bold">+${l.totalMins}</td></tr>`).join('');
-            } else {
-                hLate.innerHTML = `<tr><th class="p-4 rounded-tl-lg">ลำดับ</th><th class="p-4">ชื่อ-นามสกุล</th><th class="p-4">เวลาเข้า</th><th class="p-4 text-right rounded-tr-lg">สาย (นาที)</th></tr>`;
-                tLate.innerHTML = latest.lists.late.map((l,i) => `<tr class="border-b border-slate-50 hover:bg-amber-50/30"><td class="p-4 text-slate-400 font-mono text-xs">${String(i+1).padStart(2,'0')}</td><td class="p-4 font-medium text-slate-700">${l.name}</td><td class="p-4 font-mono text-amber-600">${l.time}</td><td class="p-4 text-right text-rose-600 font-bold">+${l.lateMins}</td></tr>`).join('');
+            if (isRange) tDept.innerHTML = '<tr><td class="p-6 text-center text-slate-400 font-bold">ใช้ดูรายวันเท่านั้น</td></tr>';
+            else { 
+                const sorted = Object.entries(missingDept).sort((a,b)=>b[1]-a[1]); 
+                if(sorted.length === 0) tDept.innerHTML = '<tr><td class="p-6 text-center text-slate-400">ไม่มีข้อมูลคนขาดงาน</td></tr>';
+                else tDept.innerHTML = sorted.map(([d, c]) => `<tr class="border-b border-slate-50 cursor-pointer hover:bg-indigo-50/50 transition group" onclick="openMissingDeptModal('${d}')"><td class="p-4 text-slate-600 flex items-center justify-between"><span class="font-medium group-hover:text-indigo-600 transition">${d}</span><span class="text-xs text-indigo-500 bg-indigo-50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">🔍 รายชื่อ</span></td><td class="p-4 text-right font-bold text-rose-600 text-lg">${c}</td></tr>`).join(''); 
             }
             
-            const tArrive = document.getElementById('tblArriveEarly');
-            if(isRange) tArrive.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400">ดูรายวันเท่านั้น</td></tr>';
-            else { const list = latest.lists.earlyArrival || []; tArrive.innerHTML = list.length===0 ? '<tr><td colspan="4" class="p-6 text-center text-slate-400">ไม่มีผู้มาเช้ากว่า 08:00</td></tr>' : list.map(e => `<tr class="border-b border-slate-50 hover:bg-emerald-50/30"><td class="p-4 font-medium text-slate-700">${e.name}</td><td class="p-4 text-xs text-slate-500">${e.dept}</td><td class="p-4 font-mono text-emerald-600">${e.time}</td><td class="p-4 text-right text-emerald-600 font-bold">${e.arriveEarlyMins} นาที</td></tr>`).join(''); }
-            
-            const tEarlyL = document.getElementById('tblEarlyLeave');
-            if(isRange) tEarlyL.innerHTML = '<tr><td colspan="3" class="p-6 text-center text-slate-400">ดูรายวันเท่านั้น</td></tr>';
-            else tEarlyL.innerHTML = latest.lists.earlyLeave.map(e => `<tr class="border-b border-slate-50 hover:bg-blue-50/30"><td class="p-4 font-medium text-slate-700">${e.name}</td><td class="p-4 font-mono text-blue-600">${e.time}</td><td class="p-4 text-right text-blue-600 font-bold">-${e.earlyLeaveMins}</td></tr>`).join('');
+            // --- 3. Late (Sorting by Minutes DESC) ---
+            const hLate = document.getElementById('headLate'), tLate = document.getElementById('tblLate');
+            if (isRange) {
+                hLate.innerHTML = '<tr><th class="p-4">อันดับ</th><th class="p-4">ชื่อ</th><th class="p-4 text-right">สาย (ครั้ง)</th><th class="p-4 text-right">รวมนาที</th></tr>';
+                const lCounter = {}; currentData.forEach(d => { (d.lists?.late||[]).forEach(l => { if(!lCounter[l.id]) lCounter[l.id] = { ...l, cnt:0, mins:0 }; lCounter[l.id].cnt++; lCounter[l.id].mins += (l.lateMins || 0); }); });
+                const lList = Object.values(lCounter).sort((a,b) => b.mins - a.mins).slice(0,50); 
+                tLate.innerHTML = lList.map((l,i) => `<tr class="border-b border-slate-50 hover:bg-rose-50/30"><td class="p-4 text-slate-400 font-mono text-xs">${i+1}</td><td class="p-4 font-bold text-slate-700">${l.name}</td><td class="p-4 text-right"><span class="bg-rose-100 text-rose-800 px-2 py-1 rounded text-xs font-bold">${l.cnt}</span></td><td class="p-4 text-right text-rose-600 font-bold text-xs">+${l.mins}</td></tr>`).join('');
+            } else {
+                hLate.innerHTML = '<tr><th class="p-4">ลำดับ</th><th class="p-4">ชื่อ-นามสกุล</th><th class="p-4 text-center">เวลาเข้า</th><th class="p-4 text-right">สาย (นาที)</th></tr>';
+                if(lateList.length === 0) tLate.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-emerald-500 font-bold">👏 ยอดเยี่ยม! ไม่มีคนมาสายในช่วงนี้</td></tr>';
+                else {
+                    tLate.innerHTML = lateList.map((l,i) => `<tr class="border-b border-slate-50 hover:bg-slate-50 transition"><td class="p-4 text-slate-400 font-mono text-xs">${i+1}</td><td class="p-4 font-medium text-slate-700">${l.name}</td><td class="p-4 text-center font-mono text-rose-600 bg-rose-50 rounded mx-auto w-fit px-2">${l.time}</td><td class="p-4 text-right text-rose-600 font-bold">+${l.lateMins}</td></tr>`).join('');
+                }
+            }
+
+            // --- 4. Early Arrive (Sorting by DESC) ---
+            const tEarlyArrive = document.getElementById('tblEarlyArrive');
+            if(isRange) tEarlyArrive.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 font-bold">ใช้ดูรายวันเท่านั้น</td></tr>';
+            else {
+                if(earlyArriveList.length === 0) tEarlyArrive.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400">ไม่มีข้อมูลคนมาเช้า</td></tr>';
+                else tEarlyArrive.innerHTML = earlyArriveList.map(e => `<tr class="border-b border-slate-50 hover:bg-emerald-50/30 transition"><td class="p-4 font-medium text-slate-700">${e.name}</td><td class="p-4 text-xs text-slate-500">${e.dept}</td><td class="p-4 font-mono text-emerald-600">${e.time}</td><td class="p-4 text-right text-emerald-600 font-bold">${e.arriveEarlyMins} น.</td></tr>`).join('');
+            }
+
+            // --- 5. Early Leave (Sorting by DESC) ---
+            const tEarlyLeave = document.getElementById('tblEarlyLeave');
+            if(isRange) tEarlyLeave.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 font-bold">ใช้ดูรายวันเท่านั้น</td></tr>';
+            else {
+                if(earlyLeaveList.length === 0) tEarlyLeave.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400">ไม่มีคนกลับก่อนเวลาในช่วงนี้</td></tr>';
+                else tEarlyLeave.innerHTML = earlyLeaveList.map(e => `<tr class="border-b border-slate-50 hover:bg-orange-50/30 transition"><td class="p-4 font-medium text-slate-700">${e.name}</td><td class="p-4 text-xs text-slate-500">${e.dept}</td><td class="p-4 font-mono text-orange-600 font-bold">${e.time}</td><td class="p-4 text-right text-orange-600 font-bold">${e.earlyLeaveMins} น.</td></tr>`).join('');
+            }
         }
 
-        // --- Tab Logic ---
         function tab(t) { 
-            ['missing','dept','late','arriveEarly','earlyLeave'].forEach(x => { 
+            ['missing','dept','late','earlyArrive','earlyLeave'].forEach(x => { 
                 document.getElementById('content-'+x).classList.add('hidden'); 
-                document.getElementById('tab-'+x).className = "tab-btn flex-1 py-3 px-4 text-sm font-bold inactive-tab rounded-lg whitespace-nowrap transition-all"; 
+                document.getElementById('tab-'+x).className = "tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap tab-inactive"; 
             }); 
             document.getElementById('content-'+t).classList.remove('hidden'); 
-            const color = t === 'arriveEarly' ? 'emerald' : (t === 'missing' ? 'rose' : 'indigo'); 
-            document.getElementById('tab-'+t).className = `tab-btn flex-1 py-3 px-4 text-sm font-bold active-tab rounded-lg whitespace-nowrap shadow-sm transition-all`; 
+            document.getElementById('tab-'+t).className = "tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap tab-active transform scale-105"; 
         }
 
-        function openModal() { if(db.length) openLeaveModalLogic(); }
-        
-        function openLeaveModalLogic() { 
-            const list = []; 
-            currentData.forEach(d => { if(d.lists.leave) d.lists.leave.forEach(l => list.push({...l, date: d.date})); }); 
-            document.getElementById('modalTitle').innerText = "รายละเอียดการลางาน"; 
-            document.getElementById('modalHeader').innerHTML = `<tr><th class="p-4 rounded-tl-lg">วันที่</th><th class="p-4">ชื่อ</th><th class="p-4 rounded-tr-lg">ประเภท</th></tr>`; 
-            document.getElementById('tblModalContent').innerHTML = list.map(l => { 
-                let isHalf = (l.type||'').includes('ครึ่ง') || l.isHalf; 
-                let badge = isHalf ? `<span class="ml-2 bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full border border-amber-200">ครึ่งวัน</span>` : ""; 
-                let rowClass = isHalf ? "bg-amber-50/50" : "hover:bg-slate-50"; 
-                return `<tr class="border-b border-slate-50 ${rowClass}"><td class="p-4 text-xs text-slate-500 font-mono">${l.date}</td><td class="p-4 font-bold text-slate-700">${l.name} ${badge}</td><td class="p-4 text-blue-600 text-xs font-semibold bg-blue-50/50 rounded-lg inline-block my-2 mx-4">${l.type}</td></tr>`; 
-            }).join(''); 
-            toggleModalDisplay(true); 
-        }
-        
-        function openMissingDeptModal(deptName) { 
-            const latest = currentData[currentData.length-1]; 
-            if(latest.isWeekend && !isRange) return alert('วันหยุดเสาร์-อาทิตย์ ไม่มีคนขาดงาน'); 
-            
-            const list = latest.lists.missing.filter(m => {
-                let safeName = (m.dept || 'ไม่ระบุ').replace(/[.#$/[\]]/g, ' - ');
-                return safeName === deptName;
-            });
-
-            document.getElementById('modalTitle').innerText = `คนขาดงาน: ${deptName}`; 
-            document.getElementById('modalHeader').innerHTML = `<tr><th class="p-4 rounded-tl-lg">ID</th><th class="p-4 rounded-tr-lg">ชื่อ-นามสกุล</th></tr>`; 
-            document.getElementById('tblModalContent').innerHTML = list.length === 0 ? '<tr><td colspan="2" class="p-6 text-center text-slate-400">ไม่พบรายชื่อ</td></tr>' : list.map(m => `<tr class="border-b border-slate-50 hover:bg-rose-50/30"><td class="p-4 text-slate-400 font-mono text-xs">${m.id}</td><td class="p-4 font-bold text-rose-600">${m.name}</td></tr>`).join(''); 
-            toggleModalDisplay(true); 
-        }
+        tab('missing');
 
         function closeModal() { toggleModalDisplay(false); }
         function toggleModalDisplay(show) { 
-            const m = document.getElementById('modalList'); 
-            if(show) { 
-                m.classList.remove('opacity-0', 'pointer-events-none'); 
-                document.body.classList.add('modal-active'); 
-            } else { 
-                m.classList.add('opacity-0', 'pointer-events-none'); 
-                document.body.classList.remove('modal-active'); 
-            } 
+            const m = document.getElementById('modalList'), c = document.getElementById('modalContent');
+            if(show) { m.classList.remove('opacity-0', 'pointer-events-none'); c.classList.remove('scale-95'); c.classList.add('scale-100'); } 
+            else { m.classList.add('opacity-0', 'pointer-events-none'); c.classList.remove('scale-100'); c.classList.add('scale-95'); } 
         }
+        function openModal(type) { if(db.length) openLeaveModalLogic(); }
+        function openLeaveModalLogic() { 
+            const list = []; currentData.forEach(d => { if(d.lists?.leave) d.lists.leave.forEach(l => list.push({...l, date: d.date})); }); 
+            document.getElementById('modalTitle').innerText = "รายละเอียดการลางาน"; 
+            document.getElementById('modalHeader').innerHTML = `<tr><th class="p-4">วันที่</th><th class="p-4">ชื่อ</th><th class="p-4">ประเภท</th></tr>`; 
+            if(list.length === 0) document.getElementById('tblModalContent').innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-400">ไม่มีข้อมูลการลา</td></tr>`;
+            else document.getElementById('tblModalContent').innerHTML = list.map(l => `<tr class="border-b border-slate-50 hover:bg-slate-50 transition"><td class="p-4 text-xs text-slate-500 font-mono">${l.date}</td><td class="p-4 font-bold text-slate-700">${l.name}</td><td class="p-4"><span class="text-blue-600 text-xs font-semibold bg-blue-50 px-3 py-1 rounded-full">${l.type}</span></td></tr>`).join(''); 
+            toggleModalDisplay(true); 
+        }
+        function openMissingDeptModal(deptName) { 
+            const list = (currentData[currentData.length-1].lists?.missing || []).filter(m => (m.dept || 'ไม่ระบุ').replace(/[.#$/[\]]/g, ' - ') === deptName);
+            document.getElementById('modalTitle').innerText = `รายชื่อคนไม่สแกน: ${deptName}`; 
+            document.getElementById('modalHeader').innerHTML = `<tr><th class="p-4">ID</th><th class="p-4">ชื่อ-นามสกุล</th></tr>`; 
+            document.getElementById('tblModalContent').innerHTML = list.length===0 ? '<tr><td colspan="2" class="p-6 text-center text-slate-400">ไม่พบรายชื่อ</td></tr>' : list.map(m => `<tr class="border-b border-slate-50 hover:bg-rose-50/30 transition"><td class="p-4 text-slate-400 font-mono text-xs">${m.id}</td><td class="p-4 font-bold text-rose-600">${m.name}</td></tr>`).join(''); 
+            toggleModalDisplay(true); 
+        }
+        document.getElementById('modalList').addEventListener('click', (e) => { if(e.target === document.getElementById('modalList')) closeModal(); });
     </script>
 </body>
 </html>
