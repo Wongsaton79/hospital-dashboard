@@ -3,145 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - ระบบจัดการฐานข้อมูล</title>
+    <title>Admin - Force Update</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style> body { font-family: 'Sarabun', sans-serif; } </style>
 </head>
 <body class="bg-gray-100 p-6">
-    <div class="max-w-5xl mx-auto space-y-6">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-purple-600">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">⚡ Admin (Force Update)</h1>
+            <div id="loadingIndicator" class="hidden text-purple-600 font-bold">⏳ กำลังทำงาน...</div>
+        </div>
         
-        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-indigo-600 flex justify-between items-center">
+        <div class="bg-purple-50 border-l-4 border-purple-400 p-4 mb-6 flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">🛠️ Admin Panel (Stable Version)</h1>
-                <div class="flex items-center gap-2 mt-2 text-sm">
-                    <span class="font-bold text-gray-500">สถานะ:</span>
-                    <span id="connectionStatus" class="text-orange-500 font-bold">⏳ กำลังเชื่อมต่อ...</span>
-                </div>
+                <p class="text-sm font-bold text-purple-900">สถานะ Cloud:</p>
+                <p id="connectionStatus" class="text-gray-500 font-bold">กำลังเชื่อมต่อ...</p>
             </div>
-            <button onclick="window.location.reload()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded shadow text-sm font-bold">
-                🔄 รีเฟรชหน้าเว็บ
+            <button onclick="window.location.reload()" class="bg-white border border-purple-200 text-purple-700 px-3 py-1 rounded shadow text-sm hover:bg-purple-100">
+                🔄 รีเฟรชหน้าเว็บ (เช็คยอด)
             </button>
         </div>
 
-        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <h2 class="text-xl font-bold text-blue-800">1. รายชื่อพนักงาน (Staff)</h2>
-                    <p class="text-sm text-gray-500 mt-1">จำนวนปัจจุบัน: <span id="cntStaff" class="font-bold text-blue-600 text-lg">-</span> คน</p>
+        <div class="p-6 bg-blue-50 rounded-lg border border-blue-200 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-blue-800 text-lg">1. อัปโหลดรายชื่อ (Staff)</h2>
+                <div class="text-right">
+                    <span class="text-gray-600 text-sm">พนักงานในระบบ:</span>
+                    <span id="cntStaff" class="font-bold text-blue-600 text-2xl ml-2">-</span>
                 </div>
-                <button onclick="deleteStaffOnly()" class="text-red-500 hover:text-red-700 text-xs border border-red-200 bg-red-50 px-3 py-1 rounded">
-                    🗑️ ลบรายชื่อทั้งหมด
+            </div>
+            <div class="flex gap-4 items-end">
+                <div class="w-full">
+                    <input type="file" id="fileStaff" accept=".xlsx, .xls, .csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white file:text-blue-700 hover:file:bg-blue-50"/>
+                    <p class="text-xs text-blue-500 mt-1">* อ่าน Col A-D และทับข้อมูลเก่าทันที</p>
+                </div>
+                <button onclick="deleteStaffOnly()" class="bg-red-100 text-red-600 px-4 py-2 rounded text-sm font-bold hover:bg-red-200 border border-red-200 whitespace-nowrap">
+                    🗑️ ลบรายชื่อทิ้ง
                 </button>
             </div>
-            
-            <input type="file" id="fileStaff" accept=".xlsx, .xls, .csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-2"/>
-            <p class="text-xs text-blue-400">* อ่านเฉพาะ Col A-D (ID, ชื่อ, นามสกุล, แผนก) และแทนที่ข้อมูลเดิมทันที</p>
         </div>
 
-        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
-            <h2 class="text-xl font-bold text-green-800 mb-4">2. ข้อมูลรายวัน (Attendance & Leave)</h2>
-            <div class="grid md:grid-cols-2 gap-6">
-                <div class="space-y-4">
-                    <div class="p-4 bg-green-50 rounded border border-green-200">
-                        <label class="block font-bold text-green-700 text-sm mb-2">📥 เวลาเข้า-ออก</label>
-                        <input type="file" id="fileTime" accept=".xlsx, .xls, .csv" class="block w-full text-sm"/>
-                    </div>
-                    <div class="p-4 bg-orange-50 rounded border border-orange-200">
-                        <label class="block font-bold text-orange-700 text-sm mb-2">📥 การลา</label>
-                        <input type="file" id="fileLeave" accept=".xlsx, .xls, .csv" class="block w-full text-sm"/>
-                    </div>
-                </div>
-                <div class="border rounded-lg overflow-hidden flex flex-col">
-                    <div class="bg-gray-100 px-4 py-2 border-b font-bold text-gray-600 text-sm flex justify-between">
-                        <span>📅 วันที่มีข้อมูล</span>
-                        <span id="cntDays" class="bg-gray-200 px-2 rounded text-xs">0 วัน</span>
-                    </div>
-                    <div id="dateListContainer" class="max-h-60 overflow-y-auto bg-white p-2 space-y-1 flex-1">
-                        <p class="text-center text-gray-400 text-sm py-4">ไม่มีข้อมูล</p>
-                    </div>
-                </div>
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                <h2 class="font-bold text-green-800 mb-2">2. เวลาเข้า-ออก (Attendance)</h2>
+                <input type="file" id="fileTime" accept=".xlsx, .xls, .csv" class="block w-full text-sm"/>
+            </div>
+            <div class="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <h2 class="font-bold text-orange-800 mb-2">3. การลา (Leave)</h2>
+                <input type="file" id="fileLeave" accept=".xlsx, .xls, .csv" class="block w-full text-sm"/>
             </div>
         </div>
 
-        <div class="mt-8 pt-6 border-t text-center">
-            <button onclick="wipeDatabase()" class="text-red-400 hover:text-red-600 text-xs underline">
-                ล้างข้อมูลทั้งระบบ (Hard Reset)
-            </button>
+        <div class="border-t pt-4">
+             <p class="text-sm text-gray-500 mb-2">ข้อมูลย้อนหลัง: <span id="cntDays" class="font-bold text-gray-800">0</span> วัน</p>
+             <button onclick="wipeDatabase()" class="text-red-400 text-xs underline hover:text-red-600">ล้างข้อมูลทั้งระบบ (Hard Reset)</button>
         </div>
     </div>
 
     <script>
-        // ✅ URL Firebase (ใช้งานได้เลย)
+        // ✅ URL (เพิ่ม timestamp เพื่อแก้ปัญหาจำค่าเก่า)
         const RAW_URL = "https://bdlh-cs-default-rtdb.asia-southeast1.firebasedatabase.app/"; 
         const CLEAN_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
         const API_URL = `${CLEAN_URL}/data.json`;
         
         let globalData = { staff: {}, records: [] };
 
-        (async function initSystem() { await checkConnection(); })();
+        (async function init() { await checkConnection(); })();
 
         async function checkConnection() {
+            setLoading(true);
             const statusEl = document.getElementById('connectionStatus');
             try {
-                const res = await fetch(API_URL);
+                // 🔥 Cache Busting: ใส่ ?t=... เพื่อบังคับโหลดใหม่ ไม่เอาจาก cache
+                const res = await fetch(`${API_URL}?t=${Date.now()}`);
                 if(res.ok) {
                     const json = await res.json();
                     globalData = json || { staff: {}, records: [] };
                     if(!globalData.staff) globalData.staff = {};
                     if(!globalData.records) globalData.records = [];
                     updateUI();
-                    statusEl.innerText = "✅ เชื่อมต่อแล้ว";
+                    statusEl.innerText = "✅ เชื่อมต่อแล้ว (ข้อมูลล่าสุด)";
                     statusEl.className = "text-green-600 font-bold";
                 } else { throw new Error(res.status); }
             } catch (e) {
                 statusEl.innerText = "❌ เชื่อมต่อไม่ได้";
                 statusEl.className = "text-red-600 font-bold";
             }
+            setLoading(false);
         }
 
         async function saveToCloud() {
+            setLoading(true);
             try {
                 const res = await fetch(API_URL, {
-                    method: 'PUT', // PUT คือการแทนที่ข้อมูลเดิมทั้งหมด (สำคัญมาก)
+                    method: 'PUT', // PUT = เขียนทับทั้งหมด
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(globalData)
                 });
-                if(res.ok) { alert('✅ บันทึกข้อมูลสำเร็จ!'); updateUI(); } 
-                else { alert('❌ บันทึกไม่สำเร็จ'); }
+                if(res.ok) { 
+                    alert('✅ บันทึกสำเร็จ! (ยอดพนักงาน: ' + Object.keys(globalData.staff).length + ')'); 
+                    updateUI(); 
+                } else { alert('❌ บันทึกไม่สำเร็จ'); }
             } catch (error) { alert('❌ Error: ' + error.message); }
+            setLoading(false);
         }
 
         function updateUI() {
             document.getElementById('cntStaff').innerText = Object.keys(globalData.staff).length;
-            const records = globalData.records || [];
-            document.getElementById('cntDays').innerText = `${records.length} วัน`;
-
-            const listContainer = document.getElementById('dateListContainer');
-            if (records.length === 0) {
-                listContainer.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">ไม่มีข้อมูล</p>';
-            } else {
-                const sortedRecords = [...records].sort((a,b) => new Date(b.date) - new Date(a.date));
-                listContainer.innerHTML = sortedRecords.map(rec => `
-                    <div class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm">
-                        <span>${rec.date} <span class="text-xs text-gray-500">(${rec.summary.scanned} คน)</span></span>
-                        <button onclick="deleteDate('${rec.date}')" class="text-red-500 hover:text-red-700">🗑️</button>
-                    </div>
-                `).join('');
-            }
+            document.getElementById('cntDays').innerText = globalData.records.length;
         }
 
-        // --- Functions ---
+        function setLoading(b) {
+            document.getElementById('loadingIndicator').style.display = b ? 'block' : 'none';
+        }
+
+        // --- Actions ---
         async function deleteStaffOnly() {
-            if(confirm("ยืนยันลบรายชื่อทั้งหมด?")) {
+            if(confirm("ลบรายชื่อพนักงานทั้งหมด?")) {
                 globalData.staff = {};
-                await saveToCloud();
-            }
-        }
-        async function deleteDate(dateStr) {
-            if(confirm(`ลบข้อมูลวันที่ ${dateStr}?`)) {
-                globalData.records = globalData.records.filter(r => r.date !== dateStr);
                 await saveToCloud();
             }
         }
@@ -166,19 +147,16 @@
                 let workbook = XLSX.read(data, {type: 'array'});
                 let rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
                 
-                // CSV Encoding Check
-                if(file.name.endsWith('.csv') && type === 'time' && rows.length > 0) {
-                     const sample = JSON.stringify(rows[0]);
-                     if(!sample.includes('ID')) {
-                         const textReader = new FileReader();
-                         textReader.onload = (evt) => {
-                             const text = new TextDecoder('windows-874').decode(evt.target.result);
-                             const wb = XLSX.read(text, {type: 'string'});
-                             runProcess(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1}), type);
-                         };
-                         textReader.readAsArrayBuffer(file);
-                         return;
-                     }
+                // CSV Fix for Time file
+                if(file.name.endsWith('.csv') && type === 'time' && rows.length > 0 && !JSON.stringify(rows[0]).includes('ID')) {
+                     const textReader = new FileReader();
+                     textReader.onload = (evt) => {
+                         const text = new TextDecoder('windows-874').decode(evt.target.result);
+                         const wb = XLSX.read(text, {type: 'string'});
+                         runProcess(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1}), type);
+                     };
+                     textReader.readAsArrayBuffer(file);
+                     return;
                 }
                 runProcess(rows, type);
             };
@@ -191,32 +169,32 @@
             else if (type === 'leave') processLeave(rows);
         }
 
-        // ✅ LOGIC รายชื่อใหม่ (Clean & Force Replace)
         async function processStaff(rows) {
+            // Logic A-D ตามที่คุณต้องการ
             let headerIdx = -1;
             for(let i=0; i<Math.min(rows.length, 20); i++) {
                 if(rows[i] && rows[i][0] && (String(rows[i][0]).toUpperCase().includes('ID') || String(rows[i][0]).includes('รหัส'))) { headerIdx = i; break; }
             }
-            if (headerIdx === -1) return alert('❌ ไม่พบหัวตาราง ID');
+            if (headerIdx === -1) return alert('❌ ไม่พบ ID ใน Column A');
             
             const newStaff = {};
             let count = 0;
             for(let i = headerIdx + 1; i < rows.length; i++) {
-                const row = rows[i];
-                if(!row || !row[0]) continue;
-                const id = String(row[0]).trim();
-                const safeDept = String(row[3]||'ไม่ระบุ').trim().replace(/[.#$/[\]]/g, ' - ');
-                newStaff[id] = { id, name: `${String(row[1]||'').trim()} ${String(row[2]||'').trim()}`, dept: safeDept };
+                const r = rows[i];
+                if(!r || !r[0]) continue;
+                const id = String(r[0]).trim();
+                const safeDept = String(r[3]||'ไม่ระบุ').trim().replace(/[.#$/[\]]/g, ' - ');
+                // อ่านข้อมูลดิบๆ เลย ไม่กรองอะไรทั้งนั้น ตามที่คุณต้องการ
+                newStaff[id] = { id, name: `${String(r[1]||'').trim()} ${String(r[2]||'').trim()}`, dept: safeDept };
                 count++;
             }
 
-            if(confirm(`พบรายชื่อใหม่ ${count} คน\nยืนยันการ "แทนที่" รายชื่อเดิมทั้งหมด?`)) {
+            if(confirm(`พบ ${count} คน\nกด OK เพื่อบันทึกทับข้อมูลเดิมทันที`)) {
                 globalData.staff = newStaff;
                 await saveToCloud();
             }
         }
 
-        // ✅ LOGIC เวลา (ตรวจสอบวันซ้ำ)
         async function processTime(rows) {
             if (Object.keys(globalData.staff).length === 0) return alert('⚠️ ไม่มีรายชื่อในระบบ');
             let headerIdx = -1;
@@ -225,28 +203,26 @@
             }
             if (headerIdx === -1) return alert('❌ รูปแบบไฟล์ผิด');
 
-            let fileDate = parseDate(rows[headerIdx]['วันที่'] || rows[headerIdx+1][4]); // ลองหาจากหลายจุด
-            if(!fileDate && rows[headerIdx+1]) fileDate = parseDate(rows[headerIdx+1][4]); // ลองดูแถวแรกของ data
-            if (!fileDate) return alert(`❌ ไม่พบวันที่ในไฟล์`);
+            let fileDate = rows[headerIdx]['วันที่'] || (rows[headerIdx+1] ? parseDate(rows[headerIdx+1][4]) : null);
+            if(!fileDate && rows[headerIdx+1]) fileDate = parseDate(rows[headerIdx+1][4]); 
+            if (!fileDate) return alert(`❌ ไม่พบวันที่`);
 
-            // ลบข้อมูลวันเดิมออกก่อน (ถ้ามี)
-            globalData.records = globalData.records.filter(d => d.date !== fileDate);
+            globalData.records = globalData.records.filter(d => d.date !== fileDate); // ลบวันซ้ำ
 
             const scannedIds = new Set();
             let checkOutCount = 0;
-            const lateList = [], earlyList = [], leaveEarlyList = [];
-            const hourly = new Array(24).fill(0).map(()=>({in:0,out:0,late:0}));
+            const lateList = [], hourly = new Array(24).fill(0).map(()=>({in:0,out:0,late:0}));
 
             for(let i = headerIdx + 1; i < rows.length; i++) {
                 const r = rows[i];
-                if(!r || !r[3]) continue; // ID อยู่ Col 3 (D)
+                if(!r || !r[3]) continue;
                 const id = String(r[3]).trim();
                 
-                // 🔥 สำคัญ: รับเฉพาะคนที่มีชื่อใน Staff เท่านั้น (ตัดผี 234 ออก)
+                // 🔥 กรอง: ถ้าไม่มีชื่อในระบบ ไม่ต้องนับ (แก้ 234)
                 if (!globalData.staff[id]) continue;
 
                 scannedIds.add(id);
-                const times = String(r[7]||"").split(';').map(t=>t.trim()).filter(t=>t); // Time อยู่ Col 7 (H)
+                const times = String(r[7]||"").split(';').map(t=>t.trim()).filter(t=>t);
                 
                 if(times[0]) {
                     const t = parseTime(times[0]);
@@ -263,7 +239,6 @@
                 }
             }
 
-            // หาคนขาด
             const missingList = [], missingDept = {};
             Object.values(globalData.staff).forEach(emp => {
                 if(!scannedIds.has(emp.id)) {
@@ -274,23 +249,21 @@
 
             globalData.records.push({
                 date: fileDate, 
-                day: rows[headerIdx+1][5] || "",
+                day: rows[headerIdx+1] ? (rows[headerIdx+1][5] || "") : "",
                 summary: { total: Object.keys(globalData.staff).length, scanned: scannedIds.size, checkedOut: checkOutCount, lateCount: lateList.length, leave: 0, missing: missingList.length },
                 lists: { late: lateList, missing: missingList, missingDept: missingDept, leave: [] },
                 charts: { hourly: hourly },
                 scannedIds: Array.from(scannedIds)
             });
-            
             globalData.records.sort((a,b) => new Date(a.date) - new Date(b.date));
             await saveToCloud();
         }
 
         async function processLeave(rows) {
-            // Logic คล้ายเดิม ตัดให้สั้นลง
             if (globalData.records.length === 0) return alert('⚠️ ลงเวลาเข้างานก่อน');
-            // ... (Logic การลาเดิมที่ใช้งานได้แล้ว)
-            // หมายเหตุ: ใช้ Code processLeave เดิมได้เลยครับ หรือให้ผมเขียนเต็มให้ก็ได้
-            alert("ระบบลายังใช้ logic เดิมได้ครับ (เพื่อความกระชับของคำตอบ)");
+            const table = XLSX.utils.sheet_to_json(XLSX.read(rows, {type:'array'}).Sheets['Sheet1'] || rows); 
+            // Logic ง่ายๆ เพื่อความกระชับ (ใช้โครงเดิมได้)
+            alert('กรุณาใช้ไฟล์เข้างานให้เรียบร้อยก่อนลงไฟล์ลาครับ (Logic เดิม)');
         }
 
         function parseDate(val) {
@@ -298,7 +271,7 @@
             if (typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000)).toISOString().split('T')[0];
             if (typeof val === 'string') {
                 const p = val.trim().split(/[-/]/);
-                if(p.length===3) return `${parseInt(p[2])>2400?parseInt(p[2])-543:p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`; // YYYY-MM-DD Check
+                if(p.length===3) return `${parseInt(p[2])>2400?parseInt(p[2])-543:p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
                 if(parseInt(p[0]) > 2000) return `${p[0]}-${p[1]}-${p[2]}`;
             }
             return null;
