@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - ระบบจัดการฐานข้อมูล (Time Logic Updated)</title>
+    <title>Admin - ระบบจัดการฐานข้อมูล (Fixed Leave Upload)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
 <body class="bg-gray-100 p-6">
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-sky-500">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">⚙️ Admin Panel (New Time Rules)</h1>
+            <h1 class="text-2xl font-bold text-gray-800">⚙️ Admin Panel (Final Fixed)</h1>
             <div class="flex items-center gap-3">
                 <span id="status" class="text-gray-500 font-bold text-sm">⏳ รอการเชื่อมต่อ...</span>
                 <button onclick="location.reload()" class="bg-gray-100 px-3 py-1 rounded text-sm font-bold text-gray-600">↻ รีเฟรช</button>
@@ -35,7 +35,7 @@
                 <h2 class="font-bold text-green-900 mb-2">2. เวลาเข้า-ออก (Attendance)</h2>
                 <input type="file" id="fileTime" accept=".xlsx, .xls, .csv" class="block w-full text-sm"/>
                 <div class="text-xs text-green-700 mt-2 bg-green-100 p-2 rounded">
-                    <strong>Logic ใหม่:</strong><br>
+                    <strong>Logic ปัจจุบัน:</strong><br>
                     ⏰ สาย: 08:31 - 11:00<br>
                     🚪 กลับก่อน: 15:00 - 16:29<br>
                     ☀️ เข้าก่อน: 06:00 - 07:59
@@ -44,6 +44,7 @@
             <div class="p-4 bg-orange-50 rounded-lg border border-orange-200">
                 <h2 class="font-bold text-orange-900 mb-2">3. การลา (Leave)</h2>
                 <input type="file" id="fileLeave" accept=".xlsx, .xls, .csv" class="block w-full text-sm"/>
+                <p class="text-xs text-orange-600 mt-2">* อัพเดตระบบค้นหาหัวตารางอัตโนมัติ</p>
             </div>
         </div>
 
@@ -94,7 +95,11 @@
                 const sorted = [...globalData.records].sort((a,b) => new Date(b.date) - new Date(a.date));
                 listDiv.innerHTML = sorted.map(rec => `
                     <div class="flex justify-between items-center bg-white p-2 rounded border border-gray-200 shadow-sm">
-                        <div class="text-sm"><span class="font-bold text-gray-700">${rec.date}</span> <span class="text-xs text-gray-500">(${rec.day})</span></div>
+                        <div class="text-sm">
+                            <span class="font-bold text-gray-700">${rec.date}</span> 
+                            <span class="text-xs text-gray-500">(${rec.day})</span>
+                            <span class="ml-2 text-[10px] bg-orange-100 text-orange-600 px-1 rounded">ลา: ${rec.summary.leave}</span>
+                        </div>
                         <button onclick="deleteDate('${rec.date}')" class="text-xs text-red-500 border border-red-200 px-2 py-1 rounded">ลบ</button>
                     </div>`).join('');
             }
@@ -140,22 +145,39 @@
         }
 
         async function processTime(rows) {
-            if(Object.keys(globalData.staff).length === 0) return alert("ลงรายชื่อก่อน");
+            if(Object.keys(globalData.staff).length === 0) return alert("⚠️ กรุณาลงรายชื่อพนักงาน (Staff) ก่อนครับ");
             
             let hIdx = -1, headers = [];
             for(let i=0; i<rows.length; i++) {
-                const r = rows[i].map(x=>String(x).trim());
+                const r = (rows[i] || []).map(x=>String(x).trim());
                 if(r.includes('ID') && (r.includes('บันทึก')||r.includes('เวลา'))) { hIdx=i; headers=r; break; }
             }
-            if(hIdx === -1) return alert("ไม่พบหัวตาราง");
+            if(hIdx === -1) return alert("❌ ไม่พบหัวตาราง (ต้องมี ID และ บันทึก/เวลา)");
 
             let dateStr = null;
-            for(let i=0; i<Math.min(rows.length, 10); i++) {
-                if(rows[i][4]) { dateStr = rows[i][4]; break; } 
+            let dateColIdx = headers.indexOf("วันที่");
+            if(dateColIdx === -1) dateColIdx = 4;
+
+            if(rows.length > hIdx + 1) {
+                const firstDataRow = rows[hIdx + 1];
+                if(firstDataRow && firstDataRow[dateColIdx]) {
+                    dateStr = firstDataRow[dateColIdx];
+                }
             }
-            if(!isNaN(dateStr) && String(dateStr).indexOf('-') === -1) dateStr = parseDate(dateStr);
-            else dateStr = parseDate(dateStr);
-            if(!dateStr) return alert("ไม่พบวันที่");
+            if(!dateStr) {
+                 for(let i=0; i<hIdx; i++) {
+                     const cell = String(rows[i][0]||"");
+                     if(cell.includes("ช่วงเวลา:")) {
+                         const match = cell.match(/(\d{4}-\d{2}-\d{2})/);
+                         if(match) dateStr = match[1];
+                     }
+                 }
+            }
+
+            const validDate = parseDate(dateStr);
+            if(!validDate) return alert(`❌ ไม่พบวันที่ หรือรูปแบบผิด (${dateStr})`);
+            
+            dateStr = validDate;
 
             globalData.records = globalData.records.filter(r => r.date !== dateStr);
 
@@ -179,44 +201,30 @@
                     const t1 = parseTime(times[0]);
                     if(t1) {
                         hourly[t1.h].in++;
-                        
-                        // 🔥 Logic 3: มาสาย 08:31 - 11:00 (511 - 660 mins)
                         if(t1.mins > 8*60+30 && t1.mins <= 11*60) {
                             late.push({ id, name: globalData.staff[id].name, dept: globalData.staff[id].dept, time: t1.str, lateMins: t1.mins - (8*60+30) });
                         }
-                        
-                        // 🔥 Logic 4: เข้าก่อน 06:00 - 07:59 (360 - 479 mins)
-                        if(t1.mins >= 6*60 && t1.mins <= 7*60+59) {
+                        if(t1.mins >= 6*60 && t1.mins < 8*60) {
                             earlyArrival.push({ id, name: globalData.staff[id].name, dept: globalData.staff[id].dept, time: t1.str, arriveEarlyMins: (8*60) - t1.mins });
                         }
                     }
                 }
 
-                    // --- แก้ไขเฉพาะฟังก์ชัน processTime ในไฟล์ admin.html ---
-                    // ค้นหาบรรทัดที่มีการคำนวณ Early Leave แล้ววางทับด้วย Logic นี้ครับ
-
-                        if(times.length > 0) {
-                    // ดึงเวลาสแกนครั้งสุดท้ายของคนนั้นออกมา
-                        const lastT = parseTime(times[times.length-1]); 
-    
-                            if(lastT) {
-                                if(times.length > 1) hourly[lastT.h].out++;
-        
-                                // 🔥 Logic ที่แม่นยำ: ต้องอยู่ในช่วง 15:00 (900 นาที) ถึง 16:29 (989 นาที) เท่านั้น
-                                // และต้องมีนาทีที่ขาด (earlyLeaveMins) มากกว่า 0
-                                const targetLeaveTime = 16*60 + 30; // 16:30 (990 นาที)
-        
-                                if(lastT.mins >= 15*60 && lastT.mins < targetLeaveTime) {
-                                    earlyLeave.push({
-                                        id: id,
-                                        name: globalData.staff[id].name,
-                                        dept: globalData.staff[id].dept,
-                                        time: lastT.str,
-                                        earlyLeaveMins: targetLeaveTime - lastT.mins
-                                    });
-                                }
-                            }
+                if(times.length > 0) {
+                    const lastT = parseTime(times[times.length-1]);
+                    if(lastT) {
+                        if(times.length > 1) hourly[lastT.h].out++;
+                        if(lastT.mins >= 15*60 && lastT.mins < 16*60+30) {
+                            earlyLeave.push({
+                                id,
+                                name: globalData.staff[id].name,
+                                dept: globalData.staff[id].dept,
+                                time: lastT.str,
+                                earlyLeaveMins: (16*60+30) - lastT.mins
+                            });
                         }
+                    }
+                }
             }
 
             Object.values(globalData.staff).forEach(emp => {
@@ -239,45 +247,97 @@
             await saveToCloud();
         }
 
+        // 🔥🔥🔥 UPDATED PROCESS LEAVE FUNCTION 🔥🔥🔥
         async function processLeave(rows) {
-            const hRows = XLSX.utils.sheet_to_json(XLSX.utils.json_to_sheet(rows));
-            let count = 0, dates = new Set();
-            hRows.forEach(r => {
-                const id = findVal(r, ['ID']);
-                const dRaw = findVal(r, ['วันที่','วันที่ลา']);
-                const type = findVal(r, ['ประเภท']);
+            // 1. ค้นหาบรรทัดหัวตาราง (หา ID และ วันที่ลางาน)
+            let hIdx = -1;
+            let headers = [];
+            
+            for(let i=0; i<rows.length; i++) {
+                const r = (rows[i] || []).map(x => String(x).trim());
+                // คีย์เวิร์ดในการค้นหาหัวตารางใบลา
+                if(r.includes('ID') && (r.includes('วันที่ลางาน') || r.includes('วันที่') || r.includes('Start Date'))) {
+                    hIdx = i;
+                    headers = r;
+                    break;
+                }
+            }
+
+            if(hIdx === -1) return alert("❌ ไม่พบหัวตารางในไฟล์ใบลา (ต้องมีคอลัมน์ 'ID' และ 'วันที่ลางาน')");
+
+            // 2. ระบุตำแหน่งคอลัมน์
+            const colID = headers.indexOf('ID');
+            let colDate = headers.findIndex(h => h.includes('วันที่ลางาน') || h.includes('วันที่') || h.includes('Start Date'));
+            let colType = headers.findIndex(h => h.includes('ประเภท') || h.includes('Type'));
+
+            if(colDate === -1) return alert("❌ ไม่พบคอลัมน์ 'วันที่ลางาน'");
+
+            let count = 0;
+            let processedDates = new Set();
+
+            // 3. วนลูปอ่านข้อมูล
+            for(let i = hIdx + 1; i < rows.length; i++) {
+                const r = rows[i];
+                if(!r) continue;
+
+                const id = String(r[colID] || "").trim();
+                const dRaw = r[colDate];
+                const type = colType !== -1 ? (r[colType] || "ลา") : "ลา";
+
                 if(id && dRaw) {
-                    const dStr = parseDate(dRaw);
-                    if(dStr) {
-                        dates.add(dStr);
-                        let rec = globalData.records.find(d=>d.date===dStr);
-                        if(!rec) { /* Dummy create logic if needed */ return; }
-                        if(!rec.lists.leave) rec.lists.leave = [];
-                        if(!rec.lists.leave.find(l=>l.id==id)) {
-                            rec.lists.leave.push({ id, name: globalData.staff[id]?.name||id, type: type||'ลา' });
-                            count++;
+                    const dateStr = parseDate(dRaw);
+                    if(dateStr) {
+                        processedDates.add(dateStr);
+                        // หา Record ของวันนั้น
+                        let rec = globalData.records.find(d => d.date === dateStr);
+                        
+                        if(rec) {
+                            if(!rec.lists.leave) rec.lists.leave = [];
+                            // ป้องกันการใส่ซ้ำ
+                            if(!rec.lists.leave.find(l => l.id == id)) {
+                                rec.lists.leave.push({ 
+                                    id: id, 
+                                    name: globalData.staff[id]?.name || id, 
+                                    type: type 
+                                });
+                                count++;
+                            }
                         }
                     }
                 }
-            });
-            dates.forEach(dStr => {
-                const rec = globalData.records.find(d=>d.date===dStr);
+            }
+
+            // 4. คำนวณ Missing ใหม่ สำหรับวันที่ที่มีการอัพเดตใบลา
+            processedDates.forEach(dStr => {
+                const rec = globalData.records.find(d => d.date === dStr);
                 if(rec) {
                     rec.summary.leave = rec.lists.leave.length;
-                    const leaveIds = new Set(rec.lists.leave.map(l=>String(l.id)));
+                    const leaveIds = new Set(rec.lists.leave.map(l => String(l.id)));
                     const scannedIds = new Set(rec.scannedIds);
+                    
                     const newMissing = [];
                     const newMissingDept = {};
+
                     Object.values(globalData.staff).forEach(emp => {
+                        // คนที่ไม่ได้ Scan และ ไม่ได้ลา คือคนขาด
                         if(!scannedIds.has(emp.id) && !leaveIds.has(emp.id)) {
                             newMissing.push(emp);
-                            newMissingDept[emp.dept] = (newMissingDept[emp.dept]||0)+1;
+                            newMissingDept[emp.dept] = (newMissingDept[emp.dept]||0) + 1;
                         }
                     });
-                    rec.lists.missing = newMissing; rec.lists.missingDept = newMissingDept; rec.summary.missing = newMissing.length;
+
+                    rec.lists.missing = newMissing;
+                    rec.lists.missingDept = newMissingDept;
+                    rec.summary.missing = newMissing.length;
                 }
             });
-            if(count>0) { await saveToCloud(); alert(`Updated Leave: ${count}`); } else alert("No match");
+
+            if(count > 0) {
+                await saveToCloud();
+                alert(`✅ อัปเดตข้อมูลการลาสำเร็จ: ${count} รายการ`);
+            } else {
+                alert("⚠️ ไม่พบข้อมูลที่ตรงกัน หรือยังไม่ได้อัพโหลดไฟล์เวลาของวันนั้นๆ (โปรดเช็ควันที่ในไฟล์)");
+            }
         }
 
         function deleteStaffOnly() { if(confirm("ลบรายชื่อ?")) { globalData.staff={}; saveToCloud(); } }
@@ -285,7 +345,15 @@
         function wipeData() { if(confirm("ล้างทั้งหมด?")) { globalData={staff:{},records:[]}; saveToCloud(); } }
         function findVal(o,k) { for(let i of k) if(o[i]) return o[i]; return null; }
         function parseTime(s) { const [h,m]=s.split(':').map(Number); return {str:s, mins:h*60+m, h}; }
-        function parseDate(v) { if(typeof v==='number') return new Date(Math.round((v-25569)*864e5)).toISOString().split('T')[0]; if(typeof v==='string' && v.split(/[-/]/).length===3) { const p=v.split(/[-/]/); return `${parseInt(p[0])>2000?p[0]:(parseInt(p[2])>2400?parseInt(p[2])-543:p[2])}-${p[1].padStart(2,'0')}-${parseInt(p[0])>2000?p[2]:p[0].padStart(2,'0')}`; } return null; }
+        function parseDate(v) { 
+            if(!v) return null;
+            if(typeof v==='number') return new Date(Math.round((v-25569)*864e5)).toISOString().split('T')[0]; 
+            if(typeof v==='string') {
+                const p=v.trim().split(/[-/]/); 
+                if(p.length===3) return `${parseInt(p[0])>2000?p[0]:(parseInt(p[2])>2400?parseInt(p[2])-543:p[2])}-${p[1].padStart(2,'0')}-${parseInt(p[0])>2000?p[2]:p[0].padStart(2,'0')}`; 
+            } 
+            return null; 
+        }
         function getDayName(d) { return ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'][new Date(d).getDay()]; }
     </script>
 </body>
