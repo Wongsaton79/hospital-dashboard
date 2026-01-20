@@ -1,49 +1,43 @@
 <?php
-// แสดง Error PHP ทั้งหมดเพื่อช่วย Debug
+// บรรทัดแรกต้องเป็น <?php เท่านั้น ห้ามมีช่องว่างก่อนหน้านี้เด็ดขาด
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// --- 1. แก้ไขเรื่อง CORS และ Header ให้ครบถ้วน ---
+// 1. ตั้งค่า Header
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json; charset=UTF-8");
 
-// กรณี Browser ส่ง OPTIONS มาถามก่อน (Preflight) ให้ตอบกลับทันที
+// กรณี Browser ถาม Preflight Check
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
 try {
-    // --- 2. ตั้งค่าการเชื่อมต่อ Database (อัปเดตข้อมูลใหม่) ---
+    // 2. ข้อมูลการเชื่อมต่อ (ตามที่คุณแจ้งมาล่าสุด)
     $servername = "172.16.90.191";
     $username = "wongsaton";
     $password = "mud79comsci";
-    $dbname = "bandan"; // ชื่อ Database ที่ถูกต้อง
-    $port = 3306;       // ระบุ Port 3306 ตามที่แจ้ง
+    $dbname = "bandan"; 
+    $port = 3306; 
 
-    // --- 3. ตรวจสอบโหมดทดสอบ (Test Connection Mode) ---
-    // ถ้ามีการส่งค่า ?mode=test มา เราจะแค่ลอง Connect แล้วจบเลย
+    // 3. โหมดทดสอบการเชื่อมต่อ (?mode=test)
     if (isset($_GET['mode']) && $_GET['mode'] === 'test') {
-        // เพิ่ม Port เข้าไปในการเชื่อมต่อ
+        // ใช้ @ เพื่อซ่อน Warning ดิบๆ แล้วจับ Exception แทน
         $conn = @new mysqli($servername, $username, $password, $dbname, $port);
         
         if ($conn->connect_error) {
             $errCode = $conn->connect_errno;
             $errMsg = $conn->connect_error;
-            
-            // วิเคราะห์สาเหตุเบื้องต้นจาก Error Code
             $suggestion = "";
-            if ($errCode == 2002) {
-                $suggestion = " (หา Server ไม่เจอ หรือ Port ถูกบล็อก - ลองเช็ค IP และ Firewall)";
-            } elseif ($errCode == 1045) {
-                $suggestion = " (Username หรือ Password ไม่ถูกต้อง)";
-            } elseif ($errCode == 1049) {
-                $suggestion = " (ไม่พบฐานข้อมูลชื่อ '$dbname' - เช็คชื่อ DB อีกครั้ง)";
-            }
+            
+            if ($errCode == 2002) $suggestion = " (Server ไม่ตอบสนอง - เช็ค IP หรือ Firewall)";
+            if ($errCode == 1045) $suggestion = " (User/Pass ผิด)";
+            if ($errCode == 1049) $suggestion = " (ชื่อ Database ผิด)";
 
-            throw new Exception("เชื่อมต่อ Database ไม่สำเร็จ (Code: $errCode): " . $errMsg . $suggestion);
+            throw new Exception("Connect Error ($errCode): $errMsg $suggestion");
         }
         
         echo json_encode([
@@ -52,11 +46,10 @@ try {
             "info" => "Host: $servername:$port"
         ]);
         $conn->close();
-        exit(); // จบการทำงานทันที
+        exit();
     }
 
-    // --- 4. โหมดปกติ (ดึงข้อมูล Dashboard) ---
-    // เพิ่ม Port เข้าไปในการเชื่อมต่อ
+    // 4. โหมดดึงข้อมูลจริง
     $conn = new mysqli($servername, $username, $password, $dbname, $port);
 
     if ($conn->connect_error) {
@@ -69,7 +62,7 @@ try {
     $startDate = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d');
     $endDate = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 
-    // SQL Query
+    // ใช้ SQL Query อย่างง่ายเพื่อทดสอบการดึงข้อมูลก่อน (ถ้าผ่านแล้วค่อยใส่ SQL ยาวๆ ของคุณลงไป)
     $sql = "
     select o.vstdate, o.vsttime, o.vn, p.cid, 
         concat(p.pname,p.fname,' ',p.lname) as ptname,
@@ -82,6 +75,7 @@ try {
     where o.vstdate between '$startDate' and '$endDate'    
     and (o.anonymous_visit is null or o.anonymous_visit = 'N')  
     order by o.vn DESC
+    limit 100
     ";
 
     $result = $conn->query($sql);
@@ -99,11 +93,7 @@ try {
     $conn->close();
 
 } catch (Exception $e) {
-    // ส่ง Error กลับไปให้หน้าเว็บแสดงผล
     http_response_code(500);
-    echo json_encode([
-        "error" => true,
-        "message" => $e->getMessage()
-    ]);
+    echo json_encode(["error" => true, "message" => $e->getMessage()]);
 }
 ?>
