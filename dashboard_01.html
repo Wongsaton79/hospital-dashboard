@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบติดตามสิทธิการรักษา</title>
-    <!-- Tailwind CSS (ผ่าน CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts (Noto Sans Thai) -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans Thai', sans-serif; }
@@ -21,28 +19,16 @@
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
                     <h1 class="text-2xl font-bold">ระบบติดตามสิทธิการรักษา</h1>
                 </div>
                 <div class="flex items-center gap-3">
-                    <!-- ปุ่มทดสอบการเชื่อมต่อ -->
                     <button onclick="testConnection()" class="bg-white text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-semibold shadow transition-colors flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
                         ทดสอบการเชื่อมต่อ
                     </button>
-
                     <div id="loadingIndicator" class="hidden flex items-center gap-2 text-blue-100">
-                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>กำลังโหลด...</span>
+                        <span class="animate-spin">⌛</span> กำลังโหลด...
                     </div>
-                    <div class="text-sm bg-blue-700 px-4 py-2 rounded-full flex items-center gap-2 shadow-inner">
+                    <div class="text-sm bg-blue-700 px-4 py-2 rounded-full shadow-inner">
                         <span id="lastUpdateText">อัพเดทล่าสุด : -</span>
                     </div>
                 </div>
@@ -53,96 +39,61 @@
     <main class="container mx-auto px-4 py-8">
         
         <!-- Error Alert -->
-        <div id="errorAlert" class="hidden mb-6 bg-red-50 border-l-4 border-red-500 p-4 flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500 min-w-[24px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div class="overflow-hidden">
-                <p class="font-bold text-red-700">เกิดข้อผิดพลาด</p>
-                <p id="errorMessage" class="text-sm text-red-600 break-words"></p>
-                <!-- คำแนะนำเพิ่มเติม -->
-                <p id="errorHint" class="text-xs text-red-500 mt-1 italic hidden"></p>
+        <div id="errorAlert" class="hidden mb-6 bg-red-50 border-l-4 border-red-500 p-4">
+            <p class="font-bold text-red-700">เกิดข้อผิดพลาด</p>
+            <p id="errorMessage" class="text-sm text-red-600 break-words mt-1"></p>
+            <div id="phpErrorHint" class="hidden mt-3 bg-white p-3 rounded border border-red-200 text-sm text-red-800">
+                <strong>🚨 ปัญหา: Server ไม่ได้รัน PHP</strong><br>
+                คุณอาจกำลังใช้ <u>VS Code Live Server</u> หรือเปิดไฟล์ตรงๆ ซึ่งไม่รองรับ PHP<br>
+                <strong>วิธีแก้:</strong><br>
+                1. ติดตั้ง <strong>XAMPP</strong> และกด Start Apache<br>
+                2. วางไฟล์ที่ <code>C:\xampp\htdocs\dashboard\</code><br>
+                3. เข้าผ่าน URL: <code>http://localhost/dashboard/index.html</code>
             </div>
         </div>
 
-        <!-- Success Alert (สำหรับ Test Connection) -->
-        <div id="successAlert" class="hidden mb-6 bg-green-50 border-l-4 border-green-500 p-4 flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            <div>
-                <p class="font-bold text-green-700">การเชื่อมต่อสำเร็จ</p>
-                <p id="successMessage" class="text-sm text-green-600"></p>
-            </div>
+        <!-- Success Alert -->
+        <div id="successAlert" class="hidden mb-6 bg-green-50 border-l-4 border-green-500 p-4">
+            <p class="font-bold text-green-700">สำเร็จ</p>
+            <p id="successMessage" class="text-sm text-green-600"></p>
         </div>
 
-        <!-- Search Bar -->
+        <!-- Search Form -->
         <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
             <form id="searchForm" class="flex flex-col md:flex-row items-end gap-4">
                 <div class="w-full md:w-1/3">
                     <label class="block text-sm font-medium text-slate-600 mb-1">ตั้งแต่วันที่</label>
-                    <input type="date" id="startDate" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" required>
+                    <input type="date" id="startDate" class="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none" required>
                 </div>
                 <div class="w-full md:w-1/3">
                     <label class="block text-sm font-medium text-slate-600 mb-1">ถึงวันที่</label>
-                    <input type="date" id="endDate" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" required>
+                    <input type="date" id="endDate" class="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none" required>
                 </div>
-                <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg shadow-md">
                     ค้นหา
                 </button>
             </form>
         </section>
 
-        <!-- Dashboard Cards -->
+        <!-- Cards -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Card 1 -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500 relative overflow-hidden group hover:shadow-md transition-all">
-                <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                </div>
-                <div class="relative z-10">
-                    <p class="text-slate-500 font-medium mb-1">ผู้รับบริการทั้งหมด</p>
-                    <h2 id="valTotal" class="text-4xl font-bold text-slate-800">0</h2>
-                    <p class="text-sm text-slate-400 mt-2">ราย (นับจาก CID)</p>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <p class="text-slate-500 font-medium">ผู้รับบริการทั้งหมด</p>
+                <h2 id="valTotal" class="text-4xl font-bold text-slate-800">0</h2>
+                <p class="text-sm text-slate-400">ราย</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                <p class="text-slate-500 font-medium">ปิดสิทธิ์แล้ว (มี Auth Code)</p>
+                <div class="flex items-baseline gap-2">
+                    <h2 id="valClosed" class="text-4xl font-bold text-green-600">0</h2>
+                    <span id="percentClosed" class="text-lg text-green-600 font-medium">(0%)</span>
                 </div>
             </div>
-
-            <!-- Card 2 -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500 relative overflow-hidden group hover:shadow-md transition-all">
-                <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <div class="relative z-10">
-                    <p class="text-slate-500 font-medium mb-1">ปิดสิทธิ์แล้ว (มี Auth Code)</p>
-                    <div class="flex items-baseline gap-2">
-                        <h2 id="valClosed" class="text-4xl font-bold text-green-600">0</h2>
-                        <span id="percentClosed" class="text-lg text-green-600 font-medium">(0%)</span>
-                    </div>
-                    <p class="text-sm text-slate-400 mt-2">จากผู้รับบริการทั้งหมด</p>
-                </div>
-            </div>
-
-            <!-- Card 3 -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500 relative overflow-hidden group hover:shadow-md transition-all">
-                <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <div class="relative z-10">
-                    <p class="text-slate-500 font-medium mb-1">ยังไม่ปิดสิทธิ์ (ไม่มี Auth Code)</p>
-                    <div class="flex items-baseline gap-2">
-                        <h2 id="valOpen" class="text-4xl font-bold text-red-600">0</h2>
-                        <span id="percentOpen" class="text-lg text-red-600 font-medium">(0%)</span>
-                    </div>
-                    <p class="text-sm text-slate-400 mt-2">จากผู้รับบริการทั้งหมด</p>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                <p class="text-slate-500 font-medium">ยังไม่ปิดสิทธิ์</p>
+                <div class="flex items-baseline gap-2">
+                    <h2 id="valOpen" class="text-4xl font-bold text-red-600">0</h2>
+                    <span id="percentOpen" class="text-lg text-red-600 font-medium">(0%)</span>
                 </div>
             </div>
         </section>
@@ -150,27 +101,23 @@
         <!-- Table -->
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                <h3 class="font-semibold text-slate-700">รายการข้อมูล (แสดง 100 รายการล่าสุด)</h3>
-                <span id="rowCount" class="text-xs text-slate-500">แสดงผลจากการ Query ตามช่วงวันที่</span>
+                <h3 class="font-semibold text-slate-700">รายการข้อมูล (แสดง 100 รายการ)</h3>
+                <span id="rowCount" class="text-xs text-slate-500"></span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-slate-50 text-slate-600 uppercase tracking-wider">
                         <tr>
-                            <th class="px-6 py-3 font-medium">วันที่</th>
-                            <th class="px-6 py-3 font-medium">เวลา</th>
-                            <th class="px-6 py-3 font-medium">HN / CID</th>
-                            <th class="px-6 py-3 font-medium">ชื่อ-สกุล</th>
-                            <th class="px-6 py-3 font-medium">สิทธิ์</th>
-                            <th class="px-6 py-3 font-medium">Auth Code</th>
-                            <th class="px-6 py-3 font-medium text-center">สถานะ</th>
+                            <th class="px-6 py-3">วันที่</th>
+                            <th class="px-6 py-3">HN / CID</th>
+                            <th class="px-6 py-3">ชื่อ-สกุล</th>
+                            <th class="px-6 py-3">สิทธิ์</th>
+                            <th class="px-6 py-3">Auth Code</th>
+                            <th class="px-6 py-3 text-center">สถานะ</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody" class="divide-y divide-slate-100">
-                        <!-- Rows will be injected here via JS -->
-                        <tr>
-                            <td colspan="7" class="px-6 py-10 text-center text-slate-400">กรุณากดค้นหาเพื่อแสดงข้อมูล</td>
-                        </tr>
+                        <tr><td colspan="6" class="px-6 py-10 text-center text-slate-400">กดปุ่มค้นหาเพื่อเริ่ม</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -179,209 +126,150 @@
     </main>
 
     <script>
-        // --- CONFIGURATION ---
-        // ใส่ชื่อไฟล์ API ที่นี่ ถ้ายัง Error ให้ลองใส่ URL เต็มๆ เช่น "http://localhost/project/api_dashboard.php"
-        const API_ENDPOINT = "api_dashboard.php"; 
+        const API_URL = "api_dashboard.php";
 
-        // --- 1. Utility Functions ---
-        function formatThaiDate(date) {
-            return new Date(date).toLocaleDateString('th-TH', {
-                year: 'numeric', month: 'long', day: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            });
+        function getToday() {
+            return new Date().toISOString().split('T')[0];
         }
 
-        function getTodayDateString() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        // Helper function to validate environment and construct URL
-        function getApiUrl(params = "") {
-            // ตรวจสอบว่าเปิดไฟล์แบบ Double Click (file://) หรือไม่
-            if (window.location.protocol === 'file:') {
-                throw new Error("คุณกำลังเปิดไฟล์ด้วยวิธี Double Click (file://) ซึ่ง Browser จะบล็อกการเชื่อมต่อฐานข้อมูล กรุณาเปิดผ่าน Web Server (เช่น http://localhost/...)");
-            }
-            return `${API_ENDPOINT}${params}`;
-        }
-
-        // --- 2. ฟังก์ชันทดสอบการเชื่อมต่อ (Test Connection) ---
-        async function testConnection() {
-            document.getElementById('loadingIndicator').classList.remove('hidden');
-            document.getElementById('errorAlert').classList.add('hidden');
-            document.getElementById('successAlert').classList.add('hidden');
-            document.getElementById('errorHint').classList.add('hidden');
-
-            try {
-                // เรียก API Mode Test
-                const url = getApiUrl("?mode=test");
-                const response = await fetch(url);
-                const text = await response.text();
-                
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch (e) {
-                    throw new Error("Server ตอบกลับไม่ใช่ JSON: " + text.substring(0, 50));
-                }
-
-                if (data.status === 'success') {
-                    document.getElementById('successAlert').classList.remove('hidden');
-                    document.getElementById('successMessage').innerText = `${data.message} (${data.info})`;
-                } else {
-                    throw new Error(data.message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
-                }
-
-            } catch (error) {
-                console.error("Test Connection Error:", error);
-                document.getElementById('errorAlert').classList.remove('hidden');
-                document.getElementById('errorMessage').innerText = `การเชื่อมต่อล้มเหลว: ${error.message}`;
-                
-                // Show hint for "Failed to parse URL"
-                if (error.message.includes("Failed to parse URL")) {
-                     document.getElementById('errorHint').classList.remove('hidden');
-                     document.getElementById('errorHint').innerText = "คำแนะนำ: ลองเปลี่ยนตัวแปร API_ENDPOINT ใน Code บรรทัดบนสุดเป็น URL เต็มๆ (เช่น http://localhost/.../api_dashboard.php)";
-                }
-            } finally {
-                document.getElementById('loadingIndicator').classList.add('hidden');
-            }
-        }
-
-        // --- 3. Main Logic (Fetch Data) ---
         document.addEventListener('DOMContentLoaded', () => {
-            const startDateInput = document.getElementById('startDate');
-            const endDateInput = document.getElementById('endDate');
-            const searchForm = document.getElementById('searchForm');
+            document.getElementById('startDate').value = getToday();
+            document.getElementById('endDate').value = getToday();
+            // ลองโหลดข้อมูลทันที
+            fetchData(getToday(), getToday());
             
-            // Set default date to today
-            const today = getTodayDateString();
-            startDateInput.value = today;
-            endDateInput.value = today;
-
-            // Auto fetch on load
-            fetchData(today, today);
-
-            // Handle Form Submit
-            searchForm.addEventListener('submit', (e) => {
+            document.getElementById('searchForm').addEventListener('submit', (e) => {
                 e.preventDefault();
-                fetchData(startDateInput.value, endDateInput.value);
+                fetchData(document.getElementById('startDate').value, document.getElementById('endDate').value);
             });
         });
 
-        async function fetchData(start, end) {
-            // UI State: Loading
-            document.getElementById('loadingIndicator').classList.remove('hidden');
-            document.getElementById('errorAlert').classList.add('hidden');
-            document.getElementById('successAlert').classList.add('hidden');
-            document.getElementById('errorHint').classList.add('hidden');
-            document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-blue-500 animate-pulse">กำลังเชื่อมต่อฐานข้อมูล...</td></tr>`;
+        // ฟังก์ชันตรวจสอบ Response ว่าใช่ PHP Source Code หรือไม่
+        function checkPhpExecution(text) {
+            if (text.trim().startsWith("<?php") || text.includes("echo json_encode")) {
+                throw new Error("SERVER_NOT_EXECUTING_PHP");
+            }
+        }
+
+        async function testConnection() {
+            const loading = document.getElementById('loadingIndicator');
+            const errorAlert = document.getElementById('errorAlert');
+            const successAlert = document.getElementById('successAlert');
+            const phpErrorHint = document.getElementById('phpErrorHint');
+            
+            loading.classList.remove('hidden');
+            errorAlert.classList.add('hidden');
+            successAlert.classList.add('hidden');
+            phpErrorHint.classList.add('hidden');
 
             try {
-                // Call PHP API using Helper
-                const url = getApiUrl(`?start_date=${start}&end_date=${end}`);
-                const response = await fetch(url);
+                const res = await fetch(`${API_URL}?mode=test`);
+                const text = await res.text();
                 
-                // ตรวจสอบ HTTP Status ก่อน
-                if (!response.ok) {
-                    throw new Error(`HTTP Error Status: ${response.status} (Not Found or Server Error)`);
-                }
+                checkPhpExecution(text); // เช็คก่อนว่า PHP รันไหม
 
-                // Get Raw Text First (to debug if not JSON)
-                const responseText = await response.text();
-                
                 let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch (jsonError) {
-                    // ถ้า Parse ไม่ได้ แสดงว่า PHP พ่น Error ออกมาเป็น Text/HTML
-                    console.error("Raw Response:", responseText);
-                    throw new Error("รูปแบบข้อมูลไม่ถูกต้อง (Server ไม่ได้ส่ง JSON กลับมา) - อาจมี PHP Warning/Error");
-                }
+                try { data = JSON.parse(text); } 
+                catch (e) { throw new Error("Server Error: " + text.substring(0,100)); }
 
-                if (data.error) {
-                    throw new Error(data.message || "Database Error");
+                if (data.status === 'success') {
+                    successAlert.classList.remove('hidden');
+                    document.getElementById('successMessage').innerText = data.message;
+                } else {
+                    throw new Error(data.message);
                 }
+            } catch (err) {
+                console.error(err);
+                errorAlert.classList.remove('hidden');
+                
+                if (err.message === "SERVER_NOT_EXECUTING_PHP") {
+                    document.getElementById('errorMessage').innerText = "ข้อผิดพลาดร้ายแรง: Web Server ไม่ได้ประมวลผลไฟล์ PHP";
+                    phpErrorHint.classList.remove('hidden');
+                } else {
+                    document.getElementById('errorMessage').innerText = err.message;
+                }
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
 
-                // Process Data
+        async function fetchData(start, end) {
+            const loading = document.getElementById('loadingIndicator');
+            const errorAlert = document.getElementById('errorAlert');
+            const phpErrorHint = document.getElementById('phpErrorHint');
+            
+            loading.classList.remove('hidden');
+            errorAlert.classList.add('hidden');
+            phpErrorHint.classList.add('hidden');
+
+            try {
+                const res = await fetch(`${API_URL}?start_date=${start}&end_date=${end}`);
+                const text = await res.text();
+                
+                checkPhpExecution(text);
+
+                let data;
+                try { data = JSON.parse(text); } 
+                catch (e) { throw new Error("Server Error: " + text.substring(0,100)); }
+
+                if (data.error) throw new Error(data.message);
+
                 updateDashboard(data);
                 updateTable(data);
                 
-                // Update Timestamp
-                document.getElementById('lastUpdateText').innerText = `อัพเดทล่าสุด : ${formatThaiDate(new Date())}`;
+                document.getElementById('lastUpdateText').innerText = "อัพเดทล่าสุด : " + new Date().toLocaleTimeString('th-TH');
 
-            } catch (error) {
-                console.error("Error:", error);
-                document.getElementById('errorAlert').classList.remove('hidden');
-                document.getElementById('errorMessage').innerText = `${error.message}`;
-                
-                // Show hint for URL errors
-                if (error.message.includes("Failed to parse URL")) {
-                     document.getElementById('errorHint').classList.remove('hidden');
-                     document.getElementById('errorHint').innerText = "คำแนะนำ: ลองเปลี่ยนตัวแปร API_ENDPOINT ใน Code บรรทัดบนสุดเป็น URL เต็มๆ (เช่น http://localhost/.../api_dashboard.php)";
+            } catch (err) {
+                errorAlert.classList.remove('hidden');
+                if (err.message === "SERVER_NOT_EXECUTING_PHP") {
+                    document.getElementById('errorMessage').innerText = "Web Server ไม่ได้รัน PHP (กำลังส่ง Source Code กลับมา)";
+                    phpErrorHint.classList.remove('hidden');
+                } else {
+                    document.getElementById('errorMessage').innerText = err.message;
                 }
-
-                document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-red-400">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>`;
             } finally {
-                document.getElementById('loadingIndicator').classList.add('hidden');
+                loading.classList.add('hidden');
             }
         }
 
         function updateDashboard(data) {
             const total = data.length;
-            const closed = data.filter(item => item.auth_code && item.auth_code.trim() !== "").length;
-            const open = total - closed; 
-
-            const closedPercent = total > 0 ? ((closed / total) * 100).toFixed(2) : 0;
-            const openPercent = total > 0 ? ((open / total) * 100).toFixed(2) : 0;
-
-            // Animate Numbers
+            const closed = data.filter(d => d.auth_code && d.auth_code.trim() !== "").length;
+            const open = total - closed;
+            
             document.getElementById('valTotal').innerText = total.toLocaleString();
             document.getElementById('valClosed').innerText = closed.toLocaleString();
-            document.getElementById('percentClosed').innerText = `(${closedPercent}%)`;
+            document.getElementById('percentClosed').innerText = `(${total ? ((closed/total)*100).toFixed(2) : 0}%)`;
             document.getElementById('valOpen').innerText = open.toLocaleString();
-            document.getElementById('percentOpen').innerText = `(${openPercent}%)`;
+            document.getElementById('percentOpen').innerText = `(${total ? ((open/total)*100).toFixed(2) : 0}%)`;
         }
 
         function updateTable(data) {
             const tbody = document.getElementById('dataTableBody');
-            document.getElementById('rowCount').innerText = `พบข้อมูลทั้งหมด ${data.length} รายการ`;
-
+            document.getElementById('rowCount').innerText = `พบ ${data.length} รายการ`;
+            
             if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-slate-400">ไม่พบข้อมูลในช่วงวันที่เลือก</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400">ไม่พบข้อมูล</td></tr>`;
                 return;
             }
 
-            // แสดงสูงสุดแค่ 100 รายการเพื่อไม่ให้ browser ค้าง
-            const displayData = data.slice(0, 100);
-            
             let html = '';
-            displayData.forEach(row => {
+            data.forEach(row => {
                 const hasAuth = row.auth_code && row.auth_code.trim() !== "";
-                const statusBadge = hasAuth 
-                    ? `<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">ปิดสิทธิ์แล้ว</span>`
-                    : `<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700">ยังไม่ปิด</span>`;
-
+                const badge = hasAuth 
+                    ? `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">ปิดสิทธิ์แล้ว</span>`
+                    : `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">ยังไม่ปิด</span>`;
+                
                 html += `
-                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
-                        <td class="px-6 py-3 whitespace-nowrap">${row.vstdate || '-'}</td>
-                        <td class="px-6 py-3 whitespace-nowrap">${row.vsttime || '-'}</td>
-                        <td class="px-6 py-3 whitespace-nowrap">
-                            <div class="flex flex-col">
-                                <span class="font-medium text-slate-700">${row.vn}</span>
-                                <span class="text-xs text-slate-400">${row.cid || '-'}</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-3 whitespace-nowrap text-slate-700">${row.ptname || '-'}</td>
-                        <td class="px-6 py-3 whitespace-nowrap text-slate-600">${row.pttype_name || '-'}</td>
-                        <td class="px-6 py-3 whitespace-nowrap font-mono text-slate-600">${row.auth_code || '-'}</td>
-                        <td class="px-6 py-3 whitespace-nowrap text-center">${statusBadge}</td>
-                    </tr>
-                `;
+                    <tr class="hover:bg-slate-50 border-b">
+                        <td class="px-6 py-3">${row.vstdate}</td>
+                        <td class="px-6 py-3">${row.cid || row.vn}</td>
+                        <td class="px-6 py-3">${row.ptname}</td>
+                        <td class="px-6 py-3">${row.pttype_name}</td>
+                        <td class="px-6 py-3 font-mono text-slate-500">${row.auth_code || '-'}</td>
+                        <td class="px-6 py-3 text-center">${badge}</td>
+                    </tr>`;
             });
-            
             tbody.innerHTML = html;
         }
     </script>
