@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Health Dashboard: Ban Dan Lan Hoi (V.21 Filter Fixed)</title>
+    <title>Executive Health Dashboard: Ban Dan Lan Hoi (V.23.4 Full Service Plan & Excellence)</title>
     
     <!-- Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -51,14 +51,14 @@
         #map-container { position: relative; border-right: 1px solid #e2e8f0; box-shadow: 4px 0 24px rgba(0,0,0,0.05); z-index: 10; }
         #map { height: 100%; width: 100%; z-index: 1; }
 
-        .map-overlay-control {
-            position: absolute; top: 20px; left: 20px; z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px; border-radius: 16px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            width: 280px; max-width: 90%;
-            border: 1px solid rgba(255,255,255,0.6);
-            backdrop-filter: blur(8px);
+        /* Control Panel */
+        .control-panel-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            padding: 16px;
+            margin-bottom: 20px;
         }
 
         /* Dashboard Panel */
@@ -97,7 +97,7 @@
             display: flex; flex-direction: column; justify-content: center;
             height: 100%;
             transition: all 0.2s ease-in-out;
-            cursor: pointer; /* แสดงรูปมือเมื่อเอาเมาส์ชี้ */
+            cursor: pointer;
         }
         .exec-stat-card:hover { 
             transform: translateY(-3px); 
@@ -166,7 +166,7 @@
 <!-- Loading -->
 <div id="loading-screen">
     <div class="spinner-pulse mb-3"></div>
-    <h6 class="fw-bold text-dark">กำลังประมวลผลข้อมูลรายอำเภอ...</h6>
+    <h6 class="fw-bold text-dark">กำลังเชื่อมต่อฐานข้อมูล...</h6>
 </div>
 
 <!-- Navbar -->
@@ -177,12 +177,12 @@
         </div>
         <div>
             <h6 class="m-0 fw-bold" style="color: #0f172a;">Executive Health Dashboard</h6>
-            <small class="text-muted" style="font-size: 0.75rem;">ระบบสนับสนุนการตัดสินใจผู้บริหาร (V.21.0 Filter Fixed)</small>
+            <small class="text-muted" style="font-size: 0.75rem;">ระบบสนับสนุนการตัดสินใจผู้บริหาร (V.23.4 Full Service & Excellence)</small>
         </div>
     </div>
     <div class="d-flex align-items-center gap-2">
         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-normal">
-            <i class="bi bi-wifi me-1"></i> Live Data
+            <i class="bi bi-cloud-check-fill me-1"></i> Connected
         </span>
     </div>
 </nav>
@@ -193,32 +193,41 @@
         <!-- Map Panel -->
         <div class="col-md-4 col-lg-3" id="map-container">
             <div id="map"></div>
-            
-            <div class="map-overlay-control">
-                <div class="d-flex align-items-center mb-3 text-dark">
-                    <i class="bi bi-funnel-fill me-2"></i>
-                    <span class="fw-bold text-uppercase small">ตัวกรองข้อมูล</span>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small text-muted mb-1">หมวดหมู่ตัวชี้วัด</label>
-                    <select id="mainSelect" class="form-select border-secondary-subtle shadow-sm">
-                        <option value="PPP1" selected>PP&P1 (แม่และเด็ก)</option>
-                        <option value="PPP2">PP&P2 (ความรอบรู้)</option>
-                        <option value="PPP3">PP&P3 (NCDs)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label small text-muted mb-1">เลือกตัวชี้วัด</label>
-                    <select id="subSelect" class="form-select border-secondary-subtle shadow-sm">
-                        <option value="">กำลังโหลด...</option>
-                    </select>
-                </div>
-            </div>
         </div>
 
         <!-- Dashboard Panel -->
         <div class="col-md-8 col-lg-9" id="dashboard-panel">
             
+            <!-- 0. Control Panel -->
+            <div class="control-panel-card d-flex flex-wrap align-items-center gap-3">
+                <div class="d-flex align-items-center text-primary">
+                    <i class="bi bi-funnel-fill me-2 fs-5"></i>
+                    <span class="fw-bold text-uppercase small">ตัวกรองข้อมูล</span>
+                </div>
+                <div class="flex-grow-1">
+                    <!-- Update Dropdown Options V.23.4 -->
+                    <select id="mainSelect" class="form-select border-secondary-subtle shadow-sm">
+                        <option value="PPP1" selected>PP&P1 (แม่และเด็ก)</option>
+                        <option value="PPP2">PP&P2 (ความรอบรู้)</option>
+                        <option value="PPP3">PP&P3 (NCDs)</option>
+                        <option value="PPP4">PP&P4 (อนามัยสิ่งแวดล้อม)</option>
+                        <option value="Service1">Service 1 (Service Plan)</option>
+                        <option value="Service2">Service 2 (Service Plan)</option>
+                        <option value="Service3">Service 3 (Cancer & Transplant)</option>
+                        <option value="Service4">Service 4 (Primary Care)</option>
+                        <option value="Service5">Service 5 (Mental Health & Drugs)</option>
+                        <option value="PeopleExcellence">People Excellence</option>
+                        <option value="GovernanceExcellence">Governance Excellence</option>
+                        <option value="HealthEconomy">Health-Related Economy Excellence</option>
+                    </select>
+                </div>
+                <div class="flex-grow-1" style="min-width: 250px;">
+                    <select id="subSelect" class="form-select border-secondary-subtle shadow-sm">
+                        <option value="">กำลังโหลด...</option>
+                    </select>
+                </div>
+            </div>
+
             <!-- 1. Header & Controls -->
             <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
                 <div>
@@ -335,7 +344,7 @@
                 </div>
             </div>
 
-            <!-- 5. Smart Data Table -->
+            <!-- 5. Smart Data Table (Full Name Display) -->
             <div class="dashboard-card p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="fw-bold text-secondary m-0"><i class="bi bi-table me-2"></i>ตารางรายละเอียด (Smart Table)</h6>
@@ -348,10 +357,12 @@
                         <thead>
                             <tr>
                                 <th style="width: 5%">#</th>
-                                <th style="width: 35%">หน่วยบริการ</th>
-                                <th style="width: 15%" class="text-center">ผลงาน (%)</th>
-                                <th style="width: 25%">Progress Bar</th>
-                                <th style="width: 20%" class="text-center">สถานะ</th>
+                                <th style="width: 25%">หน่วยบริการ</th>
+                                <th style="width: 15%" class="text-center bg-light text-primary border-start">เป้าหมาย</th>
+                                <th style="width: 15%" class="text-center bg-light text-success border-end">ผลงาน</th>
+                                <th style="width: 10%" class="text-center">ร้อยละ (%)</th>
+                                <th style="width: 20%">Progress Bar</th>
+                                <th style="width: 10%" class="text-center">สถานะ</th>
                             </tr>
                         </thead>
                         <tbody id="table-body"></tbody>
@@ -372,9 +383,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.1.0/chartjs-plugin-annotation.min.js"></script>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxWErJiAyuLjFm_YmZu7PEvwKvhJdSYF0UmlX6IyA6Cg7X9Mph7OfPil9tFY8Zw0ylLTQ/exec"; 
+    // ** ใส่ URL ของ Web App ใหม่ที่คุณ Deploy ได้ที่นี่ **
+    const API_URL = "https://script.google.com/macros/s/AKfycbyp0_PqDQEk91QaQGE2TJ4fjaWCyJw1uymFEfm7Mb0ETpezHTRZewZdZnSvPjRJ8dKAng/exec"; 
     
     const MAIN_HOSPITAL_ID = "11244";
+
     let mapData = [], goalsConfig = {}, indicatorsList = {}, allChartData = {};
     let selectedUnitId = 'total', selectedKpiKey = null, currentPeriod = '6m'; 
     let barChart = null, gaugeChart = null, dataTable = null;
@@ -412,7 +425,7 @@
             setTimeout(() => loader.remove(), 500);
         } catch (error) {
             console.error(error);
-            document.querySelector('#loading-screen h6').innerHTML = "<span class='text-danger'>โหลดข้อมูลไม่สำเร็จ</span>";
+            document.querySelector('#loading-screen h6').innerHTML = "<span class='text-danger'>เชื่อมต่อไม่สำเร็จ กรุณาตรวจสอบ URL API</span>";
         }
     }
 
@@ -428,6 +441,7 @@
 
         mapData.forEach(unit => {
             const isMain = (unit.id === MAIN_HOSPITAL_ID);
+            // Map uses FULL NAME (unit.name)
             L.marker([unit.lat, unit.lng], { icon: createIcon(isMain ? 'red' : 'blue'), zIndexOffset: isMain?1000:0 })
              .addTo(map)
              .bindTooltip(unit.name, { permanent: true, direction: 'bottom', className: 'map-label', offset: [0, 5] })
@@ -476,7 +490,7 @@
 
     function selectUnit(unit) {
         selectedUnitId = unit.id;
-        document.getElementById('unit-name').textContent = unit.name;
+        document.getElementById('unit-name').textContent = unit.name; // Full Name
         document.getElementById('unit-id').textContent = unit.id;
 
         if (routingControl) { map.removeControl(routingControl); routingControl = null; }
@@ -505,7 +519,6 @@
 
     function updateDashboard() {
         try {
-            // Reset filter on new data load to avoid confusion
             resetTableFilter();
 
             const kpiName = document.getElementById('subSelect').value;
@@ -600,7 +613,6 @@
         const cleanData = data.filter(d => d.id !== 'total');
         if (cleanData.length === 0) return;
 
-        // Gap Calculation
         let districtVal = 0;
         const totalRow = data.find(d => d.id === 'total');
         if(totalRow) districtVal = totalRow.value;
@@ -631,18 +643,16 @@
             gapDesc.textContent = "ไม่มีค่าเป้าหมาย";
         }
 
-        // Max/Min
         const sortedVals = [...cleanData].sort((a,b) => b.value - a.value);
         const maxItem = sortedVals[0];
         const minItem = sortedVals[sortedVals.length - 1];
 
         document.getElementById('stat-max').textContent = maxItem.value + "%";
-        document.getElementById('stat-max-name').textContent = maxItem.name.replace('โรงพยาบาลส่งเสริมสุขภาพตำบล', 'รพ.สต.');
+        document.getElementById('stat-max-name').textContent = maxItem.name; // Full Name
         
         document.getElementById('stat-min').textContent = minItem.value + "%";
-        document.getElementById('stat-min-name').textContent = minItem.name.replace('โรงพยาบาลส่งเสริมสุขภาพตำบล', 'รพ.สต.');
+        document.getElementById('stat-min-name').textContent = minItem.name; // Full Name
 
-        // Pass Rate
         let passCount = "-";
         if (target) {
             passCount = cleanData.filter(d => d.value >= target).length;
@@ -651,51 +661,26 @@
         document.getElementById('stat-pass-sub').textContent = "จากทั้งหมด " + cleanData.length + " แห่ง";
     }
 
-    // --- FIX: Improved Filter Logic for Thai Language ---
     function filterTable(type) {
         if (!dataTable) return;
-        
-        // 1. Show Reset Button
         document.getElementById('btn-reset-filter').style.display = 'inline-block';
-
-        // 2. Clear any previous custom filters to avoid stacking
-        while($.fn.dataTable.ext.search.length > 0) {
-            $.fn.dataTable.ext.search.pop();
-        }
-
-        // 3. Add robust filter
+        while($.fn.dataTable.ext.search.length > 0) { $.fn.dataTable.ext.search.pop(); }
         $.fn.dataTable.ext.search.push(
             function(settings, data, dataIndex) {
-                // Get content of Status column (Index 4)
-                const statusText = (data[4] || "").toString(); 
-                
-                if (type === 'pass') {
-                    // Logic: Must contain "ผ่าน" AND Must NOT contain "ไม่ผ่าน"
-                    // Because "ไม่ผ่าน" contains the word "ผ่าน" inside it.
-                    return statusText.includes('ผ่าน') && !statusText.includes('ไม่ผ่าน');
-                } 
-                else if (type === 'fail') {
-                    // Logic: Must contain "ไม่ผ่าน"
-                    return statusText.includes('ไม่ผ่าน');
-                }
+                // Status column is now index 6
+                const statusText = (data[6] || "").toString(); 
+                if (type === 'pass') return statusText.includes('ผ่าน') && !statusText.includes('ไม่ผ่าน');
+                else if (type === 'fail') return statusText.includes('ไม่ผ่าน');
                 return true;
             }
         );
-
-        // 4. Redraw table to apply filter
         dataTable.draw();
     }
 
     function resetTableFilter() {
         if (!dataTable) return;
         document.getElementById('btn-reset-filter').style.display = 'none';
-        
-        // Clear all custom search functions
-        while($.fn.dataTable.ext.search.length > 0) {
-            $.fn.dataTable.ext.search.pop();
-        }
-        
-        // Clear standard search and redraw
+        while($.fn.dataTable.ext.search.length > 0) { $.fn.dataTable.ext.search.pop(); }
         dataTable.search('').columns().search('').draw();
     }
 
@@ -711,20 +696,35 @@
         tfoot.innerHTML = '';
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-4">ไม่พบข้อมูลสำหรับตัวชี้วัดนี้</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-4">ไม่พบข้อมูลสำหรับตัวชี้วัดนี้</td></tr>';
             return;
         }
 
         const totalRow = data.find(d => d.id === 'total');
         const unitRows = data.filter(d => d.id !== 'total').sort((a, b) => b.value - a.value);
 
+        let sumTarget = 0;
+        let sumResult = 0;
+        let hasDataValues = false;
+
         unitRows.forEach((item, index) => {
             const tr = document.createElement('tr');
             if(item.id === selectedUnitId) tr.classList.add('table-primary');
 
+            // TABLE: Use Full Name
+            let name = item.name;
+
+            // RESTORED CODE: ตรวจสอบและแสดงค่าเป้าหมาย/ผลงานให้ถูกต้อง
+            // ถ้าค่าไม่มี (undefined/null) ให้แสดง "-" แต่ถ้าเป็น 0 ให้แสดง "0"
+            let targetNum = (item.target !== undefined && item.target !== null) ? item.target.toLocaleString() : "-";
+            let resultNum = (item.result !== undefined && item.result !== null) ? item.result.toLocaleString() : "-";
+            
+            if (item.target) sumTarget += item.target;
+            if (item.result) sumResult += item.result;
+            if (item.target || item.result) hasDataValues = true;
+
             let statusBadge = '<span class="badge bg-light text-muted fw-normal border">N/A</span>';
             let progressColor = 'bg-secondary';
-            
             if (target) {
                 if (item.value >= target) {
                     statusBadge = '<span class="badge bg-success-subtle text-success fw-normal border border-success-subtle"><i class="bi bi-check-circle-fill"></i> ผ่าน</span>';
@@ -735,11 +735,11 @@
                 }
             }
 
-            let name = item.name.replace('โรงพยาบาลส่งเสริมสุขภาพตำบล', 'รพ.สต.');
-            
             tr.innerHTML = `
                 <td class="text-center text-muted fw-bold">${index + 1}</td>
                 <td>${name}</td>
+                <td class="text-center text-primary fw-bold bg-light border-start">${targetNum}</td>
+                <td class="text-center text-success fw-bold bg-light border-end">${resultNum}</td>
                 <td class="text-center fw-bold text-dark">${item.value}%</td>
                 <td data-order="${item.value}">
                     <div class="progress progress-slim">
@@ -759,10 +759,15 @@
 
         if (totalRow) {
             const tr = document.createElement('tr');
+            let showSumTarget = (totalRow.target !== undefined) ? totalRow.target.toLocaleString() : (hasDataValues ? sumTarget.toLocaleString() : "-");
+            let showSumResult = (totalRow.result !== undefined) ? totalRow.result.toLocaleString() : (hasDataValues ? sumResult.toLocaleString() : "-");
+            
             tr.innerHTML = `
                 <td class="text-center">-</td>
                 <td><strong>ภาพรวมอำเภอ</strong></td>
-                <td class="text-center text-primary fs-6">${totalRow.value}%</td>
+                <td class="text-center text-primary fs-6 border-start">${showSumTarget}</td>
+                <td class="text-center text-success fs-6 border-end">${showSumResult}</td>
+                <td class="text-center text-dark fs-6 fw-bold">${totalRow.value}%</td>
                 <td>
                     <div class="progress progress-slim">
                         <div class="progress-bar bg-primary" style="width: ${Math.min(totalRow.value, 100)}%"></div>
@@ -843,14 +848,16 @@
         overlay.classList.add('d-none');
 
         const sortedData = [...data].sort((a, b) => (a.id === 'total') ? 1 : (b.id === 'total') ? -1 : a.id.localeCompare(b.id));
-        const labels = sortedData.map(d => d.id === 'total' ? 'ภาพรวม' : d.id);
+        
+        // RESTORED CODE: ใช้ชื่อย่อ (initial) ในกราฟตามคำขอ V.23.1
+        const labels = sortedData.map(d => (d.id === 'total') ? 'ภาพรวม' : (d.initial || d.name));
+
         const values = sortedData.map(d => d.value);
         
         const bgColors = sortedData.map(d => {
             if (d.id === 'total') return '#0f172a'; 
             if (d.id === selectedUnitId) return '#f59e0b'; 
-            if (targetValue !== null && d.value >= targetValue) return '#10b981'; 
-            return '#cbd5e1'; 
+            return '#00FF7F'; // Default color as requested
         });
 
         const annotations = {};
@@ -894,8 +901,16 @@
                     legend: { display: false },
                     tooltip: { 
                         callbacks: {
-                            title: (ctx) => sortedData[ctx[0].dataIndex].name,
-                            label: (ctx) => ` ผลงาน: ${ctx.parsed.y}%`
+                            // ใช้ชื่อย่อใน Tooltip ด้วย
+                            title: (ctx) => {
+                                const d = sortedData[ctx[0].dataIndex];
+                                return d.id === 'total' ? 'ภาพรวม' : (d.initial || d.name);
+                            },
+                            label: (ctx) => {
+                                const d = sortedData[ctx[0].dataIndex];
+                                const targetTxt = d.target ? ` (เป้า: ${d.target})` : '';
+                                return ` ผลงาน: ${ctx.parsed.y}%${targetTxt}`;
+                            }
                         }
                     },
                     datalabels: {
