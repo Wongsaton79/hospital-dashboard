@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Health Dashboard: Ban Dan Lan Hoi (V.23.4 Full Service Plan & Excellence)</title>
+    <title>Executive Health Dashboard: Ban Dan Lan Hoi (V.23.5 Color Updated)</title>
     
     <!-- Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -177,7 +177,7 @@
         </div>
         <div>
             <h6 class="m-0 fw-bold" style="color: #0f172a;">Executive Health Dashboard</h6>
-            <small class="text-muted" style="font-size: 0.75rem;">ระบบสนับสนุนการตัดสินใจผู้บริหาร (V.23.4 Full Service & Excellence)</small>
+            <small class="text-muted" style="font-size: 0.75rem;">ระบบสนับสนุนการตัดสินใจผู้บริหาร (V.23.5 Color Updated)</small>
         </div>
     </div>
     <div class="d-flex align-items-center gap-2">
@@ -855,9 +855,9 @@
         const values = sortedData.map(d => d.value);
         
         const bgColors = sortedData.map(d => {
-            if (d.id === 'total') return '#0f172a'; 
-            if (d.id === selectedUnitId) return '#f59e0b'; 
-            return '#00FF7F'; // Default color as requested
+            if (d.id === 'total') return '#32CD32'; // สีเขียว LimeGreen สำหรับภาพรวม
+            if (d.id === selectedUnitId) return '#f59e0b'; // สีส้มสำหรับตัวที่เลือก (คงเดิมไว้เพื่อให้ดูง่าย)
+            return '#B0C4DE'; // สีฟ้า LightSteelBlue สำหรับแท่งทั่วไป
         });
 
         const annotations = {};
