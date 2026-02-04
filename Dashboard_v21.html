@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Health Dashboard: Ban Dan Lan Hoi (V.23.5.5 Updated)</title>
+    <title>Executive Health Dashboard: Ban Dan Lan Hoi (V.23.5.9 Sheet 8 Updated)</title>
     
     <!-- Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -159,6 +159,121 @@
             border-radius: 50%; animation: pulse 1.2s infinite ease-in-out;
         }
         @keyframes pulse { 0% { transform: scale(0); } 100% { transform: scale(1); opacity: 0; } }
+
+        /* --- Modern Navbar Styles --- */
+            .navbar-modern {
+                background: rgba(255, 255, 255, 0.90);
+                backdrop-filter: blur(12px);
+                border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+                height: 70px;
+                box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+                z-index: 1050;
+                transition: all 0.3s ease;
+            }
+
+            .brand-icon-box {
+                background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+                width: 42px; 
+                height: 42px;
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: white;
+                font-size: 1.2rem;
+            }
+
+            @keyframes pulse-green {
+                0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+                70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            }
+
+            .live-dot {
+                width: 8px;
+                height: 8px;
+                background-color: #10b981;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 8px;
+                animation: pulse-green 2s infinite;
+            }
+
+            .status-badge-modern {
+                background: white;
+                border: 1px solid #e2e8f0;
+                padding: 6px 16px;
+                border-radius: 30px;
+                display: flex;
+                align-items: center;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+                font-weight: 600;
+                color: #475569;
+                font-size: 0.85rem;
+            }
+
+        /* --- Special Containers Styles --- */
+        .special-container {
+            display: none;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0; left: 0;
+            background: white;
+            z-index: 20;
+            border-radius: 8px;
+        }
+
+        .kpi-box {
+            background-color: #ecfdf5;
+            border: 2px solid #10b981;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            color: #064e3b;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .kpi-big-number {
+            font-size: 5rem;
+            font-weight: 800;
+            color: #059669;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+        
+        .kpi-text-label {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #047857;
+        }
+
+        .text-box {
+            background-color: #eff6ff;
+            border: 2px solid #3b82f6;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            color: #1e3a8a;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .text-content-large {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #1d4ed8;
+            line-height: 1.4;
+        }
+
     </style>
 </head>
 <body>
@@ -170,20 +285,32 @@
 </div>
 
 <!-- Navbar -->
-<nav class="navbar navbar-custom px-4 d-flex justify-content-between align-items-center">
-    <div class="d-flex align-items-center">
-        <div class="bg-dark text-white rounded p-1 me-2 d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;">
-            <i class="bi bi-briefcase-fill"></i>
+<nav class="navbar navbar-modern px-4 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-3">
+        <div class="brand-icon-box">
+            <i class="bi bi-bar-chart-fill"></i>
         </div>
-        <div>
-            <h6 class="m-0 fw-bold" style="color: #0f172a;">Executive Health Dashboard</h6>
-            <small class="text-muted" style="font-size: 0.75rem;">ระบบสนับสนุนการตัดสินใจผู้บริหาร (V.23.5 Color Updated)</small>
+        <div class="d-flex flex-column">
+            <h6 class="m-0 fw-bold text-dark" style="letter-spacing: -0.3px; font-size: 1rem;">
+                Executive Health Dashboard
+            </h6>
+            <div class="d-flex align-items-center gap-2">
+                <small class="text-muted" style="font-size: 0.75rem; font-weight: 500;">
+                    ระบบสนับสนุนการตัดสินใจผู้บริหาร
+                </small>
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill" 
+                      style="font-size: 0.6rem; padding: 2px 6px;">
+                    V.23.5.9
+                </span>
+            </div>
         </div>
     </div>
-    <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-normal">
-            <i class="bi bi-cloud-check-fill me-1"></i> Connected
-        </span>
+
+    <div class="d-flex align-items-center">
+        <div class="status-badge-modern">
+            <span class="live-dot"></span>
+            <span>Live Data Connection</span>
+        </div>
     </div>
 </nav>
 
@@ -205,20 +332,19 @@
                     <span class="fw-bold text-uppercase small">ตัวกรองข้อมูล</span>
                 </div>
                 <div class="flex-grow-1">
-                    <!-- Update Dropdown Options V.23.4 -->
                     <select id="mainSelect" class="form-select border-secondary-subtle shadow-sm">
-                        <option value="PPP1" selected>PP&P1 (แม่และเด็ก)</option>
-                        <option value="PPP2">PP&P2 (ความรอบรู้)</option>
-                        <option value="PPP3">PP&P3 (NCDs)</option>
-                        <option value="PPP4">PP&P4 (อนามัยสิ่งแวดล้อม)</option>
-                        <option value="Service1">Service 1 (Service Plan)</option>
-                        <option value="Service2">Service 2 (Service Plan)</option>
-                        <option value="Service3">Service 3 (Cancer & Transplant)</option>
-                        <option value="Service4">Service 4 (Primary Care)</option>
-                        <option value="Service5">Service 5 (Mental Health & Drugs)</option>
-                        <option value="PeopleExcellence">People Excellence</option>
-                        <option value="GovernanceExcellence">Governance Excellence</option>
-                        <option value="HealthEconomy">Health-Related Economy Excellence</option>
+                        <option value="PPP1" selected>PP&P1 (5 ตัวชี้วัด)</option>
+                        <option value="PPP2">PP&P2 (1 ตัวชี้วัด)</option>
+                        <option value="PPP3">PP&P3 (3 ตัวชี้วัด)</option>
+                        <option value="PPP4">PP&P4 (1 ตัวชี้วัด)</option>
+                        <option value="Service1">Service 1 (3 ตัวชี้วัด)</option>
+                        <option value="Service2">Service 2 (5 ตัวชี้วัด)</option>
+                        <option value="Service3">Service 3 (2 ตัวชี้วัด)</option>
+                        <option value="Service4">Service 4 (1 ตัวชี้วัด)</option>
+                        <option value="Service5">Service 5 (2 ตัวชี้วัด)</option>
+                        <option value="PeopleExcellence">People Excellence (1 ตัวชี้วัด)</option>
+                        <option value="GovernanceExcellence">Governance Excellence (3 ตัวชี้วัด)</option>
+                        <option value="HealthEconomy">Health-Related Economy Excellence (3 ตัวชี้วัด)</option>
                     </select>
                 </div>
                 <div class="flex-grow-1" style="min-width: 250px;">
@@ -251,7 +377,6 @@
 
             <!-- 2. Executive Stat Cards -->
             <div class="row g-3 mb-4">
-                <!-- CARD 1: Gap -->
                 <div class="col-6 col-md-3">
                     <div class="exec-stat-card border-start border-4 border-primary" onclick="resetTableFilter()" title="คลิกเพื่อแสดงทั้งหมด">
                         <div class="exec-label">ผลต่างจากเป้าหมาย</div>
@@ -263,7 +388,6 @@
                     </div>
                 </div>
                 
-                <!-- CARD 2: Pass Count (CLICKABLE FILTER) -->
                 <div class="col-6 col-md-3">
                     <div class="exec-stat-card border-start border-4 border-success" onclick="filterTable('pass')" title="คลิกเพื่อดูเฉพาะที่ผ่านเกณฑ์">
                         <div class="exec-label">ผ่านเกณฑ์แล้ว <i class="bi bi-funnel float-end text-success small"></i></div>
@@ -272,7 +396,6 @@
                     </div>
                 </div>
                 
-                <!-- CARD 3: Max -->
                 <div class="col-6 col-md-3">
                     <div class="exec-stat-card" onclick="resetTableFilter()">
                         <div class="exec-label text-warning">ผลงานสูงสุด</div>
@@ -281,7 +404,6 @@
                     </div>
                 </div>
                 
-                <!-- CARD 4: Min (CLICKABLE FILTER) -->
                 <div class="col-6 col-md-3">
                     <div class="exec-stat-card" onclick="filterTable('fail')" title="คลิกเพื่อดูเฉพาะที่ไม่ผ่าน">
                         <div class="exec-label text-danger">ผลงานต่ำสุด <i class="bi bi-funnel float-end text-danger small"></i></div>
@@ -308,7 +430,7 @@
             <!-- 4. Charts Section -->
             <div class="row g-4 mb-4">
                 <!-- Gauge -->
-                <div class="col-lg-4">
+                <div class="col-lg-4" id="gauge-card-col">
                     <div class="dashboard-card p-4 text-center d-flex flex-column h-100">
                         <h6 class="fw-bold text-secondary mb-3 text-start"><i class="bi bi-speedometer2 me-2"></i>เกจวัดผลงาน</h6>
                         <div class="gauge-container flex-grow-1">
@@ -324,28 +446,55 @@
                     </div>
                 </div>
 
-                <!-- Bar Chart -->
-                <div class="col-lg-8">
+                <!-- Bar Chart / Special Card -->
+                <div class="col-lg-8" id="chart-card-col">
                     <div class="dashboard-card p-4 h-100">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6 class="fw-bold text-secondary m-0" id="chart-title">
                                 <i class="bi bi-bar-chart-line-fill me-2"></i>กราฟเปรียบเทียบ
                             </h6>
-                            <small class="text-muted"><i class="bi bi-sort-down me-1"></i> เรียงจากมากไปน้อย</small>
+                            <small class="text-muted" id="chart-subtitle"><i class="bi bi-sort-down me-1"></i> เรียงจากมากไปน้อย</small>
                         </div>
                         <div style="height: 300px; position: relative;">
+                            <!-- Canvas Graph -->
                             <canvas id="comparisonChart"></canvas>
+                            
+                            <!-- No Data Overlay -->
                             <div id="no-data-overlay" class="position-absolute top-50 start-50 translate-middle text-center d-none" style="width: 100%;">
                                 <i class="bi bi-inbox text-muted fs-1 opacity-25"></i>
                                 <div class="text-muted small mt-2">ไม่มีข้อมูล</div>
                             </div>
+
+                            <!-- KPI Card Container -->
+                            <div id="special-kpi-container" class="special-container">
+                                <div class="kpi-box">
+                                    <div class="kpi-big-number" id="special-kpi-val">0</div>
+                                    <div class="kpi-text-label" id="special-kpi-desc">อัตราการตาย</div>
+                                    <div class="mt-3">
+                                        <span class="badge bg-success rounded-pill px-3 py-2 fs-6">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Success
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Text Card Container -->
+                            <div id="special-text-container" class="special-container">
+                                <div class="text-box">
+                                    <div class="text-content-large" id="special-text-val">
+                                        เขตสุขภาพที่ 2
+                                    </div>
+                                    <div class="mt-3 text-muted small">ข้อมูลพื้นที่สุขภาพ</div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 5. Smart Data Table (Full Name Display) -->
-            <div class="dashboard-card p-4">
+            <!-- 5. Smart Data Table -->
+            <div class="dashboard-card p-4" id="table-container-card">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="fw-bold text-secondary m-0"><i class="bi bi-table me-2"></i>ตารางรายละเอียด (Smart Table)</h6>
                     <button class="btn btn-sm btn-outline-danger" onclick="resetTableFilter()" id="btn-reset-filter" style="display:none;">
@@ -354,10 +503,10 @@
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover table-custom w-100" id="detail-table">
-                        <thead>
+                        <thead id="table-header">
                             <tr>
                                 <th style="width: 5%">#</th>
-                                <th style="width: 25%">หน่วยบริการ</th>
+                                <th style="width: 25%">หน่วยบริการ / รายการ</th>
                                 <th style="width: 15%" class="text-center bg-light text-primary border-start">เป้าหมาย</th>
                                 <th style="width: 15%" class="text-center bg-light text-success border-end">ผลงาน</th>
                                 <th style="width: 10%" class="text-center">ร้อยละ (%)</th>
@@ -384,7 +533,7 @@
 
 <script>
     // ** ใส่ URL ของ Web App ใหม่ที่คุณ Deploy ได้ที่นี่ **
-    const API_URL = "https://script.google.com/macros/s/AKfycbyp0_PqDQEk91QaQGE2TJ4fjaWCyJw1uymFEfm7Mb0ETpezHTRZewZdZnSvPjRJ8dKAng/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbw8zV2FZYRYTq1eUrXOi1shSdO0u3P_klt4cUQoBRrpGiplOPdtQ_04xWfLJFi0YwO-/exec"; 
     
     const MAIN_HOSPITAL_ID = "11244";
 
@@ -441,7 +590,6 @@
 
         mapData.forEach(unit => {
             const isMain = (unit.id === MAIN_HOSPITAL_ID);
-            // Map uses FULL NAME (unit.name)
             L.marker([unit.lat, unit.lng], { icon: createIcon(isMain ? 'red' : 'blue'), zIndexOffset: isMain?1000:0 })
              .addTo(map)
              .bindTooltip(unit.name, { permanent: true, direction: 'bottom', className: 'map-label', offset: [0, 5] })
@@ -533,74 +681,374 @@
 
             const goalInfo = goalsConfig[selectedKpiKey];
             const dataSet = allChartData[selectedKpiKey];
+            const firstItem = dataSet[0];
+
+            // ตรวจสอบ Type
+            const isSpecialKPI = (firstItem && firstItem.type === 'kpi');
+            const isSpecialText = (firstItem && firstItem.type === 'text');
+            const isComparison = (firstItem && firstItem.type === 'year_comparison');
+            const isAttributeList = (firstItem && firstItem.type === 'attribute_list'); 
+            const isAccidentStats = (firstItem && firstItem.type === 'accident_stats'); // NEW Sheet 8
+
+            // Reset Visibility
+            const canvasChart = document.getElementById('comparisonChart');
+            const kpiContainer = document.getElementById('special-kpi-container');
+            const textContainer = document.getElementById('special-text-container');
+            const gaugeCard = document.getElementById('gauge-card-col');
+            const tableCard = document.getElementById('table-container-card');
+            const chartSubtitle = document.getElementById('chart-subtitle');
+
+            kpiContainer.style.display = 'none';
+            textContainer.style.display = 'none';
+            canvasChart.style.display = 'block';
+            gaugeCard.style.display = 'block';
+            tableCard.style.display = 'block';
+            chartSubtitle.style.display = 'block';
+
+            // *** Handling Goals Display ***
+            let goalVal = (currentPeriod === '6m') ? goalInfo.goal_6m : goalInfo.goal_10m;
+            let goalText = (currentPeriod === '6m') ? goalInfo.goal_6m_text : goalInfo.goal_10m_text;
             
-            let unitData = dataSet.find(d => d.id === selectedUnitId);
-            if (!unitData && selectedUnitId === 'total') {
-                 unitData = { id: 'total', name: 'ภาพรวมอำเภอ', value: 0 }; 
-                 const validItems = dataSet.filter(d => d.id !== 'total');
-                 if(validItems.length > 0) {
-                     const avg = validItems.reduce((a,b)=>a+b.value,0) / validItems.length;
-                     unitData.value = parseFloat(avg.toFixed(2));
-                 }
-            } else if (!unitData) unitData = { value: 0 };
-
-            let title = goalInfo.custom_title || "กราฟเปรียบเทียบผลงาน";
-            if (selectedKpiKey === "3") title += " (ปีงบ 68)";
-            document.getElementById('chart-title').innerHTML = `<i class="bi bi-bar-chart-line-fill me-2"></i>${title}`;
-
-            // Buttons Logic
-            const lbl6m = document.getElementById('lbl-6m');
-            const lbl10m = document.getElementById('lbl-10m');
-            const btn10m = document.getElementById('goal10m');
-            const btn6m = document.getElementById('goal6m');
-
-            lbl6m.className = 'btn btn-sm btn-light rounded-pill px-3 border-0 text-secondary fw-bold';
-            lbl10m.className = 'btn btn-sm btn-light rounded-pill px-3 border-0 text-secondary fw-bold';
-
-            if (goalInfo.goal_6m === null) {
-                lbl6m.classList.add('d-none');
-                if (currentPeriod === '6m') currentPeriod = '10m';
-                btn10m.checked = true;
-            } else lbl6m.classList.remove('d-none');
-
-            if (currentPeriod === '6m') {
-                btn6m.checked = true;
-                lbl6m.className = 'btn btn-sm bg-primary text-white rounded-pill px-3 border-0 fw-bold shadow-sm';
-            } else {
-                btn10m.checked = true;
-                lbl10m.className = 'btn btn-sm bg-primary text-white rounded-pill px-3 border-0 fw-bold shadow-sm';
+            if ((!goalText || goalText === "-") && goalVal !== null) {
+                goalText = goalVal + "%";
             }
+            document.getElementById('target-value').textContent = goalText;
 
-            let targetValue = (currentPeriod === '6m') ? goalInfo.goal_6m : goalInfo.goal_10m;
-            let showData = (dataSet.length > 0);
-            if (currentPeriod === '6m' && goalInfo.goal_6m === null) showData = false;
 
-            document.getElementById('target-value').textContent = targetValue ? `${targetValue}%` : "-";
-            const val = showData ? unitData.value : 0;
-            
-            animateValue("unit-value", 0, val, 600);
-            
-            const passStatus = document.getElementById('pass-status');
-            if(targetValue) {
-                if(val >= targetValue) {
-                    passStatus.className = "mt-3 badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-normal fs-6";
-                    passStatus.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ผ่านเกณฑ์เป้าหมาย';
+            if (isSpecialKPI) {
+                // --- MODE 1: KPI CARD ---
+                canvasChart.style.display = 'none'; gaugeCard.style.display = 'none';
+                tableCard.style.display = 'none'; chartSubtitle.style.display = 'none';
+                kpiContainer.style.display = 'block';
+
+                document.getElementById('special-kpi-val').textContent = firstItem.value;
+                const parts = firstItem.text.split('=');
+                document.getElementById('special-kpi-desc').textContent = parts[0] || "KPI";
+                document.getElementById('chart-title').innerHTML = '<i class="bi bi-star-fill me-2"></i>ตัวชี้วัดความสำเร็จ';
+                updateExecutiveStats([], null);
+
+            } else if (isSpecialText) {
+                // --- MODE 2: TEXT CARD (รวมถึง Sheet 25, 26) ---
+                canvasChart.style.display = 'none'; gaugeCard.style.display = 'none';
+                tableCard.style.display = 'none'; chartSubtitle.style.display = 'none';
+                textContainer.style.display = 'block';
+                
+                document.getElementById('special-text-val').textContent = firstItem.text;
+                document.getElementById('chart-title').innerHTML = '<i class="bi bi-info-circle-fill me-2"></i>ข้อมูลทั่วไป';
+                updateExecutiveStats([], null);
+
+            } else if (isComparison) {
+                // --- MODE 3: YEAR COMPARISON (Sheet 3) ---
+                gaugeCard.style.display = 'none';
+                chartSubtitle.style.display = 'none';
+                
+                document.getElementById('chart-title').innerHTML = '<i class="bi bi-graph-up me-2"></i>กราฟเปรียบเทียบ HDC vs Hosxp (รายปี)';
+                document.getElementById('target-value').textContent = "รายปี";
+
+                renderYearComparisonChart(dataSet);
+                updateComparisonTable(dataSet);
+                updateExecutiveStats([], null); 
+
+            } else if (isAttributeList) {
+                // --- MODE 4: ATTRIBUTE LIST (Sheet 10) ---
+                canvasChart.style.display = 'none'; gaugeCard.style.display = 'none';
+                chartSubtitle.style.display = 'none';
+                textContainer.style.display = 'block'; 
+
+                // บังคับดึงข้อมูลของ 11244 Column C มาแสดง
+                let mainUnitData = dataSet.find(d => d.id === '11244');
+                let displayText = mainUnitData ? mainUnitData.attr1 : "ไม่พบข้อมูล รพ.บ้านด่านฯ";
+                
+                document.getElementById('special-text-val').textContent = displayText;
+                document.getElementById('chart-title').innerHTML = '<i class="bi bi-card-checklist me-2"></i>ผลการประเมิน (รพ.บ้านด่านลานหอย)';
+                
+                updateAttributeTable(dataSet);
+                updateExecutiveStats([], null); 
+
+            } else if (isAccidentStats) {
+                // --- NEW MODE 6: ACCIDENT STATS (Sheet 8) ---
+                gaugeCard.style.display = 'none'; // ซ่อน Gauge
+                chartSubtitle.style.display = 'none';
+                
+                document.getElementById('chart-title').innerHTML = '<i class="bi bi-cone-striped me-2"></i>สถิติอุบัติเหตุในเด็กและเยาวชน (1-18 ปี)';
+                document.getElementById('target-value').textContent = "รายปี";
+
+                // Render Chart: Injured vs Died
+                renderAccidentChart(dataSet);
+                
+                // Update Table
+                updateAccidentTable(dataSet);
+                
+                // Update Stats (Max Died/Injured)
+                updateExecutiveStats(dataSet, null); 
+
+            } else {
+                // --- MODE 5: NORMAL ---
+                let unitData = dataSet.find(d => d.id === selectedUnitId);
+                if (!unitData && selectedUnitId === 'total') {
+                     unitData = { id: 'total', name: 'ภาพรวมอำเภอ', value: 0 }; 
+                     const validItems = dataSet.filter(d => d.id !== 'total');
+                     if(validItems.length > 0) {
+                         const avg = validItems.reduce((a,b)=>a+b.value,0) / validItems.length;
+                         unitData.value = parseFloat(avg.toFixed(2));
+                     }
+                } else if (!unitData) unitData = { value: 0 };
+
+                let title = goalInfo.custom_title || "กราฟเปรียบเทียบผลงาน";
+                if (selectedKpiKey === "3") title += " (ปีงบ 68)";
+                document.getElementById('chart-title').innerHTML = `<i class="bi bi-bar-chart-line-fill me-2"></i>${title}`;
+
+                // Toggle Buttons Logic
+                const lbl6m = document.getElementById('lbl-6m');
+                const btn10m = document.getElementById('goal10m');
+                
+                if (goalInfo.goal_6m === null) {
+                    lbl6m.classList.add('d-none');
+                    if (currentPeriod === '6m') currentPeriod = '10m';
+                    btn10m.checked = true;
+                } else lbl6m.classList.remove('d-none');
+
+                let showData = (dataSet.length > 0);
+                if (currentPeriod === '6m' && goalInfo.goal_6m === null) showData = false;
+                
+                const val = showData ? unitData.value : 0;
+                animateValue("unit-value", 0, val, 600);
+                
+                // Status Badge logic
+                const passStatus = document.getElementById('pass-status');
+                if(goalVal) {
+                     if(val >= goalVal) {
+                         passStatus.className = "mt-3 badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-normal fs-6";
+                         passStatus.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ผ่านเกณฑ์เป้าหมาย';
+                     } else {
+                         passStatus.className = "mt-3 badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-normal fs-6";
+                         passStatus.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i> ต่ำกว่าเกณฑ์';
+                     }
                 } else {
-                    passStatus.className = "mt-3 badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-normal fs-6";
-                    passStatus.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i> ต่ำกว่าเกณฑ์';
+                     passStatus.className = "mt-3 badge bg-light text-muted border rounded-pill px-3 py-2 fw-normal fs-6";
+                     passStatus.innerHTML = "ไม่มีเกณฑ์เป้าหมาย";
                 }
-            } else {
-                 passStatus.className = "mt-3 badge bg-light text-muted border rounded-pill px-3 py-2 fw-normal fs-6";
-                 passStatus.innerHTML = "ไม่มีเกณฑ์เป้าหมาย";
-            }
 
-            updateExecutiveStats(dataSet, targetValue);
-            updateSmartTable(dataSet, targetValue);
-            renderGauge(val, targetValue);
-            renderBarChart(dataSet, targetValue, showData);
+                updateExecutiveStats(dataSet, goalVal);
+                updateSmartTable(dataSet, goalVal);
+                renderGauge(val, goalVal);
+                renderBarChart(dataSet, goalVal, showData);
+            }
 
         } catch (e) {
             console.error("Dashboard Error:", e);
+        }
+    }
+
+    // --- New Chart Function for Sheet 8 (Accidents) ---
+    function renderAccidentChart(data) {
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        const overlay = document.getElementById('no-data-overlay');
+        
+        if (barChart) { barChart.destroy(); barChart = null; }
+        overlay.classList.add('d-none');
+        
+        // Filter out Total if needed, or sort
+        const chartData = data.filter(d => d.id !== 'total').sort((a,b) => b.injured - a.injured);
+        
+        const labels = chartData.map(d => d.initial || d.name);
+        const injuredVals = chartData.map(d => d.injured);
+        const diedVals = chartData.map(d => d.died);
+
+        barChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { 
+                        label: 'บาดเจ็บ (คน)', 
+                        data: injuredVals, 
+                        backgroundColor: '#f59e0b', // Orange
+                        borderRadius: 4,
+                        stack: 'Stack 0'
+                    },
+                    { 
+                        label: 'เสียชีวิต (คน)', 
+                        data: diedVals, 
+                        backgroundColor: '#dc2626', // Red
+                        borderRadius: 4,
+                        stack: 'Stack 1' // Separate stack to compare side-by-side or 'Stack 0' for stacked
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { 
+                    y: { beginAtZero: true, title: {display: true, text: 'จำนวน (คน)'} }, 
+                    x: { grid: { display: false }, ticks: { font: {family: 'Prompt', size: 10} } } 
+                },
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: { mode: 'index', intersect: false },
+                    datalabels: { 
+                        anchor: 'end', align: 'top', 
+                        formatter: (val) => val > 0 ? val : '', 
+                        font: { family: 'Prompt', weight: 'bold' }, color: '#4b5563' 
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    }
+
+    // --- New Table Function for Sheet 8 (Accidents) ---
+    function updateAccidentTable(data) {
+        if (dataTable) { dataTable.destroy(); dataTable = null; }
+        const tbody = document.getElementById('table-body');
+        const tfoot = document.getElementById('table-foot');
+        
+        // Custom Headers
+        const thead = document.getElementById('table-header').rows[0];
+        thead.innerHTML = '<th style="width: 5%">#</th><th style="width: 30%">หน่วยบริการ</th><th style="width: 15%" class="text-center">ประชากรกลุ่มเป้าหมาย</th><th style="width: 15%" class="text-center text-warning">บาดเจ็บ (คน)</th><th style="width: 15%" class="text-center text-danger">เสียชีวิต (คน)</th><th style="width: 20%" class="text-center">อัตราตาย (%)</th>';
+
+        tbody.innerHTML = ''; tfoot.innerHTML = '';
+
+        const unitRows = data.filter(d => d.id !== 'total');
+        const totalRow = data.find(d => d.id === 'total');
+
+        unitRows.forEach((item, index) => {
+             const tr = document.createElement('tr');
+             if(item.id === selectedUnitId) tr.classList.add('table-primary');
+             
+             // Badge for High Death Rate
+             let rateBadge = item.value > 0 ? `<span class="badge bg-danger">${item.value}%</span>` : `<span class="text-muted">-</span>`;
+
+             tr.innerHTML = `
+                <td class="text-center">${index + 1}</td>
+                <td>${item.name}</td>
+                <td class="text-center">${item.target.toLocaleString()}</td>
+                <td class="text-center fw-bold text-warning">${item.injured}</td>
+                <td class="text-center fw-bold text-danger">${item.died}</td>
+                <td class="text-center">${rateBadge}</td>
+             `;
+             tr.style.cursor = 'pointer';
+             tr.onclick = () => { 
+                const unitObj = mapData.find(u => u.id === item.id);
+                if(unitObj) selectUnit(unitObj);
+             };
+             tbody.appendChild(tr);
+        });
+        
+        if(totalRow) {
+             const tr = document.createElement('tr');
+             tr.innerHTML = `
+                <td class="text-center">-</td>
+                <td><strong>ภาพรวมอำเภอ</strong></td>
+                <td class="text-center"><strong>${totalRow.target.toLocaleString()}</strong></td>
+                <td class="text-center text-warning"><strong>${totalRow.injured}</strong></td>
+                <td class="text-center text-danger"><strong>${totalRow.died}</strong></td>
+                <td class="text-center"><strong>${totalRow.value}%</strong></td>
+             `;
+             tfoot.appendChild(tr);
+        }
+    }
+
+    // --- New Chart Function for Sheet 3 ---
+    function renderYearComparisonChart(data) {
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        const overlay = document.getElementById('no-data-overlay');
+        
+        if (barChart) { barChart.destroy(); barChart = null; }
+        overlay.classList.add('d-none');
+
+        const labels = data.map(d => "ปี " + d.year);
+        const hdcValues = data.map(d => d.hdc);
+        const hosxpValues = data.map(d => d.hosxp);
+
+        barChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'HDC/จังหวัด(%)', data: hdcValues, backgroundColor: '#3b82f6', borderRadius: 4 },
+                    { label: 'Hosxp/อำเภอ(%)', data: hosxpValues, backgroundColor: '#ef4444', borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, max: 100 }, x: { grid: { display: false } } },
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    datalabels: { anchor: 'end', align: 'top', formatter: (val) => val + '%', font: { family: 'Prompt', weight: 'bold' }, color: '#4b5563' }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    }
+    
+    // --- New Table Function for Sheet 3 ---
+    function updateComparisonTable(data) {
+        if (dataTable) { dataTable.destroy(); dataTable = null; }
+        const tbody = document.getElementById('table-body');
+        const tfoot = document.getElementById('table-foot');
+        
+        // Reset Headers
+        const thead = document.getElementById('table-header').rows[0];
+        thead.innerHTML = '<th style="width: 5%">#</th><th style="width: 25%">ปีงบประมาณ</th><th style="width: 25%">HDC/จังหวัด</th><th style="width: 25%">Hosxp/อำเภอ</th><th style="width: 20%">Progress Bar</th>';
+        
+        tbody.innerHTML = ''; tfoot.innerHTML = '';
+
+        data.forEach((item, index) => {
+             const tr = document.createElement('tr');
+             tr.innerHTML = `
+                <td class="text-center">${index + 1}</td>
+                <td>ปีงบประมาณ ${item.year}</td>
+                <td class="text-center text-primary fw-bold">${item.hdc}%</td>
+                <td class="text-center text-danger fw-bold">${item.hosxp}%</td>
+                <td>
+                    <div class="progress progress-slim mb-1" title="HDC"><div class="progress-bar bg-primary" style="width: ${item.hdc}%"></div></div>
+                    <div class="progress progress-slim" title="Hosxp"><div class="progress-bar bg-danger" style="width: ${item.hosxp}%"></div></div>
+                </td>
+             `;
+             tbody.appendChild(tr);
+        });
+    }
+    
+    // --- New Table Function for Sheet 10 (Attributes) ---
+    function updateAttributeTable(data) {
+        if (dataTable) { dataTable.destroy(); dataTable = null; }
+        const tbody = document.getElementById('table-body');
+        const tfoot = document.getElementById('table-foot');
+        
+        // Custom Headers
+        const thead = document.getElementById('table-header').rows[0];
+        thead.innerHTML = '<th style="width: 5%">#</th><th style="width: 25%">หน่วยบริการ</th><th style="width: 20%">สรุปผลการประเมิน</th><th style="width: 20%">ระยะเวลาการรับรอง</th><th style="width: 30%">การประเมินรับรอง</th>';
+
+        tbody.innerHTML = ''; tfoot.innerHTML = '';
+
+        const unitRows = data.filter(d => d.id !== 'total');
+        const totalRow = data.find(d => d.id === 'total');
+
+        unitRows.forEach((item, index) => {
+             const tr = document.createElement('tr');
+             if(item.id === selectedUnitId) tr.classList.add('table-primary');
+             
+             let badgeColor = "bg-secondary";
+             if(item.attr1.includes("ดี")) badgeColor = "bg-success";
+             else if(item.attr1.includes("มาตรฐาน")) badgeColor = "bg-primary";
+             else if(item.attr1.includes("ท้าทาย")) badgeColor = "bg-warning text-dark";
+
+             tr.innerHTML = `
+                <td class="text-center">${index + 1}</td>
+                <td>${item.name}</td>
+                <td><span class="badge ${badgeColor}">${item.attr1}</span></td>
+                <td>${item.attr2}</td>
+                <td><small>${item.attr3}</small></td>
+             `;
+             tr.style.cursor = 'pointer';
+             tr.onclick = () => { selectUnit(mapData.find(u => u.id === item.id)); };
+             tbody.appendChild(tr);
+        });
+        
+        if(totalRow) {
+             const tr = document.createElement('tr');
+             tr.innerHTML = `<td class="text-center">-</td><td><strong>ภาพรวม</strong></td><td><strong>${totalRow.attr1}</strong></td><td colspan="2"></td>`;
+             tfoot.appendChild(tr);
         }
     }
 
@@ -630,11 +1078,11 @@
             if(gap >= 0) {
                 gapDiv.className = "exec-value gap-positive";
                 gapArrow.className = "bi bi-arrow-up-circle-fill text-success fs-3";
-                gapDesc.textContent = "สูงกว่าเป้าหมาย (ทำได้ดี)";
+                gapDesc.textContent = "สูงกว่าเป้าหมาย";
             } else {
                 gapDiv.className = "exec-value gap-negative";
                 gapArrow.className = "bi bi-arrow-down-circle-fill text-danger fs-3";
-                gapDesc.textContent = "ต่ำกว่าเป้าหมาย (ต้องเร่งรัด)";
+                gapDesc.textContent = "ต่ำกว่าเป้าหมาย";
             }
         } else {
             gapDiv.textContent = "N/A";
@@ -644,19 +1092,14 @@
         }
 
         const sortedVals = [...cleanData].sort((a,b) => b.value - a.value);
-        const maxItem = sortedVals[0];
-        const minItem = sortedVals[sortedVals.length - 1];
-
-        document.getElementById('stat-max').textContent = maxItem.value + "%";
-        document.getElementById('stat-max-name').textContent = maxItem.name; // Full Name
-        
-        document.getElementById('stat-min').textContent = minItem.value + "%";
-        document.getElementById('stat-min-name').textContent = minItem.name; // Full Name
-
-        let passCount = "-";
-        if (target) {
-            passCount = cleanData.filter(d => d.value >= target).length;
+        if(sortedVals[0] && sortedVals[0].value !== undefined) {
+            document.getElementById('stat-max').textContent = sortedVals[0].value + "%";
+            document.getElementById('stat-max-name').textContent = sortedVals[0].name;
+            document.getElementById('stat-min').textContent = sortedVals[sortedVals.length-1].value + "%";
+            document.getElementById('stat-min-name').textContent = sortedVals[sortedVals.length-1].name;
         }
+
+        let passCount = target ? cleanData.filter(d => d.value >= target).length : "-";
         document.getElementById('stat-pass').textContent = passCount + " แห่ง";
         document.getElementById('stat-pass-sub').textContent = "จากทั้งหมด " + cleanData.length + " แห่ง";
     }
@@ -667,7 +1110,6 @@
         while($.fn.dataTable.ext.search.length > 0) { $.fn.dataTable.ext.search.pop(); }
         $.fn.dataTable.ext.search.push(
             function(settings, data, dataIndex) {
-                // Status column is now index 6
                 const statusText = (data[6] || "").toString(); 
                 if (type === 'pass') return statusText.includes('ผ่าน') && !statusText.includes('ไม่ผ่าน');
                 else if (type === 'fail') return statusText.includes('ไม่ผ่าน');
@@ -685,15 +1127,15 @@
     }
 
     function updateSmartTable(data, target) {
-        if (dataTable) {
-            dataTable.destroy();
-            dataTable = null;
-        }
-
+        if (dataTable) { dataTable.destroy(); dataTable = null; }
         const tbody = document.getElementById('table-body');
         const tfoot = document.getElementById('table-foot');
-        tbody.innerHTML = '';
-        tfoot.innerHTML = '';
+        
+        // Restore standard header
+        const thead = document.getElementById('table-header').rows[0];
+        thead.innerHTML = '<th style="width: 5%">#</th><th style="width: 25%">หน่วยบริการ / รายการ</th><th style="width: 15%" class="text-center bg-light text-primary border-start">เป้าหมาย</th><th style="width: 15%" class="text-center bg-light text-success border-end">ผลงาน</th><th style="width: 10%" class="text-center">ร้อยละ (%)</th><th style="width: 20%">Progress Bar</th><th style="width: 10%" class="text-center">สถานะ</th>';
+
+        tbody.innerHTML = ''; tfoot.innerHTML = '';
 
         if (!data || data.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-4">ไม่พบข้อมูลสำหรับตัวชี้วัดนี้</td></tr>';
@@ -703,26 +1145,13 @@
         const totalRow = data.find(d => d.id === 'total');
         const unitRows = data.filter(d => d.id !== 'total').sort((a, b) => b.value - a.value);
 
-        let sumTarget = 0;
-        let sumResult = 0;
-        let hasDataValues = false;
-
         unitRows.forEach((item, index) => {
             const tr = document.createElement('tr');
             if(item.id === selectedUnitId) tr.classList.add('table-primary');
-
-            // TABLE: Use Full Name
             let name = item.name;
-
-            // RESTORED CODE: ตรวจสอบและแสดงค่าเป้าหมาย/ผลงานให้ถูกต้อง
-            // ถ้าค่าไม่มี (undefined/null) ให้แสดง "-" แต่ถ้าเป็น 0 ให้แสดง "0"
             let targetNum = (item.target !== undefined && item.target !== null) ? item.target.toLocaleString() : "-";
             let resultNum = (item.result !== undefined && item.result !== null) ? item.result.toLocaleString() : "-";
             
-            if (item.target) sumTarget += item.target;
-            if (item.result) sumResult += item.result;
-            if (item.target || item.result) hasDataValues = true;
-
             let statusBadge = '<span class="badge bg-light text-muted fw-normal border">N/A</span>';
             let progressColor = 'bg-secondary';
             if (target) {
@@ -741,14 +1170,9 @@
                 <td class="text-center text-primary fw-bold bg-light border-start">${targetNum}</td>
                 <td class="text-center text-success fw-bold bg-light border-end">${resultNum}</td>
                 <td class="text-center fw-bold text-dark">${item.value}%</td>
-                <td data-order="${item.value}">
-                    <div class="progress progress-slim">
-                        <div class="progress-bar ${progressColor}" style="width: ${Math.min(item.value, 100)}%"></div>
-                    </div>
-                </td>
+                <td><div class="progress progress-slim"><div class="progress-bar ${progressColor}" style="width: ${Math.min(item.value, 100)}%"></div></div></td>
                 <td class="text-center">${statusBadge}</td>
             `;
-            
             tr.style.cursor = 'pointer';
             tr.onclick = () => {
                 const unitObj = mapData.find(u => u.id === item.id);
@@ -759,32 +1183,19 @@
 
         if (totalRow) {
             const tr = document.createElement('tr');
-            let showSumTarget = (totalRow.target !== undefined) ? totalRow.target.toLocaleString() : (hasDataValues ? sumTarget.toLocaleString() : "-");
-            let showSumResult = (totalRow.result !== undefined) ? totalRow.result.toLocaleString() : (hasDataValues ? sumResult.toLocaleString() : "-");
-            
             tr.innerHTML = `
                 <td class="text-center">-</td>
                 <td><strong>ภาพรวมอำเภอ</strong></td>
-                <td class="text-center text-primary fs-6 border-start">${showSumTarget}</td>
-                <td class="text-center text-success fs-6 border-end">${showSumResult}</td>
+                <td class="text-center text-primary fs-6 border-start">${totalRow.target || "-"}</td>
+                <td class="text-center text-success fs-6 border-end">${totalRow.result || "-"}</td>
                 <td class="text-center text-dark fs-6 fw-bold">${totalRow.value}%</td>
-                <td>
-                    <div class="progress progress-slim">
-                        <div class="progress-bar bg-primary" style="width: ${Math.min(totalRow.value, 100)}%"></div>
-                    </div>
-                </td>
+                <td><div class="progress progress-slim"><div class="progress-bar bg-primary" style="width: ${Math.min(totalRow.value, 100)}%"></div></div></td>
                 <td class="text-center"><small class="text-muted">ค่าเฉลี่ย</small></td>
             `;
             tfoot.appendChild(tr);
         }
 
-        dataTable = $('#detail-table').DataTable({
-            paging: false,
-            searching: true,
-            info: false,
-            order: [], 
-            language: { search: "ค้นหา:", zeroRecords: "ไม่พบข้อมูลที่ตรงกัน" }
-        });
+        dataTable = $('#detail-table').DataTable({ paging: false, searching: true, info: false, language: { search: "ค้นหา:", zeroRecords: "ไม่พบข้อมูล" } });
     }
 
     function animateValue(id, start, end, duration) {
@@ -796,8 +1207,7 @@
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             let current = progress * (end - start) + start;
             obj.innerHTML = (end % 1 === 0) ? Math.floor(current) : current.toFixed(2);
-            if (progress < 1) window.requestAnimationFrame(step);
-            else obj.innerHTML = end;
+            if (progress < 1) window.requestAnimationFrame(step); else obj.innerHTML = end;
         };
         window.requestAnimationFrame(step);
     }
@@ -817,17 +1227,10 @@
                 datasets: [{
                     data: [value, remaining],
                     backgroundColor: [color, '#f1f5f9'],
-                    borderWidth: 0,
-                    circumference: 180,
-                    rotation: -90,
-                    cutout: '75%'
+                    borderWidth: 0, circumference: 180, rotation: -90, cutout: '75%'
                 }]
             },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                animation: { animateRotate: true, animateScale: true }
-            }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
         });
     }
 
@@ -835,10 +1238,7 @@
         const ctx = document.getElementById('comparisonChart').getContext('2d');
         const overlay = document.getElementById('no-data-overlay');
         
-        if (barChart) {
-            barChart.destroy();
-            barChart = null;
-        }
+        if (barChart) { barChart.destroy(); barChart = null; }
 
         if (!showData || data.length === 0) {
             overlay.classList.remove('d-none');
@@ -847,35 +1247,27 @@
         }
         overlay.classList.add('d-none');
 
-        // --- ส่วนที่แก้ไข 1: เรียงลำดับข้อมูล มาก -> น้อย ---
-        // แยก Total ออกมาก่อน (เพื่อให้ Total อยู่ซ้ายสุดเสมอ หรือจะให้เรียงรวมกันก็ได้)
-        // สูตรนี้คือ: เอา Total ไว้ซ้ายสุดเสมอ แล้วที่เหลือเรียงตามคะแนน
         const sortedData = [...data].sort((a, b) => {
-            if (a.id === 'total') return -1; // ให้ Total อยู่แท่งแรกเสมอ
+            if (a.id === 'total') return -1; 
             if (b.id === 'total') return 1;
-            return b.value - a.value;    // เรียงคะแนนมากไปน้อย
+            return b.value - a.value;   
         });
         
         const labels = sortedData.map(d => {
             if (d.id === 'total') return 'ภาพรวม';
-            // ใช้ชื่อย่อ (initial) ถ้ามี ถ้าไม่มีใช้ชื่อเต็ม
             const unitObj = mapData.find(u => u.id === d.id);
             return (unitObj && unitObj.initial) ? unitObj.initial : (d.initial || d.name);
         });
 
         const values = sortedData.map(d => d.value);
         
-        // --- ส่วนที่แก้ไข 2: กำหนดสี (Total ผ่าน=เขียวสว่าง, ไม่ผ่าน=ส้มแดง) ---
         const bgColors = sortedData.map(d => {
             if (d.id === 'total') {
-                if (targetValue !== null) {
-                    // ถ้าคะแนน >= เป้าหมาย ให้สีเขียวสว่าง, ถ้าไม่ผ่าน ให้สีส้มแดง
-                    return (Number(d.value) >= Number(targetValue)) ? '#7CFC00' : '#FF4500';
-                }
-                return '#32CD32'; // สีเขียวมาตรฐานถ้าไม่มีเป้า
+                if (targetValue !== null) return (Number(d.value) >= Number(targetValue)) ? '#7CFC00' : '#FF4500';
+                return '#32CD32';
             }
-            if (d.id === selectedUnitId) return '#f59e0b'; // สีส้มสำหรับแท่งที่เลือก
-            return '#B0C4DE'; // สีฟ้าอ่อนสำหรับแท่งทั่วไป
+            if (d.id === selectedUnitId) return '#f59e0b';
+            return '#B0C4DE'; 
         });
 
         const annotations = {};
@@ -894,8 +1286,7 @@
                 datasets: [{
                     data: values,
                     backgroundColor: bgColors,
-                    borderRadius: 4,
-                    barPercentage: 0.6,
+                    borderRadius: 4, barPercentage: 0.6,
                 }]
             },
             options: {
@@ -917,25 +1308,8 @@
                 },
                 plugins: {
                     legend: { display: false },
-                    tooltip: { 
-                        callbacks: {
-                            title: (ctx) => {
-                                const d = sortedData[ctx[0].dataIndex];
-                                return d.id === 'total' ? 'ภาพรวม' : (d.initial || d.name);
-                            },
-                            label: (ctx) => {
-                                const d = sortedData[ctx[0].dataIndex];
-                                const targetTxt = d.target ? ` (เป้า: ${d.target})` : '';
-                                return ` ผลงาน: ${ctx.parsed.y}%${targetTxt}`;
-                            }
-                        }
-                    },
-                    datalabels: {
-                        anchor: 'end', align: 'top',
-                        formatter: (val) => val + '%',
-                        font: { family: 'Prompt', weight: 'bold', size: 10 }, 
-                        color: '#4b5563', offset: -2
-                    },
+                    tooltip: { callbacks: { title: (ctx) => sortedData[ctx[0].dataIndex].name } },
+                    datalabels: { anchor: 'end', align: 'top', formatter: (val) => val + '%', font: { family: 'Prompt', weight: 'bold' }, color: '#4b5563' },
                     annotation: { annotations: annotations }
                 }
             },
