@@ -24,11 +24,17 @@
 </head>
 <body class="min-h-screen p-4 md:p-8">
 
-    <div id="pageLoader" class="loader-overlay"><div class="flex flex-col items-center"><div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div><p class="mt-4 font-bold text-indigo-900 animate-pulse">กำลังตรวจสอบความถูกต้องของข้อมูล...</p></div></div>
+    <div id="pageLoader" class="loader-overlay"><div class="flex flex-col items-center"><div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div><p class="mt-4 font-bold text-indigo-900 animate-pulse" id="loaderText">กำลังตรวจสอบความถูกต้องของข้อมูล...</p></div></div>
 
     <div class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-end gap-6 text-white">
         <div>
-            <div class="flex items-center gap-3 mb-1"><span class="text-3xl bg-white/20 p-2 rounded-xl backdrop-blur-sm">🏥</span><span class="text-xs font-bold tracking-widest uppercase bg-indigo-500/80 px-3 py-1 rounded-full border border-indigo-400">Executive View</span></div>
+            <div class="flex items-center gap-3 mb-1">
+                <span class="text-3xl bg-white/20 p-2 rounded-xl backdrop-blur-sm">🏥</span>
+                <span class="text-xs font-bold tracking-widest uppercase bg-indigo-500/80 px-3 py-1 rounded-full border border-indigo-400">Executive View</span>
+                <button onclick="refreshData()" class="ml-2 text-xs font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full border border-white/30 transition-all flex items-center gap-1 shadow-sm active:scale-95">
+                    <span id="refreshIcon">🔄</span> รีเฟรชข้อมูล
+                </button>
+            </div>
             <h1 class="text-4xl font-bold tracking-tight text-white drop-shadow-md">Hospital Dashboard</h1>
             <p class="text-indigo-100 mt-1 font-light opacity-90">ระบบวิเคราะห์ข้อมูลเวลาปฏิบัติงาน (Premium 5 Layers)</p>
         </div>
@@ -51,21 +57,33 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="glass-card p-6 border-l-4 border-slate-400">
-                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">บุคลากรทั้งหมด</p>
-                <div class="flex justify-between items-end mt-2"><h3 id="kpiTotal" class="text-4xl font-bold text-slate-700">0</h3><span class="text-3xl text-slate-200">👥</span></div>
+            <!-- [Updated Feature] การ์ดเป้าหมาย เปลี่ยนเป็น Interactive Buttons -->
+            <div class="glass-card p-5 border-l-4 border-slate-400 relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <p class="text-slate-500 text-[11px] font-bold uppercase tracking-wider">เป้าหมายคนเข้างาน (กะ)</p>
+                        <span class="text-2xl text-slate-300">🎯</span>
+                    </div>
+                    <h3 id="kpiTotal" class="text-4xl font-bold text-slate-700 mt-1 transition-all">226</h3>
+                </div>
+                <div class="mt-4 grid grid-cols-3 gap-1.5 text-[10px] font-bold text-center">
+                    <button onclick="setShift('morning')" id="btnShift-morning" class="shift-btn py-1.5 rounded-md border transition-all">เช้า 176</button>
+                    <button onclick="setShift('afternoon')" id="btnShift-afternoon" class="shift-btn py-1.5 rounded-md border transition-all">บ่าย 40</button>
+                    <button onclick="setShift('night')" id="btnShift-night" class="shift-btn py-1.5 rounded-md border transition-all">ดึก 10</button>
+                </div>
             </div>
-            <div class="glass-card p-6 border-l-4 border-emerald-500">
-                <div class="flex justify-between items-start"><div><p class="text-emerald-600 text-xs font-bold uppercase tracking-wider">เข้างาน (Scan)</p><h3 id="kpiScan" class="text-4xl font-bold text-emerald-700 mt-2">0</h3></div><div class="text-right"><p id="pctScan" class="text-xl font-bold text-emerald-600">0%</p></div></div>
-                <div class="w-full bg-emerald-100 h-1.5 rounded-full mt-4 overflow-hidden"><div id="barScan" class="bg-emerald-500 h-full rounded-full shadow-lg" style="width:0%"></div></div>
+
+            <div class="glass-card p-6 border-l-4 border-emerald-500 flex flex-col justify-center">
+                <div class="flex justify-between items-start"><div><p class="text-emerald-600 text-xs font-bold uppercase tracking-wider">เข้างาน (Scan)</p><h3 id="kpiScan" class="text-4xl font-bold text-emerald-700 mt-2 transition-all">0</h3></div><div class="text-right"><p id="pctScan" class="text-xl font-bold text-emerald-600 transition-all">0%</p></div></div>
+                <div class="w-full bg-emerald-100 h-1.5 rounded-full mt-4 overflow-hidden"><div id="barScan" class="bg-emerald-500 h-full rounded-full shadow-lg transition-all duration-500" style="width:0%"></div></div>
             </div>
-            <div class="glass-card p-6 border-l-4 border-blue-500 cursor-pointer hover:bg-blue-50/40 transition group" onclick="openModal('leave')">
+            <div class="glass-card p-6 border-l-4 border-blue-500 flex flex-col justify-center cursor-pointer hover:bg-blue-50/40 transition group" onclick="openModal('leave')">
                 <div class="flex justify-between items-start"><div><p class="text-blue-600 text-xs font-bold uppercase tracking-wider flex items-center gap-1">ลางาน <span class="bg-blue-100 text-[10px] px-1.5 py-0.5 rounded text-blue-700 group-hover:bg-blue-200 transition">View</span></p><h3 id="kpiLeave" class="text-4xl font-bold text-blue-700 mt-2">0</h3></div><div class="text-right"><p id="pctLeave" class="text-xl font-bold text-blue-600">0%</p></div></div>
-                <div class="w-full bg-blue-100 h-1.5 rounded-full mt-4 overflow-hidden"><div id="barLeave" class="bg-blue-500 h-full rounded-full shadow-lg" style="width:0%"></div></div>
+                <div class="w-full bg-blue-100 h-1.5 rounded-full mt-4 overflow-hidden"><div id="barLeave" class="bg-blue-500 h-full rounded-full shadow-lg transition-all duration-500" style="width:0%"></div></div>
             </div>
-            <div class="glass-card p-6 border-l-4 border-rose-500">
+            <div class="glass-card p-6 border-l-4 border-rose-500 flex flex-col justify-center">
                 <div class="flex justify-between items-start"><div><p class="text-rose-600 text-xs font-bold uppercase tracking-wider">ขาดงาน / ไม่สแกน</p><h3 id="kpiMissing" class="text-4xl font-bold text-rose-700 mt-2">0</h3></div><div class="text-right"><p id="pctMissing" class="text-xl font-bold text-rose-600">0%</p></div></div>
-                <div class="w-full bg-rose-100 h-1.5 rounded-full mt-4 overflow-hidden"><div id="barMissing" class="bg-rose-500 h-full rounded-full shadow-lg" style="width:0%"></div></div>
+                <div class="w-full bg-rose-100 h-1.5 rounded-full mt-4 overflow-hidden"><div id="barMissing" class="bg-rose-500 h-full rounded-full shadow-lg transition-all duration-500" style="width:0%"></div></div>
             </div>
         </div>
 
@@ -81,7 +99,7 @@
                 <h3 class="absolute top-6 left-6 font-bold text-slate-700 text-lg flex items-center gap-2"><div class="w-1.5 h-6 bg-slate-400 rounded-full"></div> สัดส่วนภาพรวม</h3>
                 <div class="h-72 w-72 relative mt-4">
                     <canvas id="pieChart"></canvas>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"><span class="text-xs font-bold text-slate-400 uppercase tracking-widest">TOTAL</span><span id="centerPieTotal" class="text-4xl font-extrabold text-slate-700 mt-1">0</span></div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"><span class="text-xs font-bold text-slate-400 uppercase tracking-widest">TARGET</span><span id="centerPieTotal" class="text-4xl font-extrabold text-slate-700 mt-1 transition-all">226</span></div>
                 </div>
             </div>
         </div>
@@ -89,16 +107,45 @@
         <div class="glass-card overflow-hidden">
             <div class="flex overflow-x-auto p-2 gap-2 bg-slate-50/50 border-b border-slate-200">
                 <button onclick="tab('missing')" id="tab-missing" class="tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap">1. รายชื่อคนขาด</button>
-                <button onclick="tab('dept')" id="tab-dept" class="tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap">2. ขาดตามแผนก</button>
+                <button onclick="tab('dept')" id="tab-dept" class="tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap">2. แยกตามแผนก</button>
                 <button onclick="tab('late')" id="tab-late" class="tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap text-rose-700">3. สาย (08:31-11:00)</button>
                 <button onclick="tab('earlyArrive')" id="tab-earlyArrive" class="tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap text-emerald-700">4. เข้าก่อน (06:00-08:00)</button>
                 <button onclick="tab('earlyLeave')" id="tab-earlyLeave" class="tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap text-orange-600">5. กลับก่อน (15:00-16:30)</button>
             </div>
 
+            <div class="flex flex-col md:flex-row justify-between items-center bg-white/60 p-4 border-b border-slate-200 gap-4">
+                <div class="relative w-full md:w-1/3">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">🔍</span>
+                    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="ค้นหารายชื่อ, แผนก..." class="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm bg-white/80 backdrop-blur-sm">
+                </div>
+                <button onclick="exportCSV()" class="w-full md:w-auto bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-sm font-bold py-2 px-5 rounded-xl shadow-md shadow-emerald-200 transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+                    📥 Export Excel/CSV
+                </button>
+            </div>
+
             <div class="p-0 max-h-[600px] overflow-y-auto bg-white/40">
                 <div id="content-missing" class="block"><table class="w-full text-sm text-left"><thead id="headMissing" class="bg-slate-100 text-slate-500 sticky top-0 font-bold uppercase text-xs tracking-wider"></thead><tbody id="tblMissing" class="divide-y divide-slate-100"></tbody></table></div>
                 
-                <div id="content-dept" class="hidden"><div class="p-3 bg-indigo-50 text-indigo-800 text-xs text-center border-b border-indigo-100 font-semibold">💡 คลิกที่ชื่อแผนกเพื่อดูรายชื่อ</div><table class="w-full text-sm text-left"><tbody id="tblDept" class="divide-y divide-slate-100"></tbody></table></div>
+                <div id="content-dept" class="hidden">
+                    <div class="p-3 bg-indigo-50 text-indigo-800 text-[11px] md:text-xs flex flex-col md:flex-row justify-between px-4 md:px-6 border-b border-indigo-100 font-semibold gap-2">
+                        <span>💡 คลิกที่ชื่อแผนกเพื่อดูรายชื่อ <span class="text-rose-600 font-bold">(เฉพาะคนไม่สแกน)</span></span>
+                        <span class="font-bold text-indigo-900 bg-white/60 px-3 py-1 rounded-full shadow-sm">เกณฑ์: เช้า (08:30-16:30) | บ่าย (16:31-20:30) | ดึก (00:00-08:00)</span>
+                    </div>
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-indigo-50/50 text-indigo-800 sticky top-0 font-bold uppercase text-xs tracking-wider border-b border-indigo-100">
+                            <tr>
+                                <th class="p-4">แผนก/หน่วยงาน</th>
+                                <th class="p-4 text-center">รวมเป้าหมาย</th>
+                                <th class="p-4 text-center bg-emerald-50/50">เช้า</th>
+                                <th class="p-4 text-center bg-amber-50/50">บ่าย</th>
+                                <th class="p-4 text-center bg-indigo-50/50">ดึก</th>
+                                <th class="p-4 text-center">ลางาน</th>
+                                <th class="p-4 text-center text-rose-600">ขาด/ไม่สแกน</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblDept" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
                 
                 <div id="content-late" class="hidden"><table class="w-full text-sm text-left"><thead id="headLate" class="bg-rose-50 text-rose-800 sticky top-0 font-bold uppercase text-xs tracking-wider"></thead><tbody id="tblLate" class="divide-y divide-slate-100"></tbody></table></div>
                 
@@ -119,6 +166,16 @@
     <script>
         const API_URL = "https://bdlh-cs-default-rtdb.asia-southeast1.firebasedatabase.app/data.json"; 
         let db = [], currentData = [], isRange = false, chartL = null, chartP = null;
+        
+        // กำหนดเป้าหมายคงที่ ตามกะการทำงาน
+        const TARGET_MORNING = 176;
+        const TARGET_AFTERNOON = 40;
+        const TARGET_NIGHT = 10;
+        const TARGET_TOTAL = TARGET_MORNING + TARGET_AFTERNOON + TARGET_NIGHT; // 226
+
+        // [Added Feature] ตัวแปรเก็บสถานะกะที่กำลังเลือกดู
+        let activeShift = 'morning';
+
         Chart.defaults.font.family = "'Sarabun', sans-serif";
 
         window.onload = async () => { await fetchData(); };
@@ -131,11 +188,66 @@
                     if(json && json.records) {
                         db = json.records || [];
                         db.sort((a,b) => new Date(a.date) - new Date(b.date));
-                        setView('1D');
+                        
+                        const activeBtn = document.querySelector('.bg-indigo-600');
+                        const viewMode = activeBtn && activeBtn.id.includes('btn1') ? activeBtn.id.replace('btn', '') : '1D';
+                        setView(viewMode);
                     } else alert('ไม่พบข้อมูลในระบบ');
                 }
             } catch(e) { console.error(e); }
             document.getElementById('pageLoader').style.display = 'none';
+            document.getElementById('loaderText').innerText = "กำลังตรวจสอบความถูกต้องของข้อมูล...";
+        }
+
+        async function refreshData() {
+            const icon = document.getElementById('refreshIcon');
+            icon.classList.add('animate-spin');
+            document.getElementById('loaderText').innerText = "กำลังรีเฟรชข้อมูลล่าสุด...";
+            document.getElementById('pageLoader').style.display = 'flex';
+            await fetchData();
+            icon.classList.remove('animate-spin');
+        }
+
+        // Helper: Convert "HH:mm" to Minutes
+        const toMins = (t) => {
+            if(!t || typeof t !== 'string') return 0;
+            const [h,m] = t.split(':').map(Number);
+            return h*60 + m;
+        };
+
+        // [Added Feature] ฟังก์ชันจัดหมวดหมู่เวลาสแกนตามกะ
+        function getShiftCategory(m) {
+            if (m >= 510 && m <= 990) return 'morning';    // 08:30 - 16:30
+            if (m >= 991 && m <= 1230) return 'afternoon'; // 16:31 - 20:30
+            return 'night'; // นอกเหนือจากนั้น (00:00-08:29 และ 20:31-23:59) ถือเป็นกะดึก/คาบเกี่ยว
+        }
+
+        // [Added Feature] ฟังก์ชันประเมินกะจากเวลาปัจจุบัน (Auto-detect)
+        function autoDetectShift() {
+            const now = new Date();
+            const m = now.getHours() * 60 + now.getMinutes();
+            return getShiftCategory(m);
+        }
+
+        // [Added Feature] ฟังก์ชันเปลี่ยนกะการแสดงผล
+        function setShift(shift) {
+            activeShift = shift;
+            updateShiftButtonsUI();
+            if(currentData.length > 0) render();
+        }
+
+        // [Added Feature] อัปเดต UI ปุ่มเลือกกะ
+        function updateShiftButtonsUI() {
+            const styles = {
+                'morning': { base: 'border-emerald-200 text-emerald-600 hover:bg-emerald-50', active: 'bg-emerald-500 text-white border-emerald-500 shadow-md transform scale-105' },
+                'afternoon': { base: 'border-amber-200 text-amber-600 hover:bg-amber-50', active: 'bg-amber-500 text-white border-amber-500 shadow-md transform scale-105' },
+                'night': { base: 'border-indigo-200 text-indigo-600 hover:bg-indigo-50', active: 'bg-indigo-500 text-white border-indigo-500 shadow-md transform scale-105' }
+            };
+
+            ['morning', 'afternoon', 'night'].forEach(s => {
+                const btn = document.getElementById('btnShift-' + s);
+                if(btn) btn.className = `shift-btn py-1.5 rounded-md border transition-all duration-300 ${s === activeShift ? styles[s].active : styles[s].base}`;
+            });
         }
 
         function setView(mode) {
@@ -147,13 +259,23 @@
             if(db.length === 0) return;
             isRange = false;
             
-            if (mode === '1D') currentData = [db[db.length-1]];
+            if (mode === '1D') {
+                currentData = [db[db.length-1]];
+                activeShift = autoDetectShift(); // 🌟 Auto-detect เฉพาะดูวันนี้
+            } 
             else if (mode === 'Yesterday') {
                 if(db.length < 2) { alert('ข้อมูลย้อนหลังไม่พอ'); currentData = [db[db.length-1]]; }
                 else currentData = [db[db.length-2]];
-            } else if (mode === '7D') { currentData = db.slice(-7); isRange = true; } 
+                // 🌟 เมื่อดูย้อนหลัง จะจำค่ากะการทำงานเดิมที่กำลังกดดูอยู่ไว้ (ไม่เซ็ตกลับไปเป็น "รวม")
+            } 
+            else if (mode === '7D') { currentData = db.slice(-7); isRange = true; } 
             else if (mode === '1M') { currentData = db.slice(-30); isRange = true; }
+            
+            updateShiftButtonsUI();
             render();
+            
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) { searchInput.value = ''; filterTable(); }
         }
 
         function render() {
@@ -170,34 +292,52 @@
                 else { document.getElementById('badgeStatus').innerText = "✅ วันทำการปกติ"; document.getElementById('badgeStatus').className = "px-6 py-2 rounded-full font-bold text-sm bg-emerald-100 text-emerald-700"; }
             }
 
-            let sTotal=0, sScan=0, sLeave=0, sMiss=0;
-            currentData.forEach(d => { sTotal += (d.summary?.total||0); sScan += (d.summary?.scanned||0); sLeave += (d.summary?.leave||0); sMiss += (d.summary?.missing||0); });
-            const count = currentData.length;
-            const avgTotal=Math.round(sTotal/count), avgScan=Math.round(sScan/count), avgLeave=Math.round(sLeave/count), avgMiss=Math.round(sMiss/count);
+            // 🎯 กำหนดเป้าหมาย (ตัวหาร) ตามกะที่เลือก
+            let targetVal = TARGET_TOTAL;
+            if (activeShift === 'morning') targetVal = TARGET_MORNING;
+            else if (activeShift === 'afternoon') targetVal = TARGET_AFTERNOON;
+            else if (activeShift === 'night') targetVal = TARGET_NIGHT;
 
-            document.getElementById('kpiTotal').innerText = avgTotal;
+            let sScan=0, sLeave=0, sMiss=0;
+            currentData.forEach(d => { 
+                // การลา/ขาดงาน เราใช้ยอดรวมทั้งวัน เพราะไม่สามารถระบุได้ว่าลาในกะไหน
+                sLeave += (d.summary?.leave||0); 
+                sMiss += (d.summary?.missing||0); 
+
+                // 🔍 กรองจำนวนคนสแกน เฉพาะช่วงเวลาของกะที่เลือกเท่านั้น
+                (d.lists?.scanned || []).forEach(s => {
+                    const shiftCat = getShiftCategory(toMins(s.time));
+                    if (shiftCat === activeShift) sScan++;
+                });
+            });
+
+            const count = currentData.length;
+            const avgScan=Math.round(sScan/count), avgLeave=Math.round(sLeave/count), avgMiss=Math.round(sMiss/count);
+
+            document.getElementById('kpiTotal').innerText = targetVal;
             document.getElementById('kpiScan').innerText = avgScan;
             document.getElementById('kpiLeave').innerText = avgLeave;
             document.getElementById('kpiMissing').innerText = avgMiss;
-            document.getElementById('centerPieTotal').innerText = avgTotal;
-            const pct = (v,t) => t>0 ? ((v/t)*100).toFixed(1)+'%' : '0%';
-            document.getElementById('pctScan').innerText = pct(avgScan, avgTotal);
-            document.getElementById('pctLeave').innerText = pct(avgLeave, avgTotal);
-            document.getElementById('pctMissing').innerText = pct(avgMiss, avgTotal);
-            document.getElementById('barScan').style.width = pct(avgScan, avgTotal);
-            document.getElementById('barLeave').style.width = pct(avgLeave, avgTotal);
-            document.getElementById('barMissing').style.width = pct(avgMiss, avgTotal);
+            document.getElementById('centerPieTotal').innerText = targetVal;
+            
+            // 🧮 คำนวณเปอร์เซ็นต์
+            // 1. คนเข้างาน: คำนวณ % จาก "เป้าหมายของกะที่เลือก"
+            const pctScan = targetVal > 0 ? ((avgScan/targetVal)*100).toFixed(1)+'%' : '0%';
+            document.getElementById('pctScan').innerText = pctScan;
+            document.getElementById('barScan').style.width = pctScan;
+
+            // 2. ลา/ขาด: คำนวณ % จาก "ยอดรวมทั้งหมด 226" เสมอ เพื่อไม่ให้ตัวเลขเกิน 100% ดูผิดเพี้ยน
+            const pctLeave = TARGET_TOTAL > 0 ? ((avgLeave/TARGET_TOTAL)*100).toFixed(1)+'%' : '0%';
+            document.getElementById('pctLeave').innerText = pctLeave;
+            document.getElementById('barLeave').style.width = pctLeave;
+
+            const pctMiss = TARGET_TOTAL > 0 ? ((avgMiss/TARGET_TOTAL)*100).toFixed(1)+'%' : '0%';
+            document.getElementById('pctMissing').innerText = pctMiss;
+            document.getElementById('barMissing').style.width = pctMiss;
 
             renderCharts(avgScan, avgLeave, avgMiss);
             renderTables(latest);
         }
-
-        // Helper: Convert "HH:mm" to Minutes for Calculation
-        const toMins = (t) => {
-            if(!t || typeof t !== 'string') return 0;
-            const [h,m] = t.split(':').map(Number);
-            return h*60 + m;
-        };
 
         function renderCharts(s, l, m) {
             const ctxL = document.getElementById('lineChart').getContext('2d');
@@ -229,29 +369,20 @@
         }
 
         function renderTables(latest) {
-            // 🛡️ Data Sanitization & Strict Range Re-Check 
             const missingList = latest.lists?.missing || [];
-            const missingDept = latest.lists?.missingDept || {};
             
-            // Rule 3: Late (08:31-11:00)
             const lateList = (latest.lists?.late || []).filter(l => {
-                const m = toMins(l.time);
-                return m > (8*60+30) && m <= (11*60);
+                const m = toMins(l.time); return m > (8*60+30) && m <= (11*60);
             }).sort((a,b) => b.lateMins - a.lateMins);
 
-            // Rule 4: Early Arrive (06:00-08:00)
             const earlyArriveList = (latest.lists?.earlyArrival || []).filter(e => {
-                const m = toMins(e.time);
-                return m >= (6*60) && m < (8*60);
+                const m = toMins(e.time); return m >= (6*60) && m < (8*60);
             }).sort((a,b) => b.arriveEarlyMins - a.arriveEarlyMins);
 
-            // Rule 5: Early Leave (15:00-16:29)
             const earlyLeaveList = (latest.lists?.earlyLeave || []).filter(e => {
-                const m = toMins(e.time);
-                return m >= (15*60) && m < (16*60+30);
+                const m = toMins(e.time); return m >= (15*60) && m < (16*60+30);
             }).sort((a,b) => b.earlyLeaveMins - a.earlyLeaveMins);
 
-            // --- 1. Missing ---
             const tMiss = document.getElementById('tblMissing'), hMiss = document.getElementById('headMissing');
             if (isRange) {
                 hMiss.innerHTML = `<tr><th class="p-4">อันดับ</th><th class="p-4">ชื่อ-นามสกุล</th><th class="p-4">แผนก</th><th class="p-4 text-right">ขาด (ครั้ง)</th></tr>`;
@@ -265,16 +396,55 @@
                 else tMiss.innerHTML = missingList.map(m => `<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-4 font-medium text-slate-700">${m.name}</td><td class="p-4 text-xs text-slate-500">${m.dept}</td><td class="p-4 text-right"><span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">No Scan</span></td></tr>`).join('');
             }
 
-            // --- 2. Dept ---
             const tDept = document.getElementById('tblDept');
-            if (isRange) tDept.innerHTML = '<tr><td class="p-6 text-center text-slate-400 font-bold">ใช้ดูรายวันเท่านั้น</td></tr>';
-            else { 
-                const sorted = Object.entries(missingDept).sort((a,b)=>b[1]-a[1]); 
-                if(sorted.length === 0) tDept.innerHTML = '<tr><td class="p-6 text-center text-slate-400">ไม่มีข้อมูลคนขาดงาน</td></tr>';
-                else tDept.innerHTML = sorted.map(([d, c]) => `<tr class="border-b border-slate-50 cursor-pointer hover:bg-indigo-50/50 transition group" onclick="openMissingDeptModal('${d}')"><td class="p-4 text-slate-600 flex items-center justify-between"><span class="font-medium group-hover:text-indigo-600 transition">${d}</span><span class="text-xs text-indigo-500 bg-indigo-50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">🔍 รายชื่อ</span></td><td class="p-4 text-right font-bold text-rose-600 text-lg">${c}</td></tr>`).join(''); 
+            if (isRange) {
+                tDept.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-400 font-bold">ใช้ดูรายวันเท่านั้น</td></tr>';
+            } else { 
+                const deptMap = {};
+                const getDept = (d) => {
+                    const name = (d || 'ไม่ระบุ').replace(/[.#$/[\]]/g, ' - ');
+                    if (!deptMap[name]) deptMap[name] = { name, totalExpected: 0, morning: 0, afternoon: 0, night: 0, leave: 0, missing: 0 };
+                    return deptMap[name];
+                };
+
+                (latest.lists?.scanned || []).forEach(s => {
+                    const d = getDept(s.dept);
+                    d.totalExpected++;
+                    const cat = getShiftCategory(toMins(s.time)); // ดึงหมวดหมู่ตามเวลาสแกน
+                    if(cat === 'morning') d.morning++;
+                    else if(cat === 'afternoon') d.afternoon++;
+                    else d.night++;
+                });
+
+                (latest.lists?.leave || []).forEach(l => { const d = getDept(l.dept); d.leave++; d.totalExpected++; });
+                (latest.lists?.missing || []).forEach(m => { const d = getDept(m.dept); d.missing++; d.totalExpected++; });
+
+                Object.entries(latest.lists?.missingDept || {}).forEach(([deptName, count]) => {
+                    const d = getDept(deptName);
+                    if (d.missing === 0 && count > 0) { d.missing = count; d.totalExpected += count; }
+                });
+
+                const sortedDept = Object.values(deptMap).sort((a,b) => b.totalExpected - a.totalExpected); 
+                
+                if(sortedDept.length === 0) tDept.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-400">ไม่มีข้อมูลแบ่งตามแผนก</td></tr>';
+                else {
+                    tDept.innerHTML = sortedDept.map(d => `
+                        <tr class="border-b border-slate-50 cursor-pointer hover:bg-indigo-50/50 transition group" onclick="openMissingDeptModal('${d.name}')">
+                            <td class="p-4 text-slate-600 flex items-center justify-between">
+                                <span class="font-medium group-hover:text-indigo-600 transition">${d.name}</span>
+                                <span class="text-xs text-indigo-500 bg-indigo-50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">🔍 รายชื่อ</span>
+                            </td>
+                            <td class="p-4 text-center font-bold text-slate-700 bg-slate-50/50">${d.totalExpected}</td>
+                            <td class="p-4 text-center text-emerald-600 bg-emerald-50/20">${d.morning}</td>
+                            <td class="p-4 text-center text-amber-600 bg-amber-50/20">${d.afternoon}</td>
+                            <td class="p-4 text-center text-indigo-600 bg-indigo-50/20">${d.night}</td>
+                            <td class="p-4 text-center font-semibold text-blue-500">${d.leave}</td>
+                            <td class="p-4 text-center font-bold text-rose-600 bg-rose-50/30">${d.missing}</td>
+                        </tr>
+                    `).join(''); 
+                }
             }
             
-            // --- 3. Late (Sorting by Minutes DESC) ---
             const hLate = document.getElementById('headLate'), tLate = document.getElementById('tblLate');
             if (isRange) {
                 hLate.innerHTML = '<tr><th class="p-4">อันดับ</th><th class="p-4">ชื่อ</th><th class="p-4 text-right">สาย (ครั้ง)</th><th class="p-4 text-right">รวมนาที</th></tr>';
@@ -284,12 +454,9 @@
             } else {
                 hLate.innerHTML = '<tr><th class="p-4">ลำดับ</th><th class="p-4">ชื่อ-นามสกุล</th><th class="p-4 text-center">เวลาเข้า</th><th class="p-4 text-right">สาย (นาที)</th></tr>';
                 if(lateList.length === 0) tLate.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-emerald-500 font-bold">👏 ยอดเยี่ยม! ไม่มีคนมาสายในช่วงนี้</td></tr>';
-                else {
-                    tLate.innerHTML = lateList.map((l,i) => `<tr class="border-b border-slate-50 hover:bg-slate-50 transition"><td class="p-4 text-slate-400 font-mono text-xs">${i+1}</td><td class="p-4 font-medium text-slate-700">${l.name}</td><td class="p-4 text-center font-mono text-rose-600 bg-rose-50 rounded mx-auto w-fit px-2">${l.time}</td><td class="p-4 text-right text-rose-600 font-bold">+${l.lateMins}</td></tr>`).join('');
-                }
+                else tLate.innerHTML = lateList.map((l,i) => `<tr class="border-b border-slate-50 hover:bg-slate-50 transition"><td class="p-4 text-slate-400 font-mono text-xs">${i+1}</td><td class="p-4 font-medium text-slate-700">${l.name}</td><td class="p-4 text-center font-mono text-rose-600 bg-rose-50 rounded mx-auto w-fit px-2">${l.time}</td><td class="p-4 text-right text-rose-600 font-bold">+${l.lateMins}</td></tr>`).join('');
             }
 
-            // --- 4. Early Arrive (Sorting by DESC) ---
             const tEarlyArrive = document.getElementById('tblEarlyArrive');
             if(isRange) tEarlyArrive.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 font-bold">ใช้ดูรายวันเท่านั้น</td></tr>';
             else {
@@ -297,13 +464,68 @@
                 else tEarlyArrive.innerHTML = earlyArriveList.map(e => `<tr class="border-b border-slate-50 hover:bg-emerald-50/30 transition"><td class="p-4 font-medium text-slate-700">${e.name}</td><td class="p-4 text-xs text-slate-500">${e.dept}</td><td class="p-4 font-mono text-emerald-600">${e.time}</td><td class="p-4 text-right text-emerald-600 font-bold">${e.arriveEarlyMins} น.</td></tr>`).join('');
             }
 
-            // --- 5. Early Leave (Sorting by DESC) ---
             const tEarlyLeave = document.getElementById('tblEarlyLeave');
             if(isRange) tEarlyLeave.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 font-bold">ใช้ดูรายวันเท่านั้น</td></tr>';
             else {
                 if(earlyLeaveList.length === 0) tEarlyLeave.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400">ไม่มีคนกลับก่อนเวลาในช่วงนี้</td></tr>';
                 else tEarlyLeave.innerHTML = earlyLeaveList.map(e => `<tr class="border-b border-slate-50 hover:bg-orange-50/30 transition"><td class="p-4 font-medium text-slate-700">${e.name}</td><td class="p-4 text-xs text-slate-500">${e.dept}</td><td class="p-4 font-mono text-orange-600 font-bold">${e.time}</td><td class="p-4 text-right text-orange-600 font-bold">${e.earlyLeaveMins} น.</td></tr>`).join('');
             }
+        }
+
+        // [อื่นๆ คงเดิมทั้งหมด: filterTable, exportCSV, tab, modal logic]
+        function filterTable() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toLowerCase();
+            const activeTabId = document.querySelector('.tab-active').id.replace('tab-', '');
+            const tableBodyId = `tbl${activeTabId.charAt(0).toUpperCase() + activeTabId.slice(1)}`;
+            const tbody = document.getElementById(tableBodyId);
+            if(!tbody) return;
+            const tr = tbody.getElementsByTagName("tr");
+            for (let i = 0; i < tr.length; i++) {
+                if(tr[i].innerText.includes("ใช้ดูรายวันเท่านั้น") || tr[i].innerText.includes("ไม่มี") || tr[i].innerText.includes("ครบทุกคน") || tr[i].innerText.includes("วันหยุด")) continue;
+                const textValue = tr[i].textContent || tr[i].innerText;
+                if (textValue.toLowerCase().indexOf(filter) > -1) tr[i].style.display = "";
+                else tr[i].style.display = "none";
+            }
+        }
+
+        function exportCSV() {
+            const activeTabId = document.querySelector('.tab-active').id.replace('tab-', '');
+            const tableBodyId = `tbl${activeTabId.charAt(0).toUpperCase() + activeTabId.slice(1)}`;
+            const tbody = document.getElementById(tableBodyId);
+            const table = tbody.parentElement;
+            let csv = [];
+            let headerRow = [];
+            let thead = table.querySelector('thead');
+            if(thead) {
+                let headers = thead.querySelectorAll('th');
+                for (let j = 0; j < headers.length; j++) headerRow.push('"' + headers[j].innerText.replace(/"/g, '""') + '"');
+                if(headerRow.length > 0) csv.push(headerRow.join(","));
+            } else if (activeTabId === 'dept') {
+                csv.push('"แผนก/หน่วยงาน","รวมเป้าหมาย","เช้า","บ่าย","ดึก","ลา","ขาด/ไม่สแกน"'); 
+            }
+            const tr = tbody.querySelectorAll("tr");
+            for (let i = 0; i < tr.length; i++) {
+                if(tr[i].style.display === "none" || tr[i].innerText.includes("ใช้ดูรายวันเท่านั้น") || tr[i].innerText.includes("ไม่มี") || tr[i].innerText.includes("ครบทุกคน") || tr[i].innerText.includes("วันหยุด")) continue;
+                let row = [], cols = tr[i].querySelectorAll("td, th");
+                for (let j = 0; j < cols.length; j++) {
+                    let cellText = cols[j].innerText.replace("🔍 รายชื่อ", "").trim();
+                    row.push('"' + cellText.replace(/"/g, '""') + '"');
+                }
+                if(row.length > 0) csv.push(row.join(","));
+            }
+            if(csv.length === 0 || (csv.length === 1 && thead)) { alert("ไม่มีข้อมูลสำหรับส่งออก"); return; }
+            const csvContent = "\uFEFF" + csv.join("\n"); 
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Hospital_Report_${activeTabId}_${dateStr}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function tab(t) { 
@@ -313,6 +535,8 @@
             }); 
             document.getElementById('content-'+t).classList.remove('hidden'); 
             document.getElementById('tab-'+t).className = "tab-btn flex-1 py-3 px-6 text-sm font-bold rounded-xl whitespace-nowrap tab-active transform scale-105"; 
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) { searchInput.value = ''; filterTable(); }
         }
 
         tab('missing');
@@ -336,7 +560,7 @@
             const list = (currentData[currentData.length-1].lists?.missing || []).filter(m => (m.dept || 'ไม่ระบุ').replace(/[.#$/[\]]/g, ' - ') === deptName);
             document.getElementById('modalTitle').innerText = `รายชื่อคนไม่สแกน: ${deptName}`; 
             document.getElementById('modalHeader').innerHTML = `<tr><th class="p-4">ID</th><th class="p-4">ชื่อ-นามสกุล</th></tr>`; 
-            document.getElementById('tblModalContent').innerHTML = list.length===0 ? '<tr><td colspan="2" class="p-6 text-center text-slate-400">ไม่พบรายชื่อ</td></tr>' : list.map(m => `<tr class="border-b border-slate-50 hover:bg-rose-50/30 transition"><td class="p-4 text-slate-400 font-mono text-xs">${m.id}</td><td class="p-4 font-bold text-rose-600">${m.name}</td></tr>`).join(''); 
+            document.getElementById('tblModalContent').innerHTML = list.length===0 ? '<tr><td colspan="2" class="p-6 text-center text-slate-400">ไม่พบรายชื่อในระบบ (อาจเป็นข้อมูลสรุปรวม)</td></tr>' : list.map(m => `<tr class="border-b border-slate-50 hover:bg-rose-50/30 transition"><td class="p-4 text-slate-400 font-mono text-xs">${m.id}</td><td class="p-4 font-bold text-rose-600">${m.name}</td></tr>`).join(''); 
             toggleModalDisplay(true); 
         }
         document.getElementById('modalList').addEventListener('click', (e) => { if(e.target === document.getElementById('modalList')) closeModal(); });
