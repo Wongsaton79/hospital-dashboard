@@ -129,7 +129,7 @@
                 <div id="content-dept" class="hidden">
                     <div class="p-3 bg-indigo-50 text-indigo-800 text-[11px] md:text-xs flex flex-col md:flex-row justify-between px-4 md:px-6 border-b border-indigo-100 font-semibold gap-2">
                         <span>💡 คลิกที่ชื่อแผนกเพื่อดูรายชื่อ <span class="text-rose-600 font-bold">(เฉพาะคนไม่สแกน)</span></span>
-                        <span class="font-bold text-indigo-900 bg-white/60 px-3 py-1 rounded-full shadow-sm">เกณฑ์: เช้า (08:30-16:30) | บ่าย (16:31-20:30) | ดึก (00:00-08:00)</span>
+                        <span class="font-bold text-indigo-900 bg-white/60 px-3 py-1 rounded-full shadow-sm">เป้าหมายกะ: เช้า(176) | บ่าย(40) | ดึก(10)</span>
                     </div>
                     <table class="w-full text-sm text-left">
                         <thead class="bg-indigo-50/50 text-indigo-800 sticky top-0 font-bold uppercase text-xs tracking-wider border-b border-indigo-100">
@@ -210,16 +210,17 @@
 
         // Helper: Convert "HH:mm" to Minutes
         const toMins = (t) => {
-            if(!t || typeof t !== 'string') return 0;
+            if(!t || typeof t !== 'string') return -1;
             const [h,m] = t.split(':').map(Number);
-            return h*60 + m;
+            return (isNaN(h) || isNaN(m)) ? -1 : (h*60 + m);
         };
 
-        // [Added Feature] ฟังก์ชันจัดหมวดหมู่เวลาสแกนตามกะ
+        // [Updated Feature] ปรับช่วงเวลาให้ครอบคลุม "เวลาที่คนมาสแกนจริงๆ" (ไม่ใช่แค่เวลาเริ่มงาน)
         function getShiftCategory(m) {
-            if (m >= 510 && m <= 990) return 'morning';    // 08:30 - 16:30
-            if (m >= 991 && m <= 1230) return 'afternoon'; // 16:31 - 20:30
-            return 'night'; // นอกเหนือจากนั้น (00:00-08:29 และ 20:31-23:59) ถือเป็นกะดึก/คาบเกี่ยว
+            if (m < 0) return 'morning'; // Fallback if time is invalid
+            if (m >= 240 && m <= 779) return 'morning';    // 04:00 - 12:59 (สแกนเข้ากะเช้า)
+            if (m >= 780 && m <= 1199) return 'afternoon'; // 13:00 - 19:59 (สแกนเข้ากะบ่าย)
+            return 'night'; // 20:00 - 03:59 (สแกนเข้ากะดึก)
         }
 
         // [Added Feature] ฟังก์ชันประเมินกะจากเวลาปัจจุบัน (Auto-detect)
@@ -304,11 +305,30 @@
                 sLeave += (d.summary?.leave||0); 
                 sMiss += (d.summary?.missing||0); 
 
-                // 🔍 กรองจำนวนคนสแกน เฉพาะช่วงเวลาของกะที่เลือกเท่านั้น
-                (d.lists?.scanned || []).forEach(s => {
-                    const shiftCat = getShiftCategory(toMins(s.time));
-                    if (shiftCat === activeShift) sScan++;
-                });
+                // 🔍 กรองจำนวนคนสแกนเข้างาน (พร้อมระบบ Fallback หากฐานข้อมูลไม่มี lists.scanned)
+                if (d.lists && d.lists.scanned && d.lists.scanned.length > 0) {
+                    // แบบที่ 1: ดึงจากรายชื่อโดยตรง (แม่นยำสุด)
+                    d.lists.scanned.forEach(s => {
+                        const shiftCat = getShiftCategory(toMins(s.time));
+                        if (shiftCat === activeShift) sScan++;
+                    });
+                } else if (d.charts && d.charts.hourly && d.charts.hourly.length > 0) {
+                    // แบบที่ 2: ดึงจากกราฟรายชั่วโมง (Fallback)
+                    let shiftScanCount = 0;
+                    d.charts.hourly.forEach((h, hr) => {
+                        let cat = 'night';
+                        if (hr >= 4 && hr <= 12) cat = 'morning';
+                        else if (hr >= 13 && hr <= 19) cat = 'afternoon';
+                        if (cat === activeShift) shiftScanCount += (h.in || 0);
+                    });
+                    sScan += shiftScanCount;
+                } else {
+                    // แบบที่ 3: ถ้าไม่มีข้อมูลแยกเวลาเลย ให้ดึงยอดรวมสรุปมาคำนวณสัดส่วน
+                    const totalScan = d.summary?.scanned || 0;
+                    if (activeShift === 'morning') sScan += Math.round(totalScan * (176/226));
+                    else if (activeShift === 'afternoon') sScan += Math.round(totalScan * (40/226));
+                    else if (activeShift === 'night') sScan += Math.round(totalScan * (10/226));
+                }
             });
 
             const count = currentData.length;
@@ -407,15 +427,27 @@
                     return deptMap[name];
                 };
 
-                (latest.lists?.scanned || []).forEach(s => {
-                    const d = getDept(s.dept);
-                    d.totalExpected++;
-                    const cat = getShiftCategory(toMins(s.time)); // ดึงหมวดหมู่ตามเวลาสแกน
-                    if(cat === 'morning') d.morning++;
-                    else if(cat === 'afternoon') d.afternoon++;
-                    else d.night++;
-                });
+                // 1. ดึงข้อมูลคนสแกน (ตรวจสอบ Fallback)
+                if (latest.lists && latest.lists.scanned && latest.lists.scanned.length > 0) {
+                    latest.lists.scanned.forEach(s => {
+                        const d = getDept(s.dept);
+                        d.totalExpected++;
+                        const cat = getShiftCategory(toMins(s.time)); // ดึงหมวดหมู่ตามเวลาสแกน
+                        if(cat === 'morning') d.morning++;
+                        else if(cat === 'afternoon') d.afternoon++;
+                        else d.night++;
+                    });
+                } else if (latest.summary && latest.summary.scanned > 0) {
+                    // Fallback: ถ้าไม่มีข้อมูลรายชื่อ แต่มียอดรวม ให้สร้างบรรทัดรวมยอดขึ้นมาแทน
+                    const d = getDept('ไม่ระบุแผนก (ระบบไม่มีข้อมูลรายชื่อสแกน)');
+                    const totalScan = latest.summary.scanned;
+                    d.morning = Math.round(totalScan * (176/226));
+                    d.afternoon = Math.round(totalScan * (40/226));
+                    d.night = totalScan - d.morning - d.afternoon;
+                    d.totalExpected += totalScan;
+                }
 
+                // 2. ดึงข้อมูลลางาน และ ขาดงาน
                 (latest.lists?.leave || []).forEach(l => { const d = getDept(l.dept); d.leave++; d.totalExpected++; });
                 (latest.lists?.missing || []).forEach(m => { const d = getDept(m.dept); d.missing++; d.totalExpected++; });
 
