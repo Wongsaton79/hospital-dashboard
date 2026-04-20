@@ -117,11 +117,31 @@
             } catch (e) { document.getElementById('status').innerText = "❌ เชื่อมต่อไม่ได้"; }
         }
 
+        // 🌟 อัปเดตฟังก์ชันนี้ เพื่อเช็ค Error จาก Firebase โดยตรง
         async function saveToCloud() {
             try {
-                await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(globalData) });
-                updateUI(); alert('✅ บันทึกสำเร็จ!');
-            } catch (e) { alert('Error: ' + e.message); }
+                document.getElementById('status').innerText = "⏳ กำลังบันทึกไปที่ Firebase...";
+                const res = await fetch(API_URL, { 
+                    method: 'PUT', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(globalData) 
+                });
+                
+                if(!res.ok) {
+                    const text = await res.text();
+                    throw new Error(`[Status ${res.status}] ${text}`);
+                }
+                
+                updateUI(); 
+                document.getElementById('status').innerText = "✅ ซิงค์ข้อมูลแล้ว";
+                document.getElementById('status').className = "text-green-600 font-bold text-sm";
+                alert('✅ บันทึกข้อมูลลงฐานข้อมูลสำเร็จ!');
+            } catch (e) { 
+                console.error("Firebase Error: ", e);
+                document.getElementById('status').innerText = "❌ บันทึกล้มเหลว";
+                document.getElementById('status').className = "text-red-600 font-bold text-sm";
+                alert('❌ เกิดข้อผิดพลาดในการบันทึกลงฐานข้อมูล:\n' + e.message + '\n\n* ข้อมูลอาจจะยังไม่ถูกบันทึก โปรดตรวจสอบรูปแบบข้อมูล'); 
+            }
         }
 
         function updateUI() {
@@ -152,18 +172,29 @@
             const file = event.target.files[0];
             if(!file) return;
             const reader = new FileReader();
-            reader.onload = (evt) => {
-                const data = new Uint8Array(evt.target.result);
-                let wb = XLSX.read(data, {type:'array'});
-                if(file.name.endsWith('.csv')) {
-                    const dec = new TextDecoder('windows-874');
-                    const text = dec.decode(data);
-                    if(text.includes('ID') || text.includes('id')) wb = XLSX.read(text, {type:'string'});
+            
+            // 🌟 แก้ไขให้การทำงานเรียงลำดับ ป้องกันการค้าง
+            reader.onload = async (evt) => {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    let wb = XLSX.read(data, {type:'array'});
+                    if(file.name.endsWith('.csv')) {
+                        const dec = new TextDecoder('windows-874');
+                        const text = dec.decode(data);
+                        if(text.includes('ID') || text.includes('id')) wb = XLSX.read(text, {type:'string'});
+                    }
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
+                    
+                    if(type === 'staff') await processStaff(rows);
+                    else if(type === 'time') await processTime(rows);
+                    else if(type === 'leave') await processLeave(rows);
+                } catch(error) {
+                    alert("เกิดข้อผิดพลาดในการประมวลผลไฟล์: " + error.message);
+                    console.error(error);
+                } finally {
+                    // เคลียร์ค่า input เสมอ เพื่อให้สามารถเลือกไฟล์เดิมซ้ำได้
+                    event.target.value = '';
                 }
-                const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
-                if(type === 'staff') processStaff(rows);
-                else if(type === 'time') processTime(rows);
-                else if(type === 'leave') processLeave(rows);
             };
             reader.readAsArrayBuffer(file);
         }
@@ -280,8 +311,14 @@
                 }
             }
 
+            // 🌟 แก้ไข: แปลงชื่อแผนกไม่ให้มีสัญลักษณ์ / ป้องกัน Firebase Error ตอนบันทึก
             Object.values(globalData.staff).forEach(emp => {
-                if(!scanned.has(emp.id)) { missing.push(emp); missingDept[emp.dept]=(missingDept[emp.dept]||0)+1; }
+                if(!scanned.has(emp.id)) { 
+                    missing.push(emp); 
+                    // แปลง / เป็น _ เฉพาะตอนใช้เป็น Key นับจำนวน เพื่อให้ฐานข้อมูลรับได้
+                    let safeDeptKey = String(emp.dept).replace(/[\.\#\$\/\[\]]/g, '_');
+                    missingDept[safeDeptKey] = (missingDept[safeDeptKey]||0)+1; 
+                }
             });
 
             globalData.records.push({
@@ -363,10 +400,12 @@
                     const newMissing = [];
                     const newMissingDept = {};
 
+                    // 🌟 แก้ไข: แปลงชื่อแผนกไม่ให้มีสัญลักษณ์ / ป้องกัน Firebase Error
                     Object.values(globalData.staff).forEach(emp => {
                         if(!scannedIds.has(emp.id) && !leaveIds.has(emp.id)) {
                             newMissing.push(emp);
-                            newMissingDept[emp.dept] = (newMissingDept[emp.dept]||0) + 1;
+                            let safeDeptKey = String(emp.dept).replace(/[\.\#\$\/\[\]]/g, '_');
+                            newMissingDept[safeDeptKey] = (newMissingDept[safeDeptKey]||0) + 1;
                         }
                     });
 
