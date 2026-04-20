@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - ระบบจัดการฐานข้อมูล (Fixed Leave Upload)</title>
+    <title>Admin - ระบบจัดการฐานข้อมูล (Fixed Upload)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
 <body class="bg-gray-100 p-6">
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-sky-500">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">⚙️ Admin Panel (Final Fixed)</h1>
+            <h1 class="text-2xl font-bold text-gray-800">⚙️ Admin Panel (Fixed Scanned Data)</h1>
             <div class="flex items-center gap-3">
                 <span id="status" class="text-gray-500 font-bold text-sm">⏳ รอการเชื่อมต่อ...</span>
                 <button onclick="location.reload()" class="bg-gray-100 px-3 py-1 rounded text-sm font-bold text-gray-600">↻ รีเฟรช</button>
@@ -98,9 +98,10 @@
                         <div class="text-sm">
                             <span class="font-bold text-gray-700">${rec.date}</span> 
                             <span class="text-xs text-gray-500">(${rec.day})</span>
-                            <span class="ml-2 text-[10px] bg-orange-100 text-orange-600 px-1 rounded">ลา: ${rec.summary.leave}</span>
+                            <span class="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-1 rounded">สแกน: ${rec.summary.scanned}</span>
+                            <span class="ml-1 text-[10px] bg-orange-100 text-orange-600 px-1 rounded">ลา: ${rec.summary.leave}</span>
                         </div>
-                        <button onclick="deleteDate('${rec.date}')" class="text-xs text-red-500 border border-red-200 px-2 py-1 rounded">ลบ</button>
+                        <button onclick="deleteDate('${rec.date}')" class="text-xs text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-50">ลบ</button>
                     </div>`).join('');
             }
         }
@@ -138,14 +139,16 @@
                 const r = rows[i];
                 if(r && r[0]) {
                     const id = String(r[0]).trim();
-                    newStaff[id] = { id, name: `${r[1]||''} ${r[2]||''}`.trim(), dept: String(r[3]||'ไม่ระบุ').trim().replace(/[.#$/[\]]/g, ' - ') };
+                    // แก้ไข: ไม่แทนที่ / เป็น - ในชื่อแผนก เพื่อให้ชื่อตรงกับเป้าหมาย (DEPT_TARGETS) 100%
+                    newStaff[id] = { id, name: `${r[1]||''} ${r[2]||''}`.trim(), dept: String(r[3]||'ไม่ระบุ').trim() };
                 }
             }
-            if(confirm(`พบ ${Object.keys(newStaff).length} คน ยืนยัน?`)) { globalData.staff = newStaff; await saveToCloud(); }
+            if(confirm(`พบรายชื่อบุคลากร ${Object.keys(newStaff).length} คน ยืนยันการอัปเดต?`)) { globalData.staff = newStaff; await saveToCloud(); }
         }
 
+        // 🔥🔥🔥 UPDATED PROCESS TIME FUNCTION 🔥🔥🔥
         async function processTime(rows) {
-            if(Object.keys(globalData.staff).length === 0) return alert("⚠️ กรุณาลงรายชื่อพนักงาน (Staff) ก่อนครับ");
+            if(Object.keys(globalData.staff).length === 0) return alert("⚠️ กรุณาอัปโหลดรายชื่อพนักงาน (Staff) ก่อนครับ");
             
             let hIdx = -1, headers = [];
             for(let i=0; i<rows.length; i++) {
@@ -182,6 +185,7 @@
             globalData.records = globalData.records.filter(r => r.date !== dateStr);
 
             const scanned = new Set();
+            const scannedDetails = []; // 🌟 ตัวแปรใหม่ เก็บข้อมูลคนสแกนพร้อมแผนก แบบครบถ้วน
             const late=[], earlyArrival=[], earlyLeave=[], hourly=new Array(24).fill(0).map(()=>({in:0,out:0}));
             const missing=[], missingDept={};
 
@@ -192,10 +196,20 @@
                 const id = String(obj['ID']).trim();
                 
                 if(!globalData.staff[id]) continue;
-                scanned.add(id);
 
                 const timeStr = obj['บันทึก'] || obj['เวลา'] || "";
                 const times = timeStr.split(';').map(t=>t.trim()).filter(t=>t);
+
+                // 🌟 เพิ่มข้อมูลลง List scannedDetails (จุดที่แก้บัค Dashboard โชว์ 0)
+                if (!scanned.has(id)) {
+                    scanned.add(id);
+                    scannedDetails.push({
+                        id: id,
+                        name: globalData.staff[id].name,
+                        dept: globalData.staff[id].dept,
+                        time: times.length > 0 ? times[0] : "-"
+                    });
+                }
 
                 if(times.length > 0) {
                     const t1 = parseTime(times[0]);
@@ -216,11 +230,7 @@
                         if(times.length > 1) hourly[lastT.h].out++;
                         if(lastT.mins >= 15*60 && lastT.mins < 16*60+30) {
                             earlyLeave.push({
-                                id,
-                                name: globalData.staff[id].name,
-                                dept: globalData.staff[id].dept,
-                                time: lastT.str,
-                                earlyLeaveMins: (16*60+30) - lastT.mins
+                                id, name: globalData.staff[id].name, dept: globalData.staff[id].dept, time: lastT.str, earlyLeaveMins: (16*60+30) - lastT.mins
                             });
                         }
                     }
@@ -236,7 +246,8 @@
                 day: getDayName(dateStr),
                 isWeekend: false,
                 summary: { total: Object.keys(globalData.staff).length, scanned: scanned.size, checkedOut: 0, leave: 0, missing: missing.length },
-                lists: { late, earlyArrival, earlyLeave, missing, missingDept, leave: [] },
+                // 🌟 แนบ scannedDetails ไปกับ lists.scanned เพื่อให้ Dashboard ดึงไปแสดงผล
+                lists: { scanned: scannedDetails, late, earlyArrival, earlyLeave, missing, missingDept, leave: [] }, 
                 charts: { hourly },
                 scannedIds: Array.from(scanned)
             });
@@ -249,23 +260,18 @@
 
         // 🔥🔥🔥 UPDATED PROCESS LEAVE FUNCTION 🔥🔥🔥
         async function processLeave(rows) {
-            // 1. ค้นหาบรรทัดหัวตาราง (หา ID และ วันที่ลางาน)
             let hIdx = -1;
             let headers = [];
             
             for(let i=0; i<rows.length; i++) {
                 const r = (rows[i] || []).map(x => String(x).trim());
-                // คีย์เวิร์ดในการค้นหาหัวตารางใบลา
                 if(r.includes('ID') && (r.includes('วันที่ลางาน') || r.includes('วันที่') || r.includes('Start Date'))) {
-                    hIdx = i;
-                    headers = r;
-                    break;
+                    hIdx = i; headers = r; break;
                 }
             }
 
             if(hIdx === -1) return alert("❌ ไม่พบหัวตารางในไฟล์ใบลา (ต้องมีคอลัมน์ 'ID' และ 'วันที่ลางาน')");
 
-            // 2. ระบุตำแหน่งคอลัมน์
             const colID = headers.indexOf('ID');
             let colDate = headers.findIndex(h => h.includes('วันที่ลางาน') || h.includes('วันที่') || h.includes('Start Date'));
             let colType = headers.findIndex(h => h.includes('ประเภท') || h.includes('Type'));
@@ -275,7 +281,6 @@
             let count = 0;
             let processedDates = new Set();
 
-            // 3. วนลูปอ่านข้อมูล
             for(let i = hIdx + 1; i < rows.length; i++) {
                 const r = rows[i];
                 if(!r) continue;
@@ -288,16 +293,15 @@
                     const dateStr = parseDate(dRaw);
                     if(dateStr) {
                         processedDates.add(dateStr);
-                        // หา Record ของวันนั้น
                         let rec = globalData.records.find(d => d.date === dateStr);
                         
                         if(rec) {
                             if(!rec.lists.leave) rec.lists.leave = [];
-                            // ป้องกันการใส่ซ้ำ
                             if(!rec.lists.leave.find(l => l.id == id)) {
                                 rec.lists.leave.push({ 
                                     id: id, 
                                     name: globalData.staff[id]?.name || id, 
+                                    dept: globalData.staff[id]?.dept || 'ไม่ระบุ', // 🌟 แนบแผนกไปด้วย!
                                     type: type 
                                 });
                                 count++;
@@ -307,7 +311,6 @@
                 }
             }
 
-            // 4. คำนวณ Missing ใหม่ สำหรับวันที่ที่มีการอัพเดตใบลา
             processedDates.forEach(dStr => {
                 const rec = globalData.records.find(d => d.date === dStr);
                 if(rec) {
@@ -319,7 +322,6 @@
                     const newMissingDept = {};
 
                     Object.values(globalData.staff).forEach(emp => {
-                        // คนที่ไม่ได้ Scan และ ไม่ได้ลา คือคนขาด
                         if(!scannedIds.has(emp.id) && !leaveIds.has(emp.id)) {
                             newMissing.push(emp);
                             newMissingDept[emp.dept] = (newMissingDept[emp.dept]||0) + 1;
@@ -334,16 +336,15 @@
 
             if(count > 0) {
                 await saveToCloud();
-                alert(`✅ อัปเดตข้อมูลการลาสำเร็จ: ${count} รายการ`);
+                alert(`✅ อัปเดตข้อมูลการลาพร้อมแผนกสำเร็จ: ${count} รายการ`);
             } else {
-                alert("⚠️ ไม่พบข้อมูลที่ตรงกัน หรือยังไม่ได้อัพโหลดไฟล์เวลาของวันนั้นๆ (โปรดเช็ควันที่ในไฟล์)");
+                alert("⚠️ ไม่พบข้อมูลที่ตรงกัน หรือยังไม่ได้อัพโหลดไฟล์เวลาของวันนั้นๆ");
             }
         }
 
         function deleteStaffOnly() { if(confirm("ลบรายชื่อ?")) { globalData.staff={}; saveToCloud(); } }
         function deleteDate(d) { if(confirm("ลบวันที่ "+d+"?")) { globalData.records=globalData.records.filter(r=>r.date!==d); saveToCloud(); } }
         function wipeData() { if(confirm("ล้างทั้งหมด?")) { globalData={staff:{},records:[]}; saveToCloud(); } }
-        function findVal(o,k) { for(let i of k) if(o[i]) return o[i]; return null; }
         function parseTime(s) { const [h,m]=s.split(':').map(Number); return {str:s, mins:h*60+m, h}; }
         function parseDate(v) { 
             if(!v) return null;
