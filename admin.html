@@ -12,7 +12,7 @@
 <body class="bg-gray-100 p-6">
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-sky-500">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">⚙️ Admin Panel (Fixed Scanned Data)</h1>
+            <h1 class="text-2xl font-bold text-gray-800">⚙️ Admin Panel (Auto-Normalize Data)</h1>
             <div class="flex items-center gap-3">
                 <span id="status" class="text-gray-500 font-bold text-sm">⏳ รอการเชื่อมต่อ...</span>
                 <button onclick="location.reload()" class="bg-gray-100 px-3 py-1 rounded text-sm font-bold text-gray-600">↻ รีเฟรช</button>
@@ -61,6 +61,44 @@
     <script>
         const API_URL = "https://bdlh-cs-default-rtdb.asia-southeast1.firebasedatabase.app/data.json"; 
         let globalData = { staff: {}, records: [] };
+
+        // --- เพิ่มรายการ DEPT_TARGETS จาก index.html มาไว้ที่นี่เพื่อ Normalize ---
+        const DEPT_TARGETS_KEYS = [
+            "All Departments/กลุ่มงานจิตเวชและยาเสพติด", "All Departments/กลุ่มงานทันตกรรม", 
+            "All Departments/กลุ่มงานบริการด้านปฐมภูมิและองค์รวม", "All Departments/กลุ่มงานโภชนศาสตร์", 
+            "All Departments/กลุ่มงานรังสีวิทยา", "All Departments/กลุ่มงานเวชกรรมฟื้นฟู", 
+            "All Departments/กลุ่มงานสุขภาพดิจิทัล", "All Departments/กลุ่มเทคนิคการแพทย์", 
+            "All Departments/กลุ่มงานประปาและบำบัด", "All Departments/กลุ่มงานงานสวน", 
+            "All Departments/กลุ่มงานจ่ายกลาง", "All Departments/กลุ่มงานช่างซ่อมบำรุง", 
+            "All Departments/กลุ่มงานซักฟอก", "All Departments/กลุ่มงานบริหารทั่วไป", 
+            "All Departments/กลุ่มงานOPD", "All Departments/กลุ่มงานIPD", 
+            "All Departments/กลุ่มงานพนักงานขับรถ", "All Departments/กลุ่มงานการแพทย์", 
+            "All Departments/กลุ่มงานการแพทย์แผนไทยและการแพทย์ทางเลือก", 
+            "All Departments/กลุ่มงานเภสัชกรรมและคุ้มครองผู้บริโภค", "All Departments/กลุ่มงานแม่บ้าน", 
+            "All Departments/กลุ่มงาน รปภ.", "All Departments/กลุ่มงานห้องคลอด", 
+            "All Departments/กลุ่มงานห้องฉุกเฉิน"
+        ];
+
+        // ฟังก์ชันทำความสะอาดชื่อแผนกให้ตรงกับ DEPT_TARGETS แบบ 100%
+        function normalizeDeptName(rawDept) {
+            let s = String(rawDept || '').trim();
+            if (s === '' || s === 'ไม่ระบุ' || s.includes('ไม่มีข้อมูล')) return 'ไม่ระบุ';
+            
+            // ทำให้ชื่อดิบสะอาดที่สุด ตัดอักขระพิเศษ เว้นวรรค และคำว่า กลุ่ม/งาน ออก
+            const cleanStr = (str) => String(str).replace(/[\s.\-\/+และ]/g, '').toLowerCase()
+                .replace(/alldepartments/i, '').replace(/กลุ่มงาน/i, '').replace(/กลุ่ม/i, '').replace(/งาน/i, '').trim();
+            
+            let targetClean = cleanStr(s);
+
+            for (let target of DEPT_TARGETS_KEYS) {
+                if (cleanStr(target) === targetClean) {
+                    return target; // ส่งคืนชื่อเต็มที่ถูกต้องเป๊ะๆ
+                }
+            }
+            
+            // ถ้าไม่ตรงกับอะไรเลย ให้เติม All Departments/ ไปก่อน
+            return s.startsWith("All Departments/") ? s : "All Departments/" + s.replace(/^All\s+Departments[\s\-\/]*/i, '').trim();
+        }
 
         (async () => { await checkConnection(); })();
 
@@ -138,15 +176,19 @@
             for(let i=start; i<rows.length; i++) {
                 const r = rows[i];
                 if(r && r[0]) {
-                    const id = String(r[0]).trim();
-                    // แก้ไข: ไม่แทนที่ / เป็น - ในชื่อแผนก เพื่อให้ชื่อตรงกับเป้าหมาย (DEPT_TARGETS) 100%
-                    newStaff[id] = { id, name: `${r[1]||''} ${r[2]||''}`.trim(), dept: String(r[3]||'ไม่ระบุ').trim() };
+                    // ทำความสะอาด ID (ลบช่องว่าง, เอา 0 ข้างหน้าออกถ้าจำเป็น)
+                    const id = String(r[0]).trim().replace(/^0+/, ''); 
+                    
+                    // เรียกใช้ฟังก์ชัน Normalize ชื่อแผนก
+                    const rawDeptName = String(r[3]||'ไม่ระบุ').trim();
+                    const normalizedDept = normalizeDeptName(rawDeptName);
+
+                    newStaff[id] = { id, name: `${r[1]||''} ${r[2]||''}`.trim(), dept: normalizedDept };
                 }
             }
             if(confirm(`พบรายชื่อบุคลากร ${Object.keys(newStaff).length} คน ยืนยันการอัปเดต?`)) { globalData.staff = newStaff; await saveToCloud(); }
         }
 
-        // 🔥🔥🔥 UPDATED PROCESS TIME FUNCTION 🔥🔥🔥
         async function processTime(rows) {
             if(Object.keys(globalData.staff).length === 0) return alert("⚠️ กรุณาอัปโหลดรายชื่อพนักงาน (Staff) ก่อนครับ");
             
@@ -185,7 +227,7 @@
             globalData.records = globalData.records.filter(r => r.date !== dateStr);
 
             const scanned = new Set();
-            const scannedDetails = []; // 🌟 ตัวแปรใหม่ เก็บข้อมูลคนสแกนพร้อมแผนก แบบครบถ้วน
+            const scannedDetails = []; 
             const late=[], earlyArrival=[], earlyLeave=[], hourly=new Array(24).fill(0).map(()=>({in:0,out:0}));
             const missing=[], missingDept={};
 
@@ -193,20 +235,21 @@
                 const r = rows[i];
                 if(!r) continue;
                 let obj = {}; headers.forEach((h,k) => obj[h]=r[k]);
-                const id = String(obj['ID']).trim();
+                
+                // ทำความสะอาด ID ให้เหมือนตอน Staff
+                const id = String(obj['ID']).trim().replace(/^0+/, '');
                 
                 if(!globalData.staff[id]) continue;
 
                 const timeStr = obj['บันทึก'] || obj['เวลา'] || "";
                 const times = timeStr.split(';').map(t=>t.trim()).filter(t=>t);
 
-                // 🌟 เพิ่มข้อมูลลง List scannedDetails (จุดที่แก้บัค Dashboard โชว์ 0)
                 if (!scanned.has(id)) {
                     scanned.add(id);
                     scannedDetails.push({
                         id: id,
                         name: globalData.staff[id].name,
-                        dept: globalData.staff[id].dept,
+                        dept: globalData.staff[id].dept, // ดึงแผนกที่ Normalized แล้วมาใส่
                         time: times.length > 0 ? times[0] : "-"
                     });
                 }
@@ -246,7 +289,6 @@
                 day: getDayName(dateStr),
                 isWeekend: false,
                 summary: { total: Object.keys(globalData.staff).length, scanned: scanned.size, checkedOut: 0, leave: 0, missing: missing.length },
-                // 🌟 แนบ scannedDetails ไปกับ lists.scanned เพื่อให้ Dashboard ดึงไปแสดงผล
                 lists: { scanned: scannedDetails, late, earlyArrival, earlyLeave, missing, missingDept, leave: [] }, 
                 charts: { hourly },
                 scannedIds: Array.from(scanned)
@@ -258,7 +300,6 @@
             await saveToCloud();
         }
 
-        // 🔥🔥🔥 UPDATED PROCESS LEAVE FUNCTION 🔥🔥🔥
         async function processLeave(rows) {
             let hIdx = -1;
             let headers = [];
@@ -285,7 +326,8 @@
                 const r = rows[i];
                 if(!r) continue;
 
-                const id = String(r[colID] || "").trim();
+                // ทำความสะอาด ID
+                const id = String(r[colID] || "").trim().replace(/^0+/, '');
                 const dRaw = r[colDate];
                 const type = colType !== -1 ? (r[colType] || "ลา") : "ลา";
 
@@ -301,7 +343,7 @@
                                 rec.lists.leave.push({ 
                                     id: id, 
                                     name: globalData.staff[id]?.name || id, 
-                                    dept: globalData.staff[id]?.dept || 'ไม่ระบุ', // 🌟 แนบแผนกไปด้วย!
+                                    dept: globalData.staff[id]?.dept || 'ไม่ระบุ', 
                                     type: type 
                                 });
                                 count++;
