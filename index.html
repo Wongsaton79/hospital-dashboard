@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Dashboard - Premium 5 Tables (Final Edition)</title>
+    <title>Executive Dashboard - แดรชบอร์ดบริหารจัดการเข้าทำงาน</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -63,10 +63,10 @@
                         <p class="text-slate-500 text-[11px] font-bold uppercase tracking-wider">เป้าหมายคนเข้างาน (กะ)</p>
                         <span class="text-2xl text-slate-300">🎯</span>
                     </div>
-                    <h3 id="kpiTotal" class="text-4xl font-bold text-slate-700 mt-1 transition-all">226</h3>
+                    <h3 id="kpiTotal" class="text-4xl font-bold text-slate-700 mt-1 transition-all">225</h3>
                 </div>
                 <div class="mt-4 grid grid-cols-3 gap-1.5 text-[10px] font-bold text-center">
-                    <button onclick="setShift('morning')" id="btnShift-morning" class="shift-btn py-1.5 rounded-md border transition-all">เช้า 176</button>
+                    <button onclick="setShift('morning')" id="btnShift-morning" class="shift-btn py-1.5 rounded-md border transition-all">เช้า 175</button>
                     <button onclick="setShift('afternoon')" id="btnShift-afternoon" class="shift-btn py-1.5 rounded-md border transition-all">บ่าย 40</button>
                     <button onclick="setShift('night')" id="btnShift-night" class="shift-btn py-1.5 rounded-md border transition-all">ดึก 10</button>
                 </div>
@@ -98,7 +98,7 @@
                 <h3 class="absolute top-6 left-6 font-bold text-slate-700 text-lg flex items-center gap-2"><div class="w-1.5 h-6 bg-slate-400 rounded-full"></div> สัดส่วนภาพรวม</h3>
                 <div class="h-72 w-72 relative mt-4">
                     <canvas id="pieChart"></canvas>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"><span class="text-xs font-bold text-slate-400 uppercase tracking-widest">TARGET</span><span id="centerPieTotal" class="text-4xl font-extrabold text-slate-700 mt-1 transition-all">226</span></div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"><span class="text-xs font-bold text-slate-400 uppercase tracking-widest">TARGET</span><span id="centerPieTotal" class="text-4xl font-extrabold text-slate-700 mt-1 transition-all">225</span></div>
                 </div>
             </div>
         </div>
@@ -126,6 +126,10 @@
                 <div id="content-missing" class="block"><table class="w-full text-sm text-left"><thead id="headMissing" class="bg-slate-100 text-slate-500 sticky top-0 font-bold uppercase text-xs tracking-wider"></thead><tbody id="tblMissing" class="divide-y divide-slate-100"></tbody></table></div>
                 
                 <div id="content-dept" class="hidden">
+                    <div class="p-3 bg-indigo-50 text-indigo-800 text-[11px] md:text-xs flex flex-col md:flex-row justify-between px-4 md:px-6 border-b border-indigo-100 font-semibold gap-2">
+                        <span>💡 คลิกที่ชื่อแผนกเพื่อดูรายชื่อ <span class="text-rose-600 font-bold">(เฉพาะคนไม่สแกน)</span> หรือ <span class="text-amber-700 font-bold">รอระบุแผนก</span> เพื่อดูทุกคนที่ชื่อแผนกไม่ตรงกับเป้าหมาย</span>
+                        <span class="font-bold text-indigo-900 bg-white/60 px-3 py-1 rounded-full shadow-sm">เป้าหมายกะ: เช้า(175) | บ่าย(40) | ดึก(10)</span>
+                    </div>
                     <table class="w-full text-sm text-left">
                         <thead id="headDept" class="bg-indigo-50/50 text-indigo-800 sticky top-0 font-bold uppercase text-xs tracking-wider border-b border-indigo-100">
                         </thead>
@@ -143,7 +147,7 @@
     </div>
 
     <div id="modalList" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300 p-4">
-        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col transform scale-95 transition-transform duration-300" id="modalContent">
+        <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col transform scale-95 transition-transform duration-300" id="modalContent">
             <div class="p-5 border-b bg-slate-50 flex justify-between items-center"><h3 class="font-bold text-slate-800 text-lg flex items-center gap-2"><span class="w-1.5 h-6 bg-indigo-600 rounded-full"></span> <span id="modalTitle">รายละเอียด</span></h3><button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white text-slate-400 hover:bg-rose-50 hover:text-rose-500 shadow-sm flex items-center justify-center transition text-xl">&times;</button></div>
             <div class="flex-1 overflow-y-auto p-0"><table class="w-full text-sm text-left"><thead id="modalHeader" class="bg-slate-100 text-slate-500 sticky top-0 font-bold uppercase text-xs"></thead><tbody id="tblModalContent" class="divide-y divide-slate-100"></tbody></table></div>
         </div>
@@ -207,32 +211,34 @@
             return [];
         };
 
-        const TARGET_MORNING = 176, TARGET_AFTERNOON = 40, TARGET_NIGHT = 10, TARGET_TOTAL = 226;
+        const TARGET_MORNING = 175, TARGET_AFTERNOON = 40, TARGET_NIGHT = 10, TARGET_TOTAL = 225;
+        
         const DEPT_TARGETS = {
-            "All Departments/กลุ่มงานจิตเวชและยาเสพติด": { total: 4, morning: 4, afternoon: 0, night: 0 },
-            "All Departments/กลุ่มงานทันตกรรม": { total: 20, morning: 20, afternoon: 4, night: 0 },
+            "All Departments/กลุ่มงานทันตกรรม": { total: 24, morning: 20, afternoon: 4, night: 0 },
+            "All Departments/กลุ่มงานOPD": { total: 19, morning: 17, afternoon: 2, night: 0 },
             "All Departments/กลุ่มงานบริการด้านปฐมภูมิและองค์รวม": { total: 15, morning: 15, afternoon: 0, night: 0 },
-            "All Departments/กลุ่มงานโภชนศาสตร์": { total: 1, morning: 1, afternoon: 0, night: 0 },
-            "All Departments/กลุ่มงานรังสีวิทยา": { total: 3, morning: 3, afternoon: 1, night: 0 },
-            "All Departments/กลุ่มงานเวชกรรมฟื้นฟู": { total: 6, morning: 6, afternoon: 2, night: 0 },
-            "All Departments/กลุ่มงานสุขภาพดิจิทัล": { total: 14, morning: 13, afternoon: 3, night: 1 },
-            "All Departments/กลุ่มเทคนิคการแพทย์": { total: 6, morning: 6, afternoon: 2, night: 0 },
-            "All Departments/กลุ่มงานประปาและบำบัด": { total: 2, morning: 2, afternoon: 0, night: 0 }, 
-            "All Departments/กลุ่มงานงานสวน": { total: 1, morning: 1, afternoon: 0, night: 0 },
-            "All Departments/กลุ่มงานจ่ายกลาง": { total: 6, morning: 6, afternoon: 0, night: 0 },
-            "All Departments/กลุ่มงานช่างซ่อมบำรุง": { total: 4, morning: 4, afternoon: 1, night: 0 },
-            "All Departments/กลุ่มงานซักฟอก": { total: 2, morning: 2, afternoon: 1, night: 0 },
+            "All Departments/กลุ่มงานเภสัชกรรมและคุ้มครองผู้บริโภค": { total: 16, morning: 14, afternoon: 2, night: 0 },
+            "All Departments/กลุ่มงานสุขภาพดิจิทัล": { total: 17, morning: 13, afternoon: 3, night: 1 },
             "All Departments/กลุ่มงานบริหารทั่วไป": { total: 10, morning: 10, afternoon: 0, night: 0 },
-            "All Departments/กลุ่มงานOPD": { total: 17, morning: 17, afternoon: 2, night: 0 },
-            "All Departments/กลุ่มงานIPD": { total: 20, morning: 8, afternoon: 5, night: 4 },
-            "All Departments/กลุ่มงานพนักงานขับรถ": { total: 7, morning: 7, afternoon: 2, night: 0 },
-            "All Departments/กลุ่มงานการแพทย์": { total: 8, morning: 8, afternoon: 1, night: 0 },
-            "All Departments/กลุ่มงานการแพทย์แผนไทยและการแพทย์ทางเลือก": { total: 9, morning: 9, afternoon: 8, night: 0 },
-            "All Departments/กลุ่มงานเภสัชกรรมและคุ้มครองผู้บริโภค": { total: 14, morning: 14, afternoon: 2, night: 0 },
+            "All Departments/กลุ่มงานการแพทย์แผนไทยและการแพทย์ทางเลือก": { total: 17, morning: 9, afternoon: 8, night: 0 },
+            "All Departments/กลุ่มงานIPD": { total: 17, morning: 8, afternoon: 5, night: 4 },
+            "All Departments/กลุ่มงานการแพทย์": { total: 9, morning: 8, afternoon: 1, night: 0 },
             "All Departments/กลุ่มงานแม่บ้าน": { total: 8, morning: 8, afternoon: 0, night: 0 },
-            "All Departments/กลุ่มงาน รปภ.": { total: 3, morning: 1, afternoon: 1, night: 1 }, 
-            "All Departments/กลุ่มงานห้องคลอด": { total: 6, morning: 3, afternoon: 2, night: 1 },
-            "All Departments/กลุ่มงานห้องฉุกเฉิน": { total: 0, morning: 0, afternoon: 0, night: 0 }
+            "All Departments/กลุ่มงานพนักงานขับรถ": { total: 9, morning: 7, afternoon: 2, night: 0 },
+            "All Departments/กลุ่มงานเวชกรรมฟื้นฟู": { total: 8, morning: 6, afternoon: 2, night: 0 },
+            "All Departments/กลุ่มเทคนิคการแพทย์": { total: 8, morning: 6, afternoon: 2, night: 0 },
+            "All Departments/กลุ่มงานจ่ายกลาง": { total: 6, morning: 6, afternoon: 0, night: 0 },
+            "All Departments/กลุ่มงานห้องฉุกเฉิน": { total: 13, morning: 6, afternoon: 4, night: 3 },
+            "All Departments/กลุ่มงานรังสีวิทยา": { total: 4, morning: 3, afternoon: 1, night: 0 },
+            "All Departments/กลุ่มงานจิตเวชและยาเสพติด": { total: 4, morning: 4, afternoon: 0, night: 0 },
+            "All Departments/กลุ่มงานช่างซ่อมบำรุง": { total: 4, morning: 3, afternoon: 1, night: 0 },
+            "All Departments/กลุ่มงานห้องคลอด": { total: 5, morning: 3, afternoon: 1, night: 1 },
+            "All Departments/กลุ่มงานประปาและบำบัด": { total: 2, morning: 2, afternoon: 0, night: 0 },
+            "All Departments/กลุ่มงานซักฟอก": { total: 3, morning: 2, afternoon: 1, night: 0 },
+            "All Departments/หัวหน้ากลุ่มการพยาบาล": { total: 2, morning: 2, afternoon: 0, night: 0 },
+            "All Departments/กลุ่มงานโภชนศาสตร์": { total: 1, morning: 1, afternoon: 0, night: 0 },
+            "All Departments/กลุ่มงานงานสวน": { total: 1, morning: 1, afternoon: 0, night: 0 },
+            "All Departments/กลุ่มงานรปภ": { total: 3, morning: 1, afternoon: 1, night: 1 }
         };
 
         function getOfficialDeptName(raw) {
@@ -405,9 +411,9 @@
                     sScan += shiftScanCount;
                 } else {
                     const totalScan = d.summary?.scanned || 0;
-                    if (activeShift === 'morning') sScan += Math.round(totalScan * (176/226));
-                    else if (activeShift === 'afternoon') sScan += Math.round(totalScan * (40/226));
-                    else if (activeShift === 'night') sScan += Math.round(totalScan * (10/226));
+                    if (activeShift === 'morning') sScan += Math.round(totalScan * (175/225));
+                    else if (activeShift === 'afternoon') sScan += Math.round(totalScan * (40/225));
+                    else if (activeShift === 'night') sScan += Math.round(totalScan * (10/225));
                 }
             });
 
@@ -488,10 +494,9 @@
         };
 
         // ============================================================================
-        // ล้างโค้ดใหม่ทั้งหมด: สร้างตารางแยกตามแผนก (Department Table Renderer)
+        // ตารางแยกตามแผนก (อัปเดตเปอร์เซ็นต์คนขาด)
         // ============================================================================
         function renderTables(latest) {
-            // 1. ตารางคนขาด/สาย/เข้าก่อน/กลับก่อน (ย่อโค้ดเดิมไว้)
             const missingList = toArray(latest.lists?.missing);
             const lateList = toArray(latest.lists?.late).filter(l => { const m = toMins(extTime(l)); return m > (8*60+30) && m <= (11*60); }).sort((a,b) => b.lateMins - a.lateMins);
             const earlyArriveList = toArray(latest.lists?.earlyArrival).filter(e => { const m = toMins(extTime(e)); return m >= (6*60) && m < (8*60); }).sort((a,b) => b.arriveEarlyMins - a.arriveEarlyMins);
@@ -510,9 +515,6 @@
                 else tMiss.innerHTML = missingList.map(m => `<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-4 font-medium text-slate-700">${extName(m)}</td><td class="p-4 text-xs text-slate-500">${getDeptForPerson(m)}</td><td class="p-4 text-right"><span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">No Scan</span></td></tr>`).join('');
             }
 
-            // -------------------------------------------------------------
-            // 2. ล้างระบบและสร้างตาราง "แยกตามแผนก" ใหม่ทั้งหมด
-            // -------------------------------------------------------------
             const tDept = document.getElementById('tblDept');
             const hDept = document.getElementById('headDept');
 
@@ -522,31 +524,29 @@
             } else { 
                 let shiftStr = activeShift === 'morning' ? 'เช้า' : (activeShift === 'afternoon' ? 'บ่าย' : 'ดึก');
                 
+                // 🌟 อัปเดตส่วนหัวตารางให้มี % เปรียบเทียบ
                 hDept.innerHTML = `
                     <tr>
                         <th class="p-4">แผนก/หน่วยงาน</th>
                         <th class="p-4 text-center">เป้าหมาย (กะ${shiftStr})</th>
                         <th class="p-4 text-center bg-emerald-50/50">เข้างาน (กะ${shiftStr})</th>
                         <th class="p-4 text-center">ลางาน (รวม)</th>
-                        <th class="p-4 text-center text-rose-600">ขาด/ไม่สแกน (รวม)</th>
+                        <th class="p-4 text-center text-rose-600">ขาด/ไม่สแกน <span class="text-[10px] font-normal block opacity-80">(% เทียบเป้า)</span></th>
                     </tr>
                 `;
 
                 const deptStats = {};
                 
-                // กางแผนกทั้งหมด 24 แผนกมารอไว้เลย (จากฐานข้อมูล)
                 Object.keys(DEPT_TARGETS).forEach(deptName => {
                     deptStats[deptName] = { name: deptName, target: DEPT_TARGETS[deptName], morning: 0, afternoon: 0, night: 0, leave: 0, missing: 0 };
                 });
                 
-                // เตรียมถังขยะสำหรับคนที่หาแผนกไม่เจอ
                 deptStats['ไม่ระบุ'] = { name: 'ไม่ระบุ', target: { morning: 0, afternoon: 0, night: 0 }, morning: 0, afternoon: 0, night: 0, leave: 0, missing: 0 };
 
-                // กวาดข้อมูลคนสแกน ยัดลงแผนก และแบ่งแยกตามกะ
                 const scannedLatestList = getScannedData(latest);
                 scannedLatestList.forEach(s => {
                     let deptName = getDeptForPerson(s);
-                    if (!deptStats[deptName]) deptName = 'ไม่ระบุ'; // ถ้าหาชื่อแผนกไม่เจอจริงๆ ให้ลงถังขยะ
+                    if (!deptStats[deptName]) deptName = 'ไม่ระบุ'; 
                     
                     const cat = getShiftCategory(toMins(extTime(s))); 
                     if(cat === 'morning') deptStats[deptName].morning++;
@@ -554,27 +554,28 @@
                     else deptStats[deptName].night++;
                 });
 
-                // กวาดข้อมูลคนลา
                 toArray(latest.lists?.leave).forEach(l => { 
                     let deptName = getDeptForPerson(l);
                     if (!deptStats[deptName]) deptName = 'ไม่ระบุ';
                     deptStats[deptName].leave++; 
                 });
 
-                // กวาดข้อมูลคนขาด
                 toArray(latest.lists?.missing).forEach(m => { 
                     let deptName = getDeptForPerson(m);
                     if (!deptStats[deptName]) deptName = 'ไม่ระบุ';
                     deptStats[deptName].missing++; 
                 });
 
-                // เรียงลำดับโชว์แผนกที่มีเป้าหมายสูงสุดในกะนี้ขึ้นก่อน
                 let htmlStr = '';
                 const sortedDepts = Object.values(deptStats).filter(d => d.name !== 'ไม่ระบุ').sort((a,b) => (b.target[activeShift] || 0) - (a.target[activeShift] || 0)); 
                 
                 sortedDepts.forEach(d => {
                     let targetShift = d.target[activeShift] || 0;
                     let scanShift = activeShift === 'morning' ? d.morning : (activeShift === 'afternoon' ? d.afternoon : d.night);
+                    
+                    // 🌟 คำนวณเปอร์เซ็นต์คนที่ขาดงานเทียบกับเป้าหมายของกะปัจจุบัน
+                    let missingPct = targetShift > 0 ? Math.round((d.missing / targetShift) * 100) : 0;
+                    let missingPctStr = targetShift > 0 ? `${missingPct}%` : '-';
                     
                     htmlStr += `
                         <tr class="border-b border-slate-50 cursor-pointer hover:bg-indigo-50/50 transition group" onclick="openMissingDeptModal('${d.name}')">
@@ -585,12 +586,13 @@
                             <td class="p-4 text-center font-bold text-slate-700 bg-slate-50/50">${targetShift}</td>
                             <td class="p-4 text-center font-bold text-emerald-600 bg-emerald-50/30">${scanShift}</td>
                             <td class="p-4 text-center font-semibold text-blue-500">${d.leave}</td>
-                            <td class="p-4 text-center font-bold text-rose-600 bg-rose-50/30">${d.missing}</td>
+                            <td class="p-4 text-center font-bold text-rose-600 bg-rose-50/30">
+                                ${d.missing} <span class="text-[11px] text-rose-400 font-normal ml-1">(${missingPctStr})</span>
+                            </td>
                         </tr>
                     `;
                 });
 
-                // ตรวจสอบว่ามีคนตกหล่นในถังขยะหรือไม่ ถ้ามี "ต้องโชว์" เพื่อให้ User รู้ตัวเลขที่หายไป
                 const unk = deptStats['ไม่ระบุ'];
                 let unkScanShift = activeShift === 'morning' ? unk.morning : (activeShift === 'afternoon' ? unk.afternoon : unk.night);
                 
@@ -604,7 +606,9 @@
                             <td class="p-4 text-center font-bold text-amber-800">0</td>
                             <td class="p-4 text-center font-bold text-amber-700 bg-amber-100/50">${unkScanShift}</td>
                             <td class="p-4 text-center font-semibold text-amber-600">${unk.leave}</td>
-                            <td class="p-4 text-center font-bold text-rose-600 bg-rose-50/30">${unk.missing}</td>
+                            <td class="p-4 text-center font-bold text-rose-600 bg-rose-50/30">
+                                ${unk.missing} <span class="text-[11px] text-rose-400 font-normal ml-1">(-)</span>
+                            </td>
                         </tr>
                     `;
                 }
@@ -612,9 +616,6 @@
                 tDept.innerHTML = htmlStr;
             }
             
-            // -------------------------------------------------------------
-            // ตารางอื่นๆ ด้านล่าง (คงเดิม)
-            // -------------------------------------------------------------
             const hLate = document.getElementById('headLate'), tLate = document.getElementById('tblLate');
             if (isRange) {
                 hLate.innerHTML = '<tr><th class="p-4">อันดับ</th><th class="p-4">ชื่อ</th><th class="p-4 text-right">สาย (ครั้ง)</th><th class="p-4 text-right">รวมนาที</th></tr>';
@@ -658,6 +659,7 @@
             }
         }
 
+        // 🌟 อัปเดตส่วนการส่งออก CSV เพื่อให้ดึงข้อมูลเปอร์เซ็นต์ติดไปด้วย
         function exportCSV() {
             const activeTabId = document.querySelector('.tab-active').id.replace('tab-', '');
             const tableBodyId = `tbl${activeTabId.charAt(0).toUpperCase() + activeTabId.slice(1)}`;
@@ -668,11 +670,14 @@
             let thead = table.querySelector('thead');
             if(thead) {
                 let headers = thead.querySelectorAll('th');
-                for (let j = 0; j < headers.length; j++) headerRow.push('"' + headers[j].innerText.replace(/"/g, '""') + '"');
+                for (let j = 0; j < headers.length; j++) {
+                    let headText = headers[j].innerText.replace(/"/g, '""').replace(/\n/g, ' ');
+                    headerRow.push('"' + headText + '"');
+                }
                 if(headerRow.length > 0) csv.push(headerRow.join(","));
             } else if (activeTabId === 'dept') {
                 let shiftStr = activeShift === 'morning' ? 'เช้า' : (activeShift === 'afternoon' ? 'บ่าย' : 'ดึก');
-                csv.push(`"แผนก/หน่วยงาน","เป้าหมาย (กะ${shiftStr})","เข้างาน (กะ${shiftStr})","ลางาน (รวม)","ขาด/ไม่สแกน (รวม)"`); 
+                csv.push(`"แผนก/หน่วยงาน","เป้าหมาย (กะ${shiftStr})","เข้างาน (กะ${shiftStr})","ลางาน (รวม)","ขาด/ไม่สแกน (เทียบเป้า %)"`); 
             }
             const tr = tbody.querySelectorAll("tr");
             for (let i = 0; i < tr.length; i++) {
@@ -732,19 +737,88 @@
         }
         
         function openMissingDeptModal(deptName) { 
-            let list = [];
+            const latestD = currentData[currentData.length-1];
+
             if (deptName === 'ไม่ระบุ') {
-                document.getElementById('modalTitle').innerText = `รายชื่อคนที่สแกนแต่ไม่ทราบแผนก (กะ${activeShift==='morning'?'เช้า':activeShift==='afternoon'?'บ่าย':'ดึก'})`;
-                list = getScannedData(currentData[currentData.length-1]).filter(s => getDeptForPerson(s) === 'ไม่ระบุ' && getShiftCategory(toMins(extTime(s))) === activeShift);
+                document.getElementById('modalTitle').innerText = `รายชื่อบุคลากรที่รอระบุแผนก (ชื่อไม่ตรงกับเป้าหมาย)`;
+                document.getElementById('modalHeader').innerHTML = `<tr><th class="p-4">ID</th><th class="p-4">ชื่อ-นามสกุล</th><th class="p-4">แผนกที่ระบุมา</th><th class="p-4 text-center">สถานะวันนี้</th><th class="p-4 text-center">เวลา</th></tr>`; 
+                
+                let unkList = [];
+                
+                const isUnknownDept = (person) => {
+                    let d = getDeptForPerson(person);
+                    return !DEPT_TARGETS[d]; 
+                };
+                
+                getScannedData(latestD).filter(isUnknownDept).forEach(s => {
+                    let shift = getShiftCategory(toMins(extTime(s)));
+                    let shiftStr = shift === 'morning' ? 'เช้า' : (shift === 'afternoon' ? 'บ่าย' : 'ดึก');
+                    unkList.push({ 
+                        id: extId(s) || '-', 
+                        name: extName(s), 
+                        rawDept: extDept(s) || 'ไม่มีข้อมูล',
+                        status: `สแกน (กะ${shiftStr})`, 
+                        time: extTime(s), 
+                        css: 'bg-emerald-100 text-emerald-700' 
+                    });
+                });
+
+                toArray(latestD.lists?.leave).filter(isUnknownDept).forEach(l => {
+                    if(!unkList.find(x => x.id === extId(l))) {
+                        unkList.push({ 
+                            id: extId(l) || '-', 
+                            name: extName(l), 
+                            rawDept: extDept(l) || 'ไม่มีข้อมูล',
+                            status: `ลา (${l.type||'ลา'})`, 
+                            time: '-', 
+                            css: 'bg-blue-100 text-blue-700' 
+                        });
+                    }
+                });
+
+                toArray(latestD.lists?.missing).filter(isUnknownDept).forEach(m => {
+                    if(!unkList.find(x => x.id === extId(m))) {
+                        unkList.push({ 
+                            id: extId(m) || '-', 
+                            name: extName(m), 
+                            rawDept: extDept(m) || 'ไม่มีข้อมูล',
+                            status: 'ขาด/ไม่สแกน', 
+                            time: '-', 
+                            css: 'bg-rose-100 text-rose-700' 
+                        });
+                    }
+                });
+
+                document.getElementById('tblModalContent').innerHTML = unkList.length === 0 ? 
+                    '<tr><td colspan="5" class="p-6 text-center text-slate-400">ไม่พบรายชื่อ</td></tr>' : 
+                    unkList.map(m => `
+                        <tr class="border-b border-slate-50 hover:bg-amber-50/30 transition">
+                            <td class="p-4 text-slate-400 font-mono text-xs">${m.id}</td>
+                            <td class="p-4 font-bold text-slate-700">${m.name}</td>
+                            <td class="p-4 text-xs text-slate-500 max-w-[150px] truncate" title="${m.rawDept}">${m.rawDept}</td>
+                            <td class="p-4 text-center"><span class="${m.css} text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap">${m.status}</span></td>
+                            <td class="p-4 text-center font-mono text-xs text-slate-500">${m.time}</td>
+                        </tr>
+                    `).join(''); 
+
             } else {
                 document.getElementById('modalTitle').innerText = `รายชื่อคนขาด/ไม่สแกน: ${deptName}`;
-                list = toArray(currentData[currentData.length-1].lists?.missing).filter(m => getDeptForPerson(m) === deptName);
+                let list = toArray(latestD.lists?.missing).filter(m => getDeptForPerson(m) === deptName);
+                
+                document.getElementById('modalHeader').innerHTML = `<tr><th class="p-4">ID</th><th class="p-4">ชื่อ-นามสกุล</th></tr>`; 
+                document.getElementById('tblModalContent').innerHTML = list.length === 0 ? 
+                    '<tr><td colspan="2" class="p-6 text-center text-slate-400">ไม่พบรายชื่อ</td></tr>' : 
+                    list.map(m => `
+                        <tr class="border-b border-slate-50 hover:bg-rose-50/30 transition">
+                            <td class="p-4 text-slate-400 font-mono text-xs">${extId(m)}</td>
+                            <td class="p-4 font-bold text-slate-700">${extName(m)}</td>
+                        </tr>
+                    `).join(''); 
             }
 
-            document.getElementById('modalHeader').innerHTML = `<tr><th class="p-4">ID</th><th class="p-4">ชื่อ-นามสกุล</th></tr>`; 
-            document.getElementById('tblModalContent').innerHTML = list.length===0 ? '<tr><td colspan="2" class="p-6 text-center text-slate-400">ไม่พบรายชื่อ</td></tr>' : list.map(m => `<tr class="border-b border-slate-50 hover:bg-rose-50/30 transition"><td class="p-4 text-slate-400 font-mono text-xs">${extId(m)}</td><td class="p-4 font-bold text-slate-700">${extName(m)}</td></tr>`).join(''); 
             toggleModalDisplay(true); 
         }
+
         document.getElementById('modalList').addEventListener('click', (e) => { if(e.target === document.getElementById('modalList')) closeModal(); });
     </script>
 </body>
