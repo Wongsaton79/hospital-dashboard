@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Health Dashboard: Ban Dan Lan Hoi (V.23.5.9 Sheet 8 Updated)</title>
+    <title>Executive Health Dashboard: Ban Dan Lan Hoi (V.30.9)</title>
     
     <!-- Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
-    <!-- DataTables (Advanced Table) -->
+    <!-- DataTables -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -20,12 +20,28 @@
 
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-            --accent-color: #2563eb;
-            --bg-color: #f8fafc;
+            /* Modern UI Color Palette */
+            --primary-color: #4f46e5;      /* Indigo 600 */
+            --primary-light: #e0e7ff;      /* Indigo 100 */
+            --secondary-color: #64748b;    /* Slate 500 */
+            --success-color: #10b981;      /* Emerald 500 */
+            --success-light: #d1fae5;      /* Emerald 100 */
+            --warning-color: #f59e0b;      /* Amber 500 */
+            --danger-color: #f43f5e;       /* Rose 500 */
+            --danger-light: #ffe4e6;       /* Rose 100 */
+            
+            --bg-color: #f8fafc;           /* Slate 50 */
             --card-bg: #ffffff;
-            --text-main: #334155;
-            --footer-bg: #f1f5f9;
+            --text-main: #1e293b;          /* Slate 800 */
+            --text-muted: #64748b;         /* Slate 500 */
+            
+            --radius-lg: 20px;             /* Rounded corners */
+            --radius-md: 12px;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+            --shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
 
         body { 
@@ -36,242 +52,202 @@
             color: var(--text-main);
         }
 
-        /* Navbar */
-        .navbar-custom {
-            background: #fff;
-            border-bottom: 1px solid #e2e8f0;
-            height: 60px;
-            z-index: 2000;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        /* --- Animations --- */
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Navbar Glassmorphism --- */
+        .navbar-modern {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+            height: 70px;
+            box-shadow: var(--shadow-sm);
+            z-index: 1050;
         }
 
-        .full-height { height: calc(100vh - 60px); }
+        .brand-icon-box {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #312e81 100%);
+            width: 44px; height: 44px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-size: 1.3rem;
+        }
 
-        /* Map Panel */
-        #map-container { position: relative; border-right: 1px solid #e2e8f0; box-shadow: 4px 0 24px rgba(0,0,0,0.05); z-index: 10; }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .live-dot {
+            width: 8px; height: 8px;
+            background-color: var(--success-color);
+            border-radius: 50%; display: inline-block; margin-right: 8px;
+            animation: pulse-green 2s infinite;
+        }
+
+        .status-badge-modern {
+            background: white; border: 1px solid #e2e8f0;
+            padding: 6px 16px; border-radius: 30px;
+            display: flex; align-items: center;
+            box-shadow: var(--shadow-sm); font-weight: 600;
+            color: var(--text-muted); font-size: 0.85rem;
+        }
+
+        /* --- Layout --- */
+        .full-height { height: calc(100vh - 70px); }
+        #map-container { position: relative; border-right: 1px solid #e2e8f0; box-shadow: 4px 0 24px rgba(0,0,0,0.02); z-index: 10; }
         #map { height: 100%; width: 100%; z-index: 1; }
+        #dashboard-panel { background-color: var(--bg-color); padding: 24px 32px; overflow-y: auto; scroll-behavior: smooth; }
 
-        /* Control Panel */
+        /* --- Filter Controls --- */
         .control-panel-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
-            padding: 16px;
-            margin-bottom: 20px;
+            background: white; border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md); border: 1px solid #f1f5f9;
+            padding: 16px 24px; margin-bottom: 24px;
         }
+        .form-select {
+            border-radius: 12px; border: 1px solid #e2e8f0; padding: 10px 16px;
+            font-size: 0.95rem; box-shadow: var(--shadow-sm); transition: all 0.2s;
+        }
+        .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 4px var(--primary-light); }
 
-        /* Dashboard Panel */
-        #dashboard-panel {
-            background-color: #f8fafc;
-            padding: 24px;
-            overflow-y: auto; 
+        /* --- Executive Stat Cards (Redesigned) --- */
+        .exec-stat-card {
+            background: white; border-radius: var(--radius-lg); padding: 20px;
+            border: 1px solid #f1f5f9; box-shadow: var(--shadow-md);
+            display: flex; flex-direction: column; height: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+            position: relative; overflow: hidden;
         }
-
-        /* Cards */
-        .dashboard-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            border: 1px solid #e2e8f0;
-            transition: transform 0.2s, box-shadow 0.2s;
-            height: 100%;
+        .exec-stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background-color: transparent; transition: background-color 0.3s;
         }
+        .exec-stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: #e2e8f0; }
         
-        /* KPI Header */
+        /* Card Specific Borders on Hover */
+        .card-gap:hover::before { background-color: var(--primary-color); }
+        .card-pass:hover::before { background-color: var(--success-color); }
+        .card-max:hover::before { background-color: var(--warning-color); }
+        .card-min:hover::before { background-color: var(--danger-color); }
+
+        .exec-icon-box {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+        }
+        .exec-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .exec-value { font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1.2; margin-top: 8px; }
+        .exec-sub { font-size: 0.85rem; font-weight: 500; margin-top: auto; padding-top: 10px; }
+        
+        .gap-positive { color: var(--success-color); }
+        .gap-negative { color: var(--danger-color); }
+
+        /* --- KPI Banner --- */
         .kpi-header {
-            background: var(--primary-gradient);
-            color: white;
-            border-radius: 16px;
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.3);
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white; border-radius: var(--radius-lg); padding: 28px 32px;
+            position: relative; overflow: hidden; box-shadow: var(--shadow-lg);
             margin-bottom: 24px;
         }
-
-        /* Executive Stat Cards */
-        .exec-stat-card {
-            background: white; border-radius: 12px; padding: 16px;
-            border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column; justify-content: center;
-            height: 100%;
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-        }
-        .exec-stat-card:hover { 
-            transform: translateY(-3px); 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
-            border-color: var(--accent-color); 
-            background-color: #f8fafc;
-        }
-        .exec-label { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
-        .exec-value { font-size: 1.5rem; font-weight: 800; color: #0f172a; line-height: 1.1; }
-        .exec-sub { font-size: 0.8rem; margin-top: 4px; font-weight: 500; }
-
-        .gap-positive { color: #166534; }
-        .gap-negative { color: #dc2626; }
-
-        /* Gauge */
-        .gauge-container {
-            position: relative; height: 160px;
-            display: flex; justify-content: center; align-items: flex-end;
-        }
-        .gauge-value-text {
-            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-            text-align: center;
+        /* Decor circle */
+        .kpi-header::after {
+            content: ''; position: absolute; top: -50px; right: -50px;
+            width: 200px; height: 200px; border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            pointer-events: none;
         }
 
-        /* DataTables Customization */
+        /* --- General Cards --- */
+        .dashboard-card {
+            background: var(--card-bg); border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md); border: 1px solid #f1f5f9;
+            height: 100%; padding: 24px; transition: box-shadow 0.3s;
+        }
+        .dashboard-card:hover { box-shadow: var(--shadow-lg); }
+
+        /* --- Gauge & Charts --- */
+        .gauge-container { position: relative; height: 180px; display: flex; justify-content: center; align-items: flex-end; }
+        .gauge-value-text { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); text-align: center; }
+
+        /* --- Custom Table --- */
+        .table-custom { border-collapse: separate; border-spacing: 0; width: 100%; }
         .table-custom th { 
-            background-color: #f1f5f9 !important; 
-            font-size: 0.8rem; text-transform: uppercase; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; 
+            background-color: #f8fafc !important; font-size: 0.75rem; text-transform: uppercase; 
+            color: var(--text-muted); font-weight: 700; border-bottom: 2px solid #e2e8f0; 
+            padding: 12px 16px; border-top: none;
         }
-        .table-custom td { vertical-align: middle; font-size: 0.9rem; border-color: #f1f5f9; }
+        .table-custom th:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        .table-custom th:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
         
-        .table-custom tfoot td {
-            background-color: #e2e8f0 !important;
-            font-weight: bold;
-            color: #0f172a;
-            border-top: 2px solid #94a3b8;
-        }
+        .table-custom td { vertical-align: middle; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; padding: 12px 16px; color: var(--text-main); }
+        .table-custom tbody tr { transition: background-color 0.2s; }
+        .table-custom tbody tr:hover { background-color: #f8fafc; }
+        .table-custom tbody tr.table-primary { background-color: var(--primary-light) !important; }
+        .table-custom tbody tr.table-primary td { border-color: #c7d2fe; color: #3730a3; font-weight: 500; }
         
-        .progress-slim { height: 8px; border-radius: 4px; background-color: #e2e8f0; }
+        .table-custom tfoot td { background-color: #f8fafc !important; font-weight: bold; color: var(--text-main); border-top: 2px solid #cbd5e1; }
         
-        div.dataTables_wrapper div.dataTables_filter input {
-            border-radius: 20px; padding: 5px 15px; border: 1px solid #cbd5e1;
-        }
-
-        /* Map Label */
-        .map-label {
-            background: rgba(255, 255, 255, 0.95); border: 1px solid #cbd5e1;
-            border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600; color: #334155;
-        }
-        
-        /* Loading */
-        #loading-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95); z-index: 9999; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .spinner-pulse {
-            width: 60px; height: 60px; background-color: #0f172a;
-            border-radius: 50%; animation: pulse 1.2s infinite ease-in-out;
-        }
-        @keyframes pulse { 0% { transform: scale(0); } 100% { transform: scale(1); opacity: 0; } }
-
-        /* --- Modern Navbar Styles --- */
-            .navbar-modern {
-                background: rgba(255, 255, 255, 0.90);
-                backdrop-filter: blur(12px);
-                border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-                height: 70px;
-                box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
-                z-index: 1050;
-                transition: all 0.3s ease;
-            }
-
-            .brand-icon-box {
-                background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-                width: 42px; 
-                height: 42px;
-                border-radius: 10px;
-                box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                color: white;
-                font-size: 1.2rem;
-            }
-
-            @keyframes pulse-green {
-                0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-                70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-                100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-            }
-
-            .live-dot {
-                width: 8px;
-                height: 8px;
-                background-color: #10b981;
-                border-radius: 50%;
-                display: inline-block;
-                margin-right: 8px;
-                animation: pulse-green 2s infinite;
-            }
-
-            .status-badge-modern {
-                background: white;
-                border: 1px solid #e2e8f0;
-                padding: 6px 16px;
-                border-radius: 30px;
-                display: flex;
-                align-items: center;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-                font-weight: 600;
-                color: #475569;
-                font-size: 0.85rem;
-            }
+        .progress-slim { height: 6px; border-radius: 10px; background-color: #e2e8f0; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+        .progress-bar { border-radius: 10px; }
 
         /* --- Special Containers Styles --- */
         .special-container {
-            display: none;
-            height: 100%;
-            width: 100%;
-            position: absolute;
-            top: 0; left: 0;
-            background: white;
-            z-index: 20;
-            border-radius: 8px;
+            display: none; height: 100%; width: 100%; position: absolute; top: 0; left: 0;
+            background: white; z-index: 20; border-radius: var(--radius-md);
         }
-
         .kpi-box {
-            background-color: #ecfdf5;
-            border: 2px solid #10b981;
-            border-radius: 16px;
-            padding: 2rem;
-            text-align: center;
-            color: #064e3b;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid var(--success-light); border-radius: var(--radius-lg);
+            padding: 2rem; text-align: center; color: #064e3b; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
-
-        .kpi-big-number {
-            font-size: 5rem;
-            font-weight: 800;
-            color: #059669;
-            line-height: 1;
-            margin-bottom: 1rem;
-        }
-        
-        .kpi-text-label {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #047857;
-        }
-
+        .kpi-big-number { font-size: 5rem; font-weight: 800; color: var(--success-color); line-height: 1; margin-bottom: 1rem; text-shadow: 0 2px 4px rgba(16,185,129,0.2); }
+        .kpi-text-label { font-size: 1.5rem; font-weight: 600; color: #047857; }
         .text-box {
-            background-color: #eff6ff;
-            border: 2px solid #3b82f6;
-            border-radius: 16px;
-            padding: 2rem;
-            text-align: center;
-            color: #1e3a8a;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid var(--primary-light); border-radius: var(--radius-lg);
+            padding: 2rem; text-align: center; color: #1e3a8a; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
+        .text-content-large { font-size: 2.2rem; font-weight: 700; color: var(--primary-color); line-height: 1.4; }
 
-        .text-content-large {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: #1d4ed8;
-            line-height: 1.4;
+        /* Loading */
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.98); z-index: 9999; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .spinner-pulse { width: 60px; height: 60px; background-color: var(--primary-color); border-radius: 50%; animation: pulse 1.2s infinite ease-in-out; }
+        @keyframes pulse { 0% { transform: scale(0); } 100% { transform: scale(1); opacity: 0; } }
+
+        /* Custom Badges */
+        .badge-soft-success { background-color: var(--success-light); color: #047857; border: 1px solid #a7f3d0; }
+        .badge-soft-danger { background-color: var(--danger-light); color: #be123c; border: 1px solid #fecdd3; }
+        .badge-soft-warning { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+
+        /* --- Custom Card Popup CSS (V30.9 Enhancement) --- */
+        .custom-card-popup .leaflet-popup-content-wrapper {
+            padding: 0;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .custom-card-popup .leaflet-popup-content {
+            margin: 0;
+            width: 260px !important; /* บังคับความกว้าง Card */
+        }
+        .custom-card-popup .leaflet-popup-close-button {
+            color: #1e293b !important;
+            background: rgba(255,255,255,0.8) !important;
+            border-radius: 50%;
+            width: 24px !important;
+            height: 24px !important;
+            line-height: 24px !important;
+            top: 8px !important;
+            right: 8px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
     </style>
@@ -281,26 +257,26 @@
 <!-- Loading -->
 <div id="loading-screen">
     <div class="spinner-pulse mb-3"></div>
-    <h6 class="fw-bold text-dark">กำลังเชื่อมต่อฐานข้อมูล...</h6>
+    <h6 class="fw-bold text-dark mt-2">กำลังโหลดข้อมูล V.30.9...</h6>
+    <small class="text-muted">โปรดรอสักครู่</small>
 </div>
 
 <!-- Navbar -->
 <nav class="navbar navbar-modern px-4 d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center gap-3">
         <div class="brand-icon-box">
-            <i class="bi bi-bar-chart-fill"></i>
+            <i class="bi bi-grid-1x2-fill"></i>
         </div>
         <div class="d-flex flex-column">
-            <h6 class="m-0 fw-bold text-dark" style="letter-spacing: -0.3px; font-size: 1rem;">
+            <h6 class="m-0 fw-bold text-dark" style="letter-spacing: -0.3px; font-size: 1.1rem;">
                 Executive Health Dashboard
             </h6>
             <div class="d-flex align-items-center gap-2">
                 <small class="text-muted" style="font-size: 0.75rem; font-weight: 500;">
                     ระบบสนับสนุนการตัดสินใจผู้บริหาร
                 </small>
-                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill" 
-                      style="font-size: 0.6rem; padding: 2px 6px;">
-                    V.23.5.9
+                <span class="badge bg-primary text-white rounded-pill shadow-sm" style="font-size: 0.65rem; padding: 4px 8px;">
+                    V.30.9
                 </span>
             </div>
         </div>
@@ -309,7 +285,7 @@
     <div class="d-flex align-items-center">
         <div class="status-badge-modern">
             <span class="live-dot"></span>
-            <span>Live Data Connection</span>
+            <span>Live Data Connected</span>
         </div>
     </div>
 </nav>
@@ -326,13 +302,13 @@
         <div class="col-md-8 col-lg-9" id="dashboard-panel">
             
             <!-- 0. Control Panel -->
-            <div class="control-panel-card d-flex flex-wrap align-items-center gap-3">
-                <div class="d-flex align-items-center text-primary">
-                    <i class="bi bi-funnel-fill me-2 fs-5"></i>
-                    <span class="fw-bold text-uppercase small">ตัวกรองข้อมูล</span>
+            <div class="control-panel-card d-flex flex-wrap align-items-center gap-3 fade-in">
+                <div class="d-flex align-items-center text-primary bg-primary-subtle rounded-pill px-3 py-2">
+                    <i class="bi bi-funnel-fill me-2"></i>
+                    <span class="fw-bold text-uppercase small" style="letter-spacing: 0.5px;">ตัวกรองข้อมูล</span>
                 </div>
                 <div class="flex-grow-1">
-                    <select id="mainSelect" class="form-select border-secondary-subtle shadow-sm">
+                    <select id="mainSelect" class="form-select fw-medium text-dark">
                         <option value="PPP1" selected>PP&P1 (5 ตัวชี้วัด)</option>
                         <option value="PPP2">PP&P2 (1 ตัวชี้วัด)</option>
                         <option value="PPP3">PP&P3 (3 ตัวชี้วัด)</option>
@@ -348,39 +324,42 @@
                     </select>
                 </div>
                 <div class="flex-grow-1" style="min-width: 250px;">
-                    <select id="subSelect" class="form-select border-secondary-subtle shadow-sm">
+                    <select id="subSelect" class="form-select fw-medium text-dark">
                         <option value="">กำลังโหลด...</option>
                     </select>
                 </div>
             </div>
 
             <!-- 1. Header & Controls -->
-            <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 fade-in">
                 <div>
                     <h4 class="fw-bold text-dark m-0 d-flex align-items-center gap-2">
                         <span id="unit-name">ภาพรวมอำเภอ</span>
-                        <span class="badge bg-dark rounded-pill fs-6 fw-normal" id="unit-id" style="font-size: 0.7rem !important;">TOTAL</span>
+                        <span class="badge bg-dark rounded-pill fs-6 fw-normal shadow-sm" id="unit-id" style="font-size: 0.7rem !important; padding: 4px 10px;">TOTAL</span>
                     </h4>
-                    <div id="route-info" class="text-primary small mt-1 d-none fw-bold">
-                        <i class="bi bi-geo-alt-fill"></i> ระยะทาง <span id="route-dist">-</span> กม.
+                    <div id="route-info" class="text-primary small mt-2 d-none fw-bold bg-primary-subtle d-inline-block px-2 py-1 rounded">
+                        <i class="bi bi-geo-alt-fill"></i> ระยะห่าง <span id="route-dist">-</span> กม.
                     </div>
                 </div>
                 
-                <div class="bg-white p-1 rounded-pill border shadow-sm d-flex mt-2 mt-md-0">
+                <div class="bg-white p-1 rounded-pill shadow-sm border d-flex mt-2 mt-md-0">
                     <input type="radio" class="btn-check" name="goalPeriod" id="goal6m" value="6m" checked>
-                    <label class="btn btn-sm btn-light rounded-pill px-3 border-0 text-secondary fw-bold" for="goal6m" id="lbl-6m">6 เดือน</label>
+                    <label class="btn btn-sm btn-light rounded-pill px-4 border-0 text-secondary fw-bold transition" for="goal6m" id="lbl-6m">6 เดือน</label>
 
                     <input type="radio" class="btn-check" name="goalPeriod" id="goal10m" value="10m">
-                    <label class="btn btn-sm btn-light rounded-pill px-3 border-0 text-secondary fw-bold" for="goal10m" id="lbl-10m">10 เดือน</label>
+                    <label class="btn btn-sm btn-light rounded-pill px-4 border-0 text-secondary fw-bold transition" for="goal10m" id="lbl-10m">10 เดือน</label>
                 </div>
             </div>
 
-            <!-- 2. Executive Stat Cards -->
-            <div class="row g-3 mb-4">
+            <!-- 2. Executive Stat Cards (Modernized) -->
+            <div class="row g-3 mb-4 fade-in" style="animation-delay: 0.1s;">
                 <div class="col-6 col-md-3">
-                    <div class="exec-stat-card border-start border-4 border-primary" onclick="resetTableFilter()" title="คลิกเพื่อแสดงทั้งหมด">
-                        <div class="exec-label">ผลต่างจากเป้าหมาย</div>
-                        <div class="d-flex align-items-baseline gap-2">
+                    <div class="exec-stat-card card-gap" onclick="resetTableFilter()" title="คลิกเพื่อแสดงทั้งหมด">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="exec-label">ผลต่างจากเป้าหมาย</div>
+                            <div class="exec-icon-box bg-primary-subtle text-primary"><i class="bi bi-bullseye"></i></div>
+                        </div>
+                        <div class="d-flex align-items-baseline gap-2 mt-2">
                             <div class="exec-value" id="stat-gap">- %</div>
                             <i id="gap-arrow" class="bi"></i>
                         </div>
@@ -389,58 +368,72 @@
                 </div>
                 
                 <div class="col-6 col-md-3">
-                    <div class="exec-stat-card border-start border-4 border-success" onclick="filterTable('pass')" title="คลิกเพื่อดูเฉพาะที่ผ่านเกณฑ์">
-                        <div class="exec-label">ผ่านเกณฑ์แล้ว <i class="bi bi-funnel float-end text-success small"></i></div>
+                    <div class="exec-stat-card card-pass" onclick="filterTable('pass')" title="คลิกเพื่อดูเฉพาะที่ผ่านเกณฑ์">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="exec-label">ผ่านเกณฑ์แล้ว</div>
+                            <div class="exec-icon-box bg-success-subtle text-success"><i class="bi bi-check2-circle"></i></div>
+                        </div>
                         <div class="exec-value text-success" id="stat-pass">- แห่ง</div>
-                        <div class="exec-sub text-muted" id="stat-pass-sub">จากทั้งหมด - แห่ง</div>
+                        <div class="exec-sub text-muted" id="stat-pass-sub">จากทั้งหมด - แห่ง <i class="bi bi-funnel ms-1"></i></div>
                     </div>
                 </div>
                 
                 <div class="col-6 col-md-3">
-                    <div class="exec-stat-card" onclick="resetTableFilter()">
-                        <div class="exec-label text-warning">ผลงานสูงสุด</div>
+                    <div class="exec-stat-card card-max" onclick="resetTableFilter()">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="exec-label">ผลงานสูงสุด</div>
+                            <div class="exec-icon-box" style="background:#fef3c7; color:#d97706;"><i class="bi bi-trophy"></i></div>
+                        </div>
                         <div class="exec-value" id="stat-max">- %</div>
-                        <div class="exec-sub text-truncate text-muted" id="stat-max-name">-</div>
+                        <div class="exec-sub text-truncate text-muted fw-bold" id="stat-max-name">-</div>
                     </div>
                 </div>
                 
                 <div class="col-6 col-md-3">
-                    <div class="exec-stat-card" onclick="filterTable('fail')" title="คลิกเพื่อดูเฉพาะที่ไม่ผ่าน">
-                        <div class="exec-label text-danger">ผลงานต่ำสุด <i class="bi bi-funnel float-end text-danger small"></i></div>
+                    <div class="exec-stat-card card-min" onclick="filterTable('fail')" title="คลิกเพื่อดูเฉพาะที่ไม่ผ่าน">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="exec-label">ผลงานต่ำสุด</div>
+                            <div class="exec-icon-box bg-danger-subtle text-danger"><i class="bi bi-exclamation-triangle"></i></div>
+                        </div>
                         <div class="exec-value" id="stat-min">- %</div>
-                        <div class="exec-sub text-truncate text-muted" id="stat-min-name">-</div>
+                        <div class="exec-sub text-truncate text-muted fw-bold" id="stat-min-name">- <i class="bi bi-funnel ms-1"></i></div>
                     </div>
                 </div>
             </div>
 
             <!-- 3. KPI Banner -->
-            <div class="kpi-header">
+            <div class="kpi-header fade-in" style="animation-delay: 0.2s;">
                 <div class="row align-items-center position-relative" style="z-index: 2;">
                     <div class="col-md-9">
-                        <div class="text-white-50 text-uppercase fw-bold small mb-1">ตัวชี้วัด (KPI)</div>
-                        <h4 class="fw-bold m-0 text-white lh-base" id="current-kpi-text">-</h4>
+                        <div class="badge bg-white text-dark mb-2 px-2 py-1 fw-bold rounded shadow-sm" style="font-size: 0.7rem; letter-spacing:0.5px;">
+                            ตัวชี้วัด (KPI)
+                        </div>
+                        <h4 class="fw-bold m-0 text-white lh-base text-shadow" id="current-kpi-text" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3);">-</h4>
                     </div>
-                    <div class="col-md-3 text-end border-start border-white border-opacity-10 ps-4">
-                        <small class="text-white-50 d-block">เกณฑ์เป้าหมาย</small>
-                        <div class="display-6 fw-bold text-white" id="target-value">- %</div>
+                    <div class="col-md-3 text-end border-start border-white border-opacity-25 ps-4 mt-3 mt-md-0">
+                        <small class="text-white-50 d-block fw-bold text-uppercase" style="letter-spacing: 0.5px;">เกณฑ์เป้าหมาย</small>
+                        <div class="display-5 fw-bold text-white mt-1" id="target-value" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3);">- %</div>
                     </div>
                 </div>
             </div>
 
             <!-- 4. Charts Section -->
-            <div class="row g-4 mb-4">
+            <div class="row g-4 mb-4 fade-in" style="animation-delay: 0.3s;">
                 <!-- Gauge -->
                 <div class="col-lg-4" id="gauge-card-col">
-                    <div class="dashboard-card p-4 text-center d-flex flex-column h-100">
-                        <h6 class="fw-bold text-secondary mb-3 text-start"><i class="bi bi-speedometer2 me-2"></i>เกจวัดผลงาน</h6>
-                        <div class="gauge-container flex-grow-1">
+                    <div class="dashboard-card text-center d-flex flex-column h-100 p-4">
+                        <h6 class="fw-bold text-dark mb-4 text-start d-flex align-items-center">
+                            <div class="exec-icon-box bg-primary-subtle text-primary me-2" style="width:30px; height:30px; font-size:1rem;"><i class="bi bi-speedometer2"></i></div>
+                            เกจวัดผลงาน
+                        </h6>
+                        <div class="gauge-container flex-grow-1 mt-2">
                             <canvas id="gaugeChart"></canvas>
-                            <div class="gauge-value-text">
+                            <div class="gauge-value-text mb-3">
                                 <div class="display-4 fw-bold text-dark lh-1" id="unit-value">0</div>
-                                <small class="text-muted">%</small>
+                                <small class="text-muted fw-bold">%</small>
                             </div>
                         </div>
-                        <div id="pass-status" class="mt-3 badge bg-light text-muted border rounded-pill px-3 py-2 fw-normal fs-6">
+                        <div id="pass-status" class="mt-4 badge badge-soft-warning rounded-pill px-4 py-2 fw-bold fs-6 mx-auto shadow-sm">
                             -
                         </div>
                     </div>
@@ -448,30 +441,33 @@
 
                 <!-- Bar Chart / Special Card -->
                 <div class="col-lg-8" id="chart-card-col">
-                    <div class="dashboard-card p-4 h-100">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold text-secondary m-0" id="chart-title">
-                                <i class="bi bi-bar-chart-line-fill me-2"></i>กราฟเปรียบเทียบ
+                    <div class="dashboard-card h-100 p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h6 class="fw-bold text-dark m-0 d-flex align-items-center">
+                                <div class="exec-icon-box bg-primary-subtle text-primary me-2" style="width:30px; height:30px; font-size:1rem;"><i class="bi bi-bar-chart-fill"></i></div>
+                                <span id="chart-title">กราฟเปรียบเทียบ</span>
                             </h6>
-                            <small class="text-muted" id="chart-subtitle"><i class="bi bi-sort-down me-1"></i> เรียงจากมากไปน้อย</small>
+                            <span class="badge bg-light text-secondary border px-2 py-1 shadow-sm" id="chart-subtitle"><i class="bi bi-sort-down me-1"></i> เรียงจากมากไปน้อย</span>
                         </div>
-                        <div style="height: 300px; position: relative;">
+                        
+                        <div style="height: 320px; position: relative;">
                             <!-- Canvas Graph -->
                             <canvas id="comparisonChart"></canvas>
                             
                             <!-- No Data Overlay -->
-                            <div id="no-data-overlay" class="position-absolute top-50 start-50 translate-middle text-center d-none" style="width: 100%;">
-                                <i class="bi bi-inbox text-muted fs-1 opacity-25"></i>
-                                <div class="text-muted small mt-2">ไม่มีข้อมูล</div>
+                            <div id="no-data-overlay" class="position-absolute top-50 start-50 translate-middle text-center d-none bg-white p-4 rounded-4 shadow-sm border" style="width: 80%; max-width:300px;">
+                                <i class="bi bi-inbox text-muted fs-1 opacity-50"></i>
+                                <div class="text-dark fw-bold mt-2">ไม่มีข้อมูลในขณะนี้</div>
+                                <small class="text-muted">กรุณาเลือกตัวชี้วัดหรือช่วงเวลาอื่น</small>
                             </div>
 
                             <!-- KPI Card Container -->
                             <div id="special-kpi-container" class="special-container">
-                                <div class="kpi-box">
+                                <div class="kpi-box shadow-sm">
                                     <div class="kpi-big-number" id="special-kpi-val">0</div>
                                     <div class="kpi-text-label" id="special-kpi-desc">อัตราการตาย</div>
-                                    <div class="mt-3">
-                                        <span class="badge bg-success rounded-pill px-3 py-2 fs-6">
+                                    <div class="mt-4">
+                                        <span class="badge bg-success rounded-pill px-4 py-2 fs-6 shadow-sm border border-white">
                                             <i class="bi bi-check-circle-fill me-1"></i> Success
                                         </span>
                                     </div>
@@ -480,11 +476,13 @@
 
                             <!-- Text Card Container -->
                             <div id="special-text-container" class="special-container">
-                                <div class="text-box">
+                                <div class="text-box shadow-sm">
                                     <div class="text-content-large" id="special-text-val">
                                         เขตสุขภาพที่ 2
                                     </div>
-                                    <div class="mt-3 text-muted small">ข้อมูลพื้นที่สุขภาพ</div>
+                                    <div class="mt-4 badge bg-primary text-white rounded-pill px-3 py-1 shadow-sm border border-white">
+                                        ข้อมูลพื้นที่สุขภาพ
+                                    </div>
                                 </div>
                             </div>
 
@@ -494,21 +492,24 @@
             </div>
 
             <!-- 5. Smart Data Table -->
-            <div class="dashboard-card p-4" id="table-container-card">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold text-secondary m-0"><i class="bi bi-table me-2"></i>ตารางรายละเอียด (Smart Table)</h6>
-                    <button class="btn btn-sm btn-outline-danger" onclick="resetTableFilter()" id="btn-reset-filter" style="display:none;">
-                        <i class="bi bi-x-circle-fill"></i> ยกเลิกการกรอง (แสดงทั้งหมด)
+            <div class="dashboard-card p-4 fade-in" id="table-container-card" style="animation-delay: 0.4s;">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                    <h6 class="fw-bold text-dark m-0 d-flex align-items-center">
+                        <div class="exec-icon-box bg-primary-subtle text-primary me-2" style="width:30px; height:30px; font-size:1rem;"><i class="bi bi-table"></i></div>
+                        ตารางรายละเอียด (Smart Table)
+                    </h6>
+                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold shadow-sm" onclick="resetTableFilter()" id="btn-reset-filter" style="display:none;">
+                        <i class="bi bi-x-lg me-1"></i> เลิกกรองข้อมูล
                     </button>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover table-custom w-100" id="detail-table">
+                    <table class="table table-custom w-100" id="detail-table">
                         <thead id="table-header">
                             <tr>
-                                <th style="width: 5%">#</th>
+                                <th style="width: 5%" class="text-center">#</th>
                                 <th style="width: 25%">หน่วยบริการ / รายการ</th>
-                                <th style="width: 15%" class="text-center bg-light text-primary border-start">เป้าหมาย</th>
-                                <th style="width: 15%" class="text-center bg-light text-success border-end">ผลงาน</th>
+                                <th style="width: 15%" class="text-center text-primary">เป้าหมาย</th>
+                                <th style="width: 15%" class="text-center text-success">ผลงาน</th>
                                 <th style="width: 10%" class="text-center">ร้อยละ (%)</th>
                                 <th style="width: 20%">Progress Bar</th>
                                 <th style="width: 10%" class="text-center">สถานะ</th>
@@ -532,15 +533,24 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.1.0/chartjs-plugin-annotation.min.js"></script>
 
 <script>
-    // ** ใส่ URL ของ Web App ใหม่ที่คุณ Deploy ได้ที่นี่ **
+    // ** ใส่ URL ของ Web App **
     const API_URL = "https://script.google.com/macros/s/AKfycbw8zV2FZYRYTq1eUrXOi1shSdO0u3P_klt4cUQoBRrpGiplOPdtQ_04xWfLJFi0YwO-/exec"; 
-    
     const MAIN_HOSPITAL_ID = "11244";
 
     let mapData = [], goalsConfig = {}, indicatorsList = {}, allChartData = {};
     let selectedUnitId = 'total', selectedKpiKey = null, currentPeriod = '6m'; 
     let barChart = null, gaugeChart = null, dataTable = null;
     let routingControl = null, map = null, mainLatLng = null;
+    let markersMap = {}; // ตัวแปรเก็บ marker เพื่อใช้เปิด popup เมื่อกดจากตาราง
+
+    // --- Mock Data Generator สำหรับ Resources ---
+    function getMockResource(id, type) {
+        const seed = parseInt(id) || 12345;
+        if (type === 'pop') return (seed % 5000 + 3000).toLocaleString(); // ประชากร 3000 - 8000
+        if (type === 'chronic') return (seed % 800 + 200).toLocaleString(); // ผู้ป่วย 200 - 1000
+        if (type === 'staff') return (seed % 15 + 5).toLocaleString(); // บุคลากร 5 - 20
+        return "-";
+    }
 
     document.addEventListener('DOMContentLoaded', async () => {
         initMap();
@@ -549,7 +559,9 @@
 
     function initMap() {
         map = L.map('map', { zoomControl: false }).setView([17.05, 99.55], 11);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '', maxZoom: 19 }).addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { 
+            attribution: '&copy; OpenStreetMap, &copy; CARTO', maxZoom: 19 
+        }).addTo(map);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
     }
 
@@ -563,6 +575,10 @@
             indicatorsList = data.indicatorsList;
             allChartData = data.chartData;
 
+            // หาตำแหน่งโรงพยาบาลแม่ข่ายก่อน
+            const mainHospital = mapData.find(d => d.id === MAIN_HOSPITAL_ID);
+            if (mainHospital) mainLatLng = L.latLng(mainHospital.lat, mainHospital.lng);
+
             setupMapMarkers();
             setupDropdowns();
             
@@ -571,7 +587,7 @@
 
             const loader = document.getElementById('loading-screen');
             loader.style.opacity = '0';
-            setTimeout(() => loader.remove(), 500);
+            setTimeout(() => loader.remove(), 400);
         } catch (error) {
             console.error(error);
             document.querySelector('#loading-screen h6').innerHTML = "<span class='text-danger'>เชื่อมต่อไม่สำเร็จ กรุณาตรวจสอบ URL API</span>";
@@ -585,15 +601,75 @@
             iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
         });
 
-        const mainHospital = mapData.find(d => d.id === MAIN_HOSPITAL_ID);
-        if (mainHospital) mainLatLng = L.latLng(mainHospital.lat, mainHospital.lng);
+        markersMap = {}; // ล้างค่าเดิม
 
         mapData.forEach(unit => {
+            if (!unit.lat || !unit.lng) return;
+
             const isMain = (unit.id === MAIN_HOSPITAL_ID);
-            L.marker([unit.lat, unit.lng], { icon: createIcon(isMain ? 'red' : 'blue'), zIndexOffset: isMain?1000:0 })
+            const unitLatLng = L.latLng(unit.lat, unit.lng);
+            
+            // คำนวณระยะทางแบบเส้นตรง
+            let distanceHtml = "";
+            if (!isMain && mainLatLng) {
+                const distanceKm = (mainLatLng.distanceTo(unitLatLng) / 1000).toFixed(2);
+                distanceHtml = `<p class="card-text text-danger mb-2" style="font-size: 0.85rem;"><i class="bi bi-geo-alt-fill"></i> ห่างจาก รพ.แม่ข่าย: <b>${distanceKm} กม.</b></p>`;
+            } else if (isMain) {
+                distanceHtml = `<p class="card-text text-success mb-2" style="font-size: 0.85rem;"><i class="bi bi-house-heart-fill"></i> โรงพยาบาลแม่ข่าย</p>`;
+            }
+
+            // HTML สำหรับ Card Popup (ปรับปรุงส่วนหัวใหม่)
+            const popupContent = `
+                <div class="card" style="border: none;">
+                    <!-- ส่วนข้อมูลทรัพยากร (แทนที่ iframe แผนที่เดิม) -->
+                    <div class="resource-header bg-light border-bottom p-2" style="border-radius: 8px 8px 0 0;">
+                        <div class="row text-center g-1">
+                            <div class="col-4">
+                                <div class="bg-white p-1 rounded shadow-sm border h-100 d-flex flex-column justify-content-center">
+                                    <i class="bi bi-people-fill text-primary mb-1" style="font-size: 1.1rem;"></i>
+                                    <div class="text-muted" style="font-size: 0.55rem; line-height: 1.1;">ประชากร(คน)</div>
+                                    <div class="fw-bold text-dark mt-1" style="font-size: 0.75rem;">${getMockResource(unit.id, 'pop')}</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="bg-white p-1 rounded shadow-sm border h-100 d-flex flex-column justify-content-center">
+                                    <i class="bi bi-clipboard2-pulse-fill text-danger mb-1" style="font-size: 1.1rem;"></i>
+                                    <div class="text-muted" style="font-size: 0.55rem; line-height: 1.1;">ผู้ป่วยเรื้อรัง</div>
+                                    <div class="fw-bold text-dark mt-1" style="font-size: 0.75rem;">${getMockResource(unit.id, 'chronic')}</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="bg-white p-1 rounded shadow-sm border h-100 d-flex flex-column justify-content-center">
+                                    <i class="bi bi-person-badge-fill text-success mb-1" style="font-size: 1.1rem;"></i>
+                                    <div class="text-muted" style="font-size: 0.55rem; line-height: 1.1;">บุคลากร(คน)</div>
+                                    <div class="fw-bold text-dark mt-1" style="font-size: 0.75rem;">${getMockResource(unit.id, 'staff')}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body" style="padding: 12px 15px;">
+                        <h6 class="card-title fw-bold text-primary mb-1" style="font-size: 1rem;">${unit.name}</h6>
+                        <p class="card-text text-muted mb-2" style="font-size: 0.8rem;">รหัสหน่วยบริการ: ${unit.id}</p>
+                        ${distanceHtml}
+                        <hr class="my-2 text-muted">
+                        <!-- ปรับปุ่มให้ตัวอักษรสีขาว -->
+                        <a href="https://www.google.com/maps?layer=c&cbll=${unit.lat},${unit.lng}" target="_blank" class="btn btn-sm btn-primary w-100 text-white" style="border-radius: 8px; color: #ffffff !important;">
+                            <i class="bi bi-person-walking me-1"></i> เข้าชม Street View
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            const marker = L.marker([unit.lat, unit.lng], { icon: createIcon(isMain ? 'red' : 'violet'), zIndexOffset: isMain?1000:0 })
              .addTo(map)
-             .bindTooltip(unit.name, { permanent: true, direction: 'bottom', className: 'map-label', offset: [0, 5] })
-             .on('click', () => selectUnit(unit));
+             .bindTooltip(`<div class="fw-bold">${unit.name}</div>`, { permanent: true, direction: 'bottom', className: 'map-label border-0 shadow-sm rounded-pill px-2 py-1', offset: [0, 8] })
+             .bindPopup(popupContent, { className: 'custom-card-popup', closeButton: true })
+             .on('click', () => {
+                 selectUnit(unit);
+             });
+
+            markersMap[unit.id] = marker; // เก็บลงตัวแปร
         });
     }
 
@@ -623,6 +699,13 @@
                 const config = goalsConfig[selectedKpiKey];
                 currentPeriod = (config.goal_6m === null) ? '10m' : '6m';
             }
+            
+            // Trigger fade-in animation on panel
+            const panel = document.getElementById('dashboard-panel');
+            panel.classList.remove('fade-in');
+            void panel.offsetWidth; // trigger reflow
+            panel.classList.add('fade-in');
+            
             updateDashboard();
         });
 
@@ -638,28 +721,34 @@
 
     function selectUnit(unit) {
         selectedUnitId = unit.id;
-        document.getElementById('unit-name').textContent = unit.name; // Full Name
+        document.getElementById('unit-name').textContent = unit.name; 
         document.getElementById('unit-id').textContent = unit.id;
 
+        // ลบ routingControl เดิมทิ้ง (เหลือไว้เพื่อเคลียร์หากโค้ดเก่ายังทำงานอยู่)
         if (routingControl) { map.removeControl(routingControl); routingControl = null; }
+        
         const routeInfo = document.getElementById('route-info');
         routeInfo.classList.add('d-none');
 
-        if (unit.id !== MAIN_HOSPITAL_ID && mainLatLng && unit.id !== 'total') {
-            routingControl = L.Routing.control({
-                waypoints: [mainLatLng, L.latLng(unit.lat, unit.lng)],
-                lineOptions: { styles: [{color: '#2563eb', opacity: 0.6, weight: 5}] },
-                createMarker: () => null, show: false, addWaypoints: false, draggableWaypoints: false,
-                fitSelectedRoutes: true
-            }).addTo(map);
-
-            routingControl.on('routesfound', function(e) {
-                const distKm = (e.routes[0].summary.totalDistance / 1000).toFixed(1);
+        if (unit.id !== 'total') {
+            if (unit.id !== MAIN_HOSPITAL_ID && mainLatLng && unit.lat && unit.lng) {
+                // คำนวณระยะทางแบบเส้นตรง
+                const unitLatLng = L.latLng(unit.lat, unit.lng);
+                const distKm = (mainLatLng.distanceTo(unitLatLng) / 1000).toFixed(2);
                 document.getElementById('route-dist').textContent = distKm;
                 routeInfo.classList.remove('d-none');
-            });
-        } else if (unit.id !== 'total') {
-            map.flyTo([unit.lat, unit.lng], 13);
+            }
+            
+            map.flyTo([unit.lat, unit.lng], 14, { animate: true, duration: 1.5 });
+            
+            // เปิด Card Popup บนแผนที่เมื่อกดจากที่อื่น (เช่นตาราง)
+            if (markersMap[unit.id]) {
+                setTimeout(() => markersMap[unit.id].openPopup(), 200);
+            }
+        } else {
+            // กรณีกลับสู่ "ภาพรวม" ให้ปิด Popup แล้วซูมออก
+            map.closePopup();
+            map.setView([17.05, 99.55], 11);
         }
 
         updateDashboard();
@@ -683,14 +772,12 @@
             const dataSet = allChartData[selectedKpiKey];
             const firstItem = dataSet[0];
 
-            // ตรวจสอบ Type
             const isSpecialKPI = (firstItem && firstItem.type === 'kpi');
             const isSpecialText = (firstItem && firstItem.type === 'text');
             const isComparison = (firstItem && firstItem.type === 'year_comparison');
             const isAttributeList = (firstItem && firstItem.type === 'attribute_list'); 
-            const isAccidentStats = (firstItem && firstItem.type === 'accident_stats'); // NEW Sheet 8
+            const isAccidentStats = (firstItem && firstItem.type === 'accident_stats'); 
 
-            // Reset Visibility
             const canvasChart = document.getElementById('comparisonChart');
             const kpiContainer = document.getElementById('special-kpi-container');
             const textContainer = document.getElementById('special-text-container');
@@ -705,7 +792,6 @@
             tableCard.style.display = 'block';
             chartSubtitle.style.display = 'block';
 
-            // *** Handling Goals Display ***
             let goalVal = (currentPeriod === '6m') ? goalInfo.goal_6m : goalInfo.goal_10m;
             let goalText = (currentPeriod === '6m') ? goalInfo.goal_6m_text : goalInfo.goal_10m_text;
             
@@ -716,7 +802,6 @@
 
 
             if (isSpecialKPI) {
-                // --- MODE 1: KPI CARD ---
                 canvasChart.style.display = 'none'; gaugeCard.style.display = 'none';
                 tableCard.style.display = 'none'; chartSubtitle.style.display = 'none';
                 kpiContainer.style.display = 'block';
@@ -724,25 +809,23 @@
                 document.getElementById('special-kpi-val').textContent = firstItem.value;
                 const parts = firstItem.text.split('=');
                 document.getElementById('special-kpi-desc').textContent = parts[0] || "KPI";
-                document.getElementById('chart-title').innerHTML = '<i class="bi bi-star-fill me-2"></i>ตัวชี้วัดความสำเร็จ';
+                document.getElementById('chart-title').innerHTML = 'ตัวชี้วัดความสำเร็จ';
                 updateExecutiveStats([], null);
 
             } else if (isSpecialText) {
-                // --- MODE 2: TEXT CARD (รวมถึง Sheet 25, 26) ---
                 canvasChart.style.display = 'none'; gaugeCard.style.display = 'none';
                 tableCard.style.display = 'none'; chartSubtitle.style.display = 'none';
                 textContainer.style.display = 'block';
                 
                 document.getElementById('special-text-val').textContent = firstItem.text;
-                document.getElementById('chart-title').innerHTML = '<i class="bi bi-info-circle-fill me-2"></i>ข้อมูลทั่วไป';
+                document.getElementById('chart-title').innerHTML = 'ข้อมูลทั่วไป';
                 updateExecutiveStats([], null);
 
             } else if (isComparison) {
-                // --- MODE 3: YEAR COMPARISON (Sheet 3) ---
                 gaugeCard.style.display = 'none';
                 chartSubtitle.style.display = 'none';
                 
-                document.getElementById('chart-title').innerHTML = '<i class="bi bi-graph-up me-2"></i>กราฟเปรียบเทียบ HDC vs Hosxp (รายปี)';
+                document.getElementById('chart-title').innerHTML = 'กราฟเปรียบเทียบ HDC vs Hosxp (รายปี)';
                 document.getElementById('target-value').textContent = "รายปี";
 
                 renderYearComparisonChart(dataSet);
@@ -750,40 +833,31 @@
                 updateExecutiveStats([], null); 
 
             } else if (isAttributeList) {
-                // --- MODE 4: ATTRIBUTE LIST (Sheet 10) ---
                 canvasChart.style.display = 'none'; gaugeCard.style.display = 'none';
                 chartSubtitle.style.display = 'none';
                 textContainer.style.display = 'block'; 
 
-                // บังคับดึงข้อมูลของ 11244 Column C มาแสดง
                 let mainUnitData = dataSet.find(d => d.id === '11244');
                 let displayText = mainUnitData ? mainUnitData.attr1 : "ไม่พบข้อมูล รพ.บ้านด่านฯ";
                 
                 document.getElementById('special-text-val').textContent = displayText;
-                document.getElementById('chart-title').innerHTML = '<i class="bi bi-card-checklist me-2"></i>ผลการประเมิน (รพ.บ้านด่านลานหอย)';
+                document.getElementById('chart-title').innerHTML = 'ผลการประเมิน (รพ.บ้านด่านลานหอย)';
                 
                 updateAttributeTable(dataSet);
                 updateExecutiveStats([], null); 
 
             } else if (isAccidentStats) {
-                // --- NEW MODE 6: ACCIDENT STATS (Sheet 8) ---
-                gaugeCard.style.display = 'none'; // ซ่อน Gauge
+                gaugeCard.style.display = 'none'; 
                 chartSubtitle.style.display = 'none';
                 
-                document.getElementById('chart-title').innerHTML = '<i class="bi bi-cone-striped me-2"></i>สถิติอุบัติเหตุในเด็กและเยาวชน (1-18 ปี)';
+                document.getElementById('chart-title').innerHTML = 'สถิติอุบัติเหตุในเด็กและเยาวชน (1-18 ปี)';
                 document.getElementById('target-value').textContent = "รายปี";
 
-                // Render Chart: Injured vs Died
                 renderAccidentChart(dataSet);
-                
-                // Update Table
                 updateAccidentTable(dataSet);
-                
-                // Update Stats (Max Died/Injured)
                 updateExecutiveStats(dataSet, null); 
 
             } else {
-                // --- MODE 5: NORMAL ---
                 let unitData = dataSet.find(d => d.id === selectedUnitId);
                 if (!unitData && selectedUnitId === 'total') {
                      unitData = { id: 'total', name: 'ภาพรวมอำเภอ', value: 0 }; 
@@ -796,9 +870,8 @@
 
                 let title = goalInfo.custom_title || "กราฟเปรียบเทียบผลงาน";
                 if (selectedKpiKey === "3") title += " (ปีงบ 68)";
-                document.getElementById('chart-title').innerHTML = `<i class="bi bi-bar-chart-line-fill me-2"></i>${title}`;
+                document.getElementById('chart-title').innerHTML = title;
 
-                // Toggle Buttons Logic
                 const lbl6m = document.getElementById('lbl-6m');
                 const btn10m = document.getElementById('goal10m');
                 
@@ -814,19 +887,18 @@
                 const val = showData ? unitData.value : 0;
                 animateValue("unit-value", 0, val, 600);
                 
-                // Status Badge logic
                 const passStatus = document.getElementById('pass-status');
                 if(goalVal) {
                      if(val >= goalVal) {
-                         passStatus.className = "mt-3 badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-normal fs-6";
+                         passStatus.className = "mt-4 badge badge-soft-success rounded-pill px-4 py-2 fw-bold fs-6 mx-auto shadow-sm";
                          passStatus.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ผ่านเกณฑ์เป้าหมาย';
                      } else {
-                         passStatus.className = "mt-3 badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-normal fs-6";
+                         passStatus.className = "mt-4 badge badge-soft-danger rounded-pill px-4 py-2 fw-bold fs-6 mx-auto shadow-sm";
                          passStatus.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i> ต่ำกว่าเกณฑ์';
                      }
                 } else {
-                     passStatus.className = "mt-3 badge bg-light text-muted border rounded-pill px-3 py-2 fw-normal fs-6";
-                     passStatus.innerHTML = "ไม่มีเกณฑ์เป้าหมาย";
+                     passStatus.className = "mt-4 badge badge-soft-warning text-secondary border-0 rounded-pill px-4 py-2 fw-bold fs-6 mx-auto shadow-sm";
+                     passStatus.innerHTML = "ไม่มีเกณฑ์เป้าหมายกำหนด";
                 }
 
                 updateExecutiveStats(dataSet, goalVal);
@@ -840,17 +912,24 @@
         }
     }
 
-    // --- New Chart Function for Sheet 8 (Accidents) ---
+    // --- Chart Styling Defaults (Modern UI) ---
+    Chart.defaults.font.family = "'Prompt', sans-serif";
+    Chart.defaults.color = '#64748b';
+    Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
+    Chart.defaults.plugins.tooltip.titleFont = { size: 14, family: "'Prompt', sans-serif", weight: 'bold' };
+    Chart.defaults.plugins.tooltip.bodyFont = { size: 13, family: "'Prompt', sans-serif" };
+    Chart.defaults.plugins.tooltip.padding = 12;
+    Chart.defaults.plugins.tooltip.cornerRadius = 8;
+    Chart.defaults.plugins.tooltip.displayColors = false;
+
+    // --- Chart Function for Sheet 8 (Accidents) ---
     function renderAccidentChart(data) {
         const ctx = document.getElementById('comparisonChart').getContext('2d');
         const overlay = document.getElementById('no-data-overlay');
-        
         if (barChart) { barChart.destroy(); barChart = null; }
         overlay.classList.add('d-none');
         
-        // Filter out Total if needed, or sort
         const chartData = data.filter(d => d.id !== 'total').sort((a,b) => b.injured - a.injured);
-        
         const labels = chartData.map(d => d.initial || d.name);
         const injuredVals = chartData.map(d => d.injured);
         const diedVals = chartData.map(d => d.died);
@@ -860,52 +939,34 @@
             data: {
                 labels: labels,
                 datasets: [
-                    { 
-                        label: 'บาดเจ็บ (คน)', 
-                        data: injuredVals, 
-                        backgroundColor: '#f59e0b', // Orange
-                        borderRadius: 4,
-                        stack: 'Stack 0'
-                    },
-                    { 
-                        label: 'เสียชีวิต (คน)', 
-                        data: diedVals, 
-                        backgroundColor: '#dc2626', // Red
-                        borderRadius: 4,
-                        stack: 'Stack 1' // Separate stack to compare side-by-side or 'Stack 0' for stacked
-                    }
+                    { label: 'บาดเจ็บ (คน)', data: injuredVals, backgroundColor: '#f59e0b', borderRadius: 6, stack: 'Stack 0', barPercentage: 0.5 },
+                    { label: 'เสียชีวิต (คน)', data: diedVals, backgroundColor: '#f43f5e', borderRadius: 6, stack: 'Stack 1', barPercentage: 0.5 }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 scales: { 
-                    y: { beginAtZero: true, title: {display: true, text: 'จำนวน (คน)'} }, 
-                    x: { grid: { display: false }, ticks: { font: {family: 'Prompt', size: 10} } } 
+                    y: { beginAtZero: true, title: {display: true, text: 'จำนวน (คน)'}, grid: { color: '#f1f5f9', drawBorder: false } }, 
+                    x: { grid: { display: false, drawBorder: false }, ticks: { font: {weight: '600'} } } 
                 },
                 plugins: {
-                    legend: { display: true, position: 'top' },
+                    legend: { display: true, position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
                     tooltip: { mode: 'index', intersect: false },
-                    datalabels: { 
-                        anchor: 'end', align: 'top', 
-                        formatter: (val) => val > 0 ? val : '', 
-                        font: { family: 'Prompt', weight: 'bold' }, color: '#4b5563' 
-                    }
+                    datalabels: { anchor: 'end', align: 'top', formatter: (val) => val > 0 ? val : '', font: { weight: 'bold' }, color: '#475569' }
                 }
             },
             plugins: [ChartDataLabels]
         });
     }
 
-    // --- New Table Function for Sheet 8 (Accidents) ---
+    // --- Table Function for Sheet 8 (Accidents) ---
     function updateAccidentTable(data) {
         if (dataTable) { dataTable.destroy(); dataTable = null; }
         const tbody = document.getElementById('table-body');
         const tfoot = document.getElementById('table-foot');
         
-        // Custom Headers
         const thead = document.getElementById('table-header').rows[0];
-        thead.innerHTML = '<th style="width: 5%">#</th><th style="width: 30%">หน่วยบริการ</th><th style="width: 15%" class="text-center">ประชากรกลุ่มเป้าหมาย</th><th style="width: 15%" class="text-center text-warning">บาดเจ็บ (คน)</th><th style="width: 15%" class="text-center text-danger">เสียชีวิต (คน)</th><th style="width: 20%" class="text-center">อัตราตาย (%)</th>';
-
+        thead.innerHTML = '<th style="width: 5%" class="text-center">#</th><th style="width: 30%">หน่วยบริการ</th><th style="width: 15%" class="text-center text-primary">ประชากรเป้าหมาย</th><th style="width: 15%" class="text-center text-warning">บาดเจ็บ (คน)</th><th style="width: 15%" class="text-center text-danger">เสียชีวิต (คน)</th><th style="width: 20%" class="text-center">อัตราตาย (%)</th>';
         tbody.innerHTML = ''; tfoot.innerHTML = '';
 
         const unitRows = data.filter(d => d.id !== 'total');
@@ -914,45 +975,39 @@
         unitRows.forEach((item, index) => {
              const tr = document.createElement('tr');
              if(item.id === selectedUnitId) tr.classList.add('table-primary');
-             
-             // Badge for High Death Rate
-             let rateBadge = item.value > 0 ? `<span class="badge bg-danger">${item.value}%</span>` : `<span class="text-muted">-</span>`;
+             let rateBadge = item.value > 0 ? `<span class="badge bg-danger rounded-pill px-3">${item.value}%</span>` : `<span class="text-muted fw-bold">-</span>`;
 
              tr.innerHTML = `
-                <td class="text-center">${index + 1}</td>
-                <td>${item.name}</td>
-                <td class="text-center">${item.target.toLocaleString()}</td>
-                <td class="text-center fw-bold text-warning">${item.injured}</td>
-                <td class="text-center fw-bold text-danger">${item.died}</td>
+                <td class="text-center text-muted fw-bold">${index + 1}</td>
+                <td class="fw-medium">${item.name}</td>
+                <td class="text-center bg-light fw-bold text-primary border-start">${item.target.toLocaleString()}</td>
+                <td class="text-center bg-light fw-bold text-warning">${item.injured}</td>
+                <td class="text-center bg-light fw-bold text-danger border-end">${item.died}</td>
                 <td class="text-center">${rateBadge}</td>
              `;
              tr.style.cursor = 'pointer';
-             tr.onclick = () => { 
-                const unitObj = mapData.find(u => u.id === item.id);
-                if(unitObj) selectUnit(unitObj);
-             };
+             tr.onclick = () => { selectUnit(mapData.find(u => u.id === item.id) || item); };
              tbody.appendChild(tr);
         });
         
         if(totalRow) {
              const tr = document.createElement('tr');
              tr.innerHTML = `
-                <td class="text-center">-</td>
-                <td><strong>ภาพรวมอำเภอ</strong></td>
-                <td class="text-center"><strong>${totalRow.target.toLocaleString()}</strong></td>
-                <td class="text-center text-warning"><strong>${totalRow.injured}</strong></td>
-                <td class="text-center text-danger"><strong>${totalRow.died}</strong></td>
-                <td class="text-center"><strong>${totalRow.value}%</strong></td>
+                <td class="text-center border-0">-</td>
+                <td class="border-0"><strong>ภาพรวมอำเภอ</strong></td>
+                <td class="text-center border-0 text-primary"><strong>${totalRow.target.toLocaleString()}</strong></td>
+                <td class="text-center border-0 text-warning"><strong>${totalRow.injured}</strong></td>
+                <td class="text-center border-0 text-danger"><strong>${totalRow.died}</strong></td>
+                <td class="text-center border-0 text-dark"><strong>${totalRow.value}%</strong></td>
              `;
              tfoot.appendChild(tr);
         }
     }
 
-    // --- New Chart Function for Sheet 3 ---
+    // --- Chart Function for Sheet 3 ---
     function renderYearComparisonChart(data) {
         const ctx = document.getElementById('comparisonChart').getContext('2d');
         const overlay = document.getElementById('no-data-overlay');
-        
         if (barChart) { barChart.destroy(); barChart = null; }
         overlay.classList.add('d-none');
 
@@ -965,60 +1020,59 @@
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'HDC/จังหวัด(%)', data: hdcValues, backgroundColor: '#3b82f6', borderRadius: 4 },
-                    { label: 'Hosxp/อำเภอ(%)', data: hosxpValues, backgroundColor: '#ef4444', borderRadius: 4 }
+                    { label: 'HDC/จังหวัด(%)', data: hdcValues, backgroundColor: '#4f46e5', borderRadius: 6, barPercentage: 0.6 },
+                    { label: 'Hosxp/อำเภอ(%)', data: hosxpValues, backgroundColor: '#f43f5e', borderRadius: 6, barPercentage: 0.6 }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, max: 100 }, x: { grid: { display: false } } },
+                scales: { 
+                    y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9', drawBorder: false } }, 
+                    x: { grid: { display: false, drawBorder: false }, ticks: { font: {weight: '600'} } } 
+                },
                 plugins: {
-                    legend: { display: true, position: 'top' },
-                    datalabels: { anchor: 'end', align: 'top', formatter: (val) => val + '%', font: { family: 'Prompt', weight: 'bold' }, color: '#4b5563' }
+                    legend: { display: true, position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+                    datalabels: { anchor: 'end', align: 'top', formatter: (val) => val + '%', font: { weight: 'bold' }, color: '#475569' }
                 }
             },
             plugins: [ChartDataLabels]
         });
     }
     
-    // --- New Table Function for Sheet 3 ---
+    // --- Table Function for Sheet 3 ---
     function updateComparisonTable(data) {
         if (dataTable) { dataTable.destroy(); dataTable = null; }
         const tbody = document.getElementById('table-body');
         const tfoot = document.getElementById('table-foot');
         
-        // Reset Headers
         const thead = document.getElementById('table-header').rows[0];
-        thead.innerHTML = '<th style="width: 5%">#</th><th style="width: 25%">ปีงบประมาณ</th><th style="width: 25%">HDC/จังหวัด</th><th style="width: 25%">Hosxp/อำเภอ</th><th style="width: 20%">Progress Bar</th>';
-        
+        thead.innerHTML = '<th style="width: 5%" class="text-center">#</th><th style="width: 25%">ปีงบประมาณ</th><th style="width: 25%" class="text-center text-primary">HDC/จังหวัด</th><th style="width: 25%" class="text-center text-danger">Hosxp/อำเภอ</th><th style="width: 20%">Progress Bar</th>';
         tbody.innerHTML = ''; tfoot.innerHTML = '';
 
         data.forEach((item, index) => {
              const tr = document.createElement('tr');
              tr.innerHTML = `
-                <td class="text-center">${index + 1}</td>
-                <td>ปีงบประมาณ ${item.year}</td>
-                <td class="text-center text-primary fw-bold">${item.hdc}%</td>
-                <td class="text-center text-danger fw-bold">${item.hosxp}%</td>
+                <td class="text-center text-muted fw-bold">${index + 1}</td>
+                <td class="fw-medium">ปีงบประมาณ ${item.year}</td>
+                <td class="text-center text-primary fw-bold bg-primary-subtle border-start">${item.hdc}%</td>
+                <td class="text-center text-danger fw-bold bg-danger-subtle border-end">${item.hosxp}%</td>
                 <td>
-                    <div class="progress progress-slim mb-1" title="HDC"><div class="progress-bar bg-primary" style="width: ${item.hdc}%"></div></div>
-                    <div class="progress progress-slim" title="Hosxp"><div class="progress-bar bg-danger" style="width: ${item.hosxp}%"></div></div>
+                    <div class="progress progress-slim mb-2" title="HDC"><div class="progress-bar" style="background-color: #4f46e5; width: ${item.hdc}%"></div></div>
+                    <div class="progress progress-slim" title="Hosxp"><div class="progress-bar" style="background-color: #f43f5e; width: ${item.hosxp}%"></div></div>
                 </td>
              `;
              tbody.appendChild(tr);
         });
     }
     
-    // --- New Table Function for Sheet 10 (Attributes) ---
+    // --- Table Function for Sheet 10 (Attributes) ---
     function updateAttributeTable(data) {
         if (dataTable) { dataTable.destroy(); dataTable = null; }
         const tbody = document.getElementById('table-body');
         const tfoot = document.getElementById('table-foot');
         
-        // Custom Headers
         const thead = document.getElementById('table-header').rows[0];
-        thead.innerHTML = '<th style="width: 5%">#</th><th style="width: 25%">หน่วยบริการ</th><th style="width: 20%">สรุปผลการประเมิน</th><th style="width: 20%">ระยะเวลาการรับรอง</th><th style="width: 30%">การประเมินรับรอง</th>';
-
+        thead.innerHTML = '<th style="width: 5%" class="text-center">#</th><th style="width: 25%">หน่วยบริการ</th><th style="width: 20%" class="text-center">สรุปผลการประเมิน</th><th style="width: 20%">ระยะเวลาการรับรอง</th><th style="width: 30%">การประเมินรับรอง</th>';
         tbody.innerHTML = ''; tfoot.innerHTML = '';
 
         const unitRows = data.filter(d => d.id !== 'total');
@@ -1028,26 +1082,25 @@
              const tr = document.createElement('tr');
              if(item.id === selectedUnitId) tr.classList.add('table-primary');
              
-             let badgeColor = "bg-secondary";
-             if(item.attr1.includes("ดี")) badgeColor = "bg-success";
-             else if(item.attr1.includes("มาตรฐาน")) badgeColor = "bg-primary";
-             else if(item.attr1.includes("ท้าทาย")) badgeColor = "bg-warning text-dark";
+             let badgeColor = "badge-soft-warning";
+             if(item.attr1.includes("ดี")) badgeColor = "badge-soft-success";
+             else if(item.attr1.includes("มาตรฐาน")) badgeColor = "bg-primary-subtle text-primary border border-primary-subtle";
 
              tr.innerHTML = `
-                <td class="text-center">${index + 1}</td>
-                <td>${item.name}</td>
-                <td><span class="badge ${badgeColor}">${item.attr1}</span></td>
-                <td>${item.attr2}</td>
+                <td class="text-center text-muted fw-bold">${index + 1}</td>
+                <td class="fw-medium">${item.name}</td>
+                <td class="text-center"><span class="badge ${badgeColor} rounded-pill px-3 py-1 shadow-sm">${item.attr1}</span></td>
+                <td><small class="fw-medium text-muted">${item.attr2}</small></td>
                 <td><small>${item.attr3}</small></td>
              `;
              tr.style.cursor = 'pointer';
-             tr.onclick = () => { selectUnit(mapData.find(u => u.id === item.id)); };
+             tr.onclick = () => { selectUnit(mapData.find(u => u.id === item.id) || item); };
              tbody.appendChild(tr);
         });
         
         if(totalRow) {
              const tr = document.createElement('tr');
-             tr.innerHTML = `<td class="text-center">-</td><td><strong>ภาพรวม</strong></td><td><strong>${totalRow.attr1}</strong></td><td colspan="2"></td>`;
+             tr.innerHTML = `<td class="text-center border-0">-</td><td class="border-0"><strong>ภาพรวม</strong></td><td class="text-center border-0 text-primary"><strong>${totalRow.attr1}</strong></td><td colspan="2" class="border-0"></td>`;
              tfoot.appendChild(tr);
         }
     }
@@ -1077,18 +1130,18 @@
             
             if(gap >= 0) {
                 gapDiv.className = "exec-value gap-positive";
-                gapArrow.className = "bi bi-arrow-up-circle-fill text-success fs-3";
-                gapDesc.textContent = "สูงกว่าเป้าหมาย";
+                gapArrow.className = "bi bi-arrow-up-right text-success fs-4 ms-1 fw-bold";
+                gapDesc.textContent = "สูงกว่าเป้าหมายที่ตั้งไว้";
             } else {
                 gapDiv.className = "exec-value gap-negative";
-                gapArrow.className = "bi bi-arrow-down-circle-fill text-danger fs-3";
-                gapDesc.textContent = "ต่ำกว่าเป้าหมาย";
+                gapArrow.className = "bi bi-arrow-down-right text-danger fs-4 ms-1 fw-bold";
+                gapDesc.textContent = "ต่ำกว่าเป้าหมายที่ตั้งไว้";
             }
         } else {
             gapDiv.textContent = "N/A";
             gapDiv.className = "exec-value text-muted";
-            gapArrow.className = "bi bi-dash-circle";
-            gapDesc.textContent = "ไม่มีค่าเป้าหมาย";
+            gapArrow.className = "bi bi-dash";
+            gapDesc.textContent = "ตัวชี้วัดนี้ไม่มีค่าเป้าหมาย";
         }
 
         const sortedVals = [...cleanData].sort((a,b) => b.value - a.value);
@@ -1101,7 +1154,7 @@
 
         let passCount = target ? cleanData.filter(d => d.value >= target).length : "-";
         document.getElementById('stat-pass').textContent = passCount + " แห่ง";
-        document.getElementById('stat-pass-sub').textContent = "จากทั้งหมด " + cleanData.length + " แห่ง";
+        document.getElementById('stat-pass-sub').innerHTML = `จากทั้งหมด ${cleanData.length} แห่ง <i class="bi bi-funnel ms-1 text-success"></i>`;
     }
 
     function filterTable(type) {
@@ -1131,14 +1184,12 @@
         const tbody = document.getElementById('table-body');
         const tfoot = document.getElementById('table-foot');
         
-        // Restore standard header
         const thead = document.getElementById('table-header').rows[0];
-        thead.innerHTML = '<th style="width: 5%">#</th><th style="width: 25%">หน่วยบริการ / รายการ</th><th style="width: 15%" class="text-center bg-light text-primary border-start">เป้าหมาย</th><th style="width: 15%" class="text-center bg-light text-success border-end">ผลงาน</th><th style="width: 10%" class="text-center">ร้อยละ (%)</th><th style="width: 20%">Progress Bar</th><th style="width: 10%" class="text-center">สถานะ</th>';
-
+        thead.innerHTML = '<th style="width: 5%" class="text-center">#</th><th style="width: 25%">หน่วยบริการ / รายการ</th><th style="width: 15%" class="text-center text-primary">เป้าหมาย</th><th style="width: 15%" class="text-center text-success">ผลงาน</th><th style="width: 10%" class="text-center">ร้อยละ (%)</th><th style="width: 20%">Progress Bar</th><th style="width: 10%" class="text-center">สถานะ</th>';
         tbody.innerHTML = ''; tfoot.innerHTML = '';
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-4">ไม่พบข้อมูลสำหรับตัวชี้วัดนี้</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-5 bg-light rounded"><i class="bi bi-inbox fs-2 d-block mb-2"></i>ไม่พบข้อมูลสำหรับตัวชี้วัดนี้</td></tr>';
             return;
         }
 
@@ -1148,58 +1199,58 @@
         unitRows.forEach((item, index) => {
             const tr = document.createElement('tr');
             if(item.id === selectedUnitId) tr.classList.add('table-primary');
-            let name = item.name;
-            let targetNum = (item.target !== undefined && item.target !== null) ? item.target.toLocaleString() : "-";
-            let resultNum = (item.result !== undefined && item.result !== null) ? item.result.toLocaleString() : "-";
+            let targetNum = (item.target !== undefined && item.target !== null && item.target !== "") ? item.target.toLocaleString() : "-";
+            let resultNum = (item.result !== undefined && item.result !== null && item.result !== "") ? item.result.toLocaleString() : "-";
             
-            let statusBadge = '<span class="badge bg-light text-muted fw-normal border">N/A</span>';
-            let progressColor = 'bg-secondary';
+            let statusBadge = '<span class="badge bg-light text-muted fw-medium border rounded-pill px-3">N/A</span>';
+            let progressColor = '#94a3b8'; // slate-400
+            
             if (target) {
                 if (item.value >= target) {
-                    statusBadge = '<span class="badge bg-success-subtle text-success fw-normal border border-success-subtle"><i class="bi bi-check-circle-fill"></i> ผ่าน</span>';
-                    progressColor = 'bg-success';
+                    statusBadge = '<span class="badge badge-soft-success rounded-pill px-3 shadow-sm"><i class="bi bi-check-circle-fill me-1"></i> ผ่าน</span>';
+                    progressColor = '#10b981'; // emerald-500
                 } else {
-                    statusBadge = '<span class="badge bg-danger-subtle text-danger fw-normal border border-danger-subtle"><i class="bi bi-x-circle-fill"></i> ไม่ผ่าน</span>';
-                    progressColor = 'bg-danger';
+                    statusBadge = '<span class="badge badge-soft-danger rounded-pill px-3 shadow-sm"><i class="bi bi-x-circle-fill me-1"></i> ไม่ผ่าน</span>';
+                    progressColor = '#f43f5e'; // rose-500
                 }
             }
 
             tr.innerHTML = `
                 <td class="text-center text-muted fw-bold">${index + 1}</td>
-                <td>${name}</td>
-                <td class="text-center text-primary fw-bold bg-light border-start">${targetNum}</td>
-                <td class="text-center text-success fw-bold bg-light border-end">${resultNum}</td>
+                <td class="fw-medium">${item.name}</td>
+                <td class="text-center text-primary fw-bold bg-primary-subtle border-start">${targetNum}</td>
+                <td class="text-center text-success fw-bold bg-success-subtle border-end">${resultNum}</td>
                 <td class="text-center fw-bold text-dark">${item.value}%</td>
-                <td><div class="progress progress-slim"><div class="progress-bar ${progressColor}" style="width: ${Math.min(item.value, 100)}%"></div></div></td>
+                <td><div class="progress progress-slim mt-1"><div class="progress-bar" style="background-color: ${progressColor}; width: ${Math.min(item.value, 100)}%"></div></div></td>
                 <td class="text-center">${statusBadge}</td>
             `;
             tr.style.cursor = 'pointer';
-            tr.onclick = () => {
-                const unitObj = mapData.find(u => u.id === item.id);
-                if(unitObj) selectUnit(unitObj);
-            };
+            tr.onclick = () => { selectUnit(mapData.find(u => u.id === item.id) || item); };
             tbody.appendChild(tr);
         });
 
         if (totalRow) {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="text-center">-</td>
-                <td><strong>ภาพรวมอำเภอ</strong></td>
-                <td class="text-center text-primary fs-6 border-start">${totalRow.target || "-"}</td>
-                <td class="text-center text-success fs-6 border-end">${totalRow.result || "-"}</td>
-                <td class="text-center text-dark fs-6 fw-bold">${totalRow.value}%</td>
-                <td><div class="progress progress-slim"><div class="progress-bar bg-primary" style="width: ${Math.min(totalRow.value, 100)}%"></div></div></td>
-                <td class="text-center"><small class="text-muted">ค่าเฉลี่ย</small></td>
+                <td class="text-center border-0">-</td>
+                <td class="border-0"><strong>ภาพรวมอำเภอ</strong></td>
+                <td class="text-center text-primary fw-bold border-start border-0">${totalRow.target || "-"}</td>
+                <td class="text-center text-success fw-bold border-end border-0">${totalRow.result || "-"}</td>
+                <td class="text-center text-dark fs-6 fw-bold border-0">${totalRow.value}%</td>
+                <td class="border-0"><div class="progress progress-slim mt-1"><div class="progress-bar bg-dark" style="width: ${Math.min(totalRow.value, 100)}%"></div></div></td>
+                <td class="text-center border-0"><span class="badge bg-dark rounded-pill px-3">ค่าเฉลี่ย</span></td>
             `;
             tfoot.appendChild(tr);
         }
 
-        dataTable = $('#detail-table').DataTable({ paging: false, searching: true, info: false, language: { search: "ค้นหา:", zeroRecords: "ไม่พบข้อมูล" } });
+        dataTable = $('#detail-table').DataTable({ 
+            paging: false, searching: true, info: false, 
+            language: { search: "", searchPlaceholder: "ค้นหาหน่วยบริการ...", zeroRecords: "ไม่พบข้อมูล" } 
+        });
     }
 
     function animateValue(id, start, end, duration) {
-        if (start === end) return;
+        if (start === end) { document.getElementById(id).innerHTML = end; return; }
         const obj = document.getElementById(id);
         let startTimestamp = null;
         const step = (timestamp) => {
@@ -1217,8 +1268,8 @@
         if (gaugeChart) gaugeChart.destroy();
         const remaining = Math.max(0, 100 - value);
         const isPass = target && value >= target;
-        let color = '#3b82f6';
-        if (target) color = isPass ? '#10b981' : '#ef4444';
+        let color = '#4f46e5'; // Primary Indigo
+        if (target) color = isPass ? '#10b981' : '#f43f5e'; // Emerald or Rose
 
         gaugeChart = new Chart(ctx, {
             type: 'doughnut',
@@ -1227,7 +1278,8 @@
                 datasets: [{
                     data: [value, remaining],
                     backgroundColor: [color, '#f1f5f9'],
-                    borderWidth: 0, circumference: 180, rotation: -90, cutout: '75%'
+                    borderWidth: 0, circumference: 180, rotation: -90, cutout: '78%',
+                    borderRadius: [10, 0]
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
@@ -1263,19 +1315,19 @@
         
         const bgColors = sortedData.map(d => {
             if (d.id === 'total') {
-                if (targetValue !== null) return (Number(d.value) >= Number(targetValue)) ? '#7CFC00' : '#FF4500';
-                return '#32CD32';
+                if (targetValue !== null) return (Number(d.value) >= Number(targetValue)) ? '#10b981' : '#f43f5e';
+                return '#4f46e5';
             }
-            if (d.id === selectedUnitId) return '#f59e0b';
-            return '#B0C4DE'; 
+            if (d.id === selectedUnitId) return '#f59e0b'; // Amber for selected
+            return '#cbd5e1'; // Slate-300 for normal
         });
 
         const annotations = {};
         if (targetValue !== null) {
             annotations.line1 = {
                 type: 'line', yMin: targetValue, yMax: targetValue,
-                borderColor: '#dc2626', borderWidth: 2, borderDash: [5, 5],
-                label: { content: `เป้า ${targetValue}%`, display: true, position: 'end', backgroundColor: '#dc2626', color: 'white', font: {size: 10} }
+                borderColor: '#f43f5e', borderWidth: 2, borderDash: [6, 4],
+                label: { content: `เป้า ${targetValue}%`, display: true, position: 'end', backgroundColor: '#f43f5e', color: 'white', font: {size: 11, weight: 'bold'}, borderRadius: 4, padding: 4 }
             };
         }
 
@@ -1286,7 +1338,7 @@
                 datasets: [{
                     data: values,
                     backgroundColor: bgColors,
-                    borderRadius: 4, barPercentage: 0.6,
+                    borderRadius: 6, barPercentage: 0.5,
                 }]
             },
             options: {
@@ -1303,13 +1355,30 @@
                     }
                 },
                 scales: {
-                    y: { beginAtZero: true, max: 100, grid: { borderDash: [2, 2] } },
-                    x: { grid: { display: false }, ticks: { font: {family: 'Prompt', size: 10, weight: 'bold'}, autoSkip: false, maxRotation: 45, minRotation: 0 } }
+                    y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9', drawBorder: false } },
+                    x: { grid: { display: false, drawBorder: false }, ticks: { font: {weight: '600'}, autoSkip: false, maxRotation: 45, minRotation: 0 } }
                 },
                 plugins: {
                     legend: { display: false },
-                    tooltip: { callbacks: { title: (ctx) => sortedData[ctx[0].dataIndex].name } },
-                    datalabels: { anchor: 'end', align: 'top', formatter: (val) => val + '%', font: { family: 'Prompt', weight: 'bold' }, color: '#4b5563' },
+                    tooltip: { 
+                        callbacks: { 
+                            title: (ctx) => {
+                                const d = sortedData[ctx[0].dataIndex];
+                                return d.id === 'total' ? 'ภาพรวม' : (d.initial || d.name);
+                            },
+                            label: (ctx) => {
+                                const d = sortedData[ctx[0].dataIndex];
+                                const targetTxt = d.target ? ` (เป้า: ${d.target})` : '';
+                                return ` ผลงาน: ${ctx.parsed.y}%${targetTxt}`;
+                            }
+                        } 
+                    },
+                    datalabels: { 
+                        anchor: 'end', align: 'top', 
+                        formatter: (val) => val + '%', 
+                        font: { family: 'Prompt', weight: 'bold', size: 10 },  
+                        color: '#4b5563', offset: -2 
+                    },
                     annotation: { annotations: annotations }
                 }
             },
